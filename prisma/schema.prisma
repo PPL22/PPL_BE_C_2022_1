@@ -10,28 +10,81 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String   @db.VarChar(255)
-  content   String?
-  published Boolean  @default(false)
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
+model tb_mhs {
+  nim       String   @id @unique
+  nama      String?  
+  alamat    String?
+  email     String?
+  kodeKab   String? @unique
+  kodeProv  String?
+  kodeWali  String?
+  tb_irs   tb_irs?
+  tb_khs   tb_khs?
+  tb_pkl  tb_pkl?
+  tb_skripsi  tb_skripsi?
+  tb_kabupaten  tb_kabupaten?
 }
 
-model Profile {
-  id     Int     @id @default(autoincrement())
-  bio    String?
-  user   User    @relation(fields: [userId], references: [id])
-  userId Int     @unique
+model tb_dosen {
+  nip        String   @id @unique
+  nama       String?
+  email      String?  
 }
 
-model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  name    String?
-  posts   Post[]
-  profile Profile?
+model tb_irs {
+  user      tb_mhs  @relation(fields: [nim], references: [nim])
+  nim    String  @unique
+  smt       String?
+  status    String?
+  jumlahSks Int?
+  fileIrs   String?
+}
+
+model tb_khs{
+  user      tb_mhs  @relation(fields: [nim], references: [nim])
+  nim       String   @id @unique
+  semester  String?
+  status    String?
+  jumlahSksSemester String?
+  Ips       String?
+  jumlahSksKumulatif String?
+  Ipk       String?
+  fileKhs   String?
+}
+
+model tb_pkl{
+  user     tb_mhs  @relation(fields: [nim], references: [nim])
+  nim       String   @id @unique
+  nama     String?
+  semester  String?
+  status    String?
+  filePkl   String?
+}
+
+model tb_skripsi{
+  user   tb_mhs  @relation(fields: [nim], references: [nim])
+  nim       String   @id @unique
+  nama     String?
+  semester  String?
+  status    String?
+  fileSkripsi   String?
+}
+
+model tb_provinsi{
+  kodeProv  String   @id @unique
+  namaProv  String?
+}
+
+model tb_kabupaten{
+  user  tb_mhs  @relation(fields: [kodeKab], references: [kodeKab])
+  kodeKab   String   @id @unique
+  namaKab   String?
+  kodeProv  String?
+}
+
+model tb_user{
+  id        String   @id @unique
+  username  String?
+  password  String?
+  role      String?
 }
