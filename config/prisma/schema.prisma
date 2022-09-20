@@ -11,80 +11,121 @@ datasource db {
 }
 
 model tb_mhs {
-  nim       String   @id @unique
-  nama      String?  
-  alamat    String?
-  email     String?
-  kodeKab   String? @unique
-  kodeProv  String?
-  kodeWali  String?
-  tb_irs   tb_irs?
-  tb_khs   tb_khs?
-  tb_pkl  tb_pkl?
-  tb_skripsi  tb_skripsi?
-  tb_kabupaten  tb_kabupaten?
+  nim      String @id @unique
+  nama     String
+  alamat   String
+  email    String
+  kodeKab  String
+  kodeProv String
+  kodeWali String
+
+  // FK_THIS
+  fk_kodeKab  tb_kabupaten @relation(fields: [kodeKab], references: [kodeKab])
+  fk_kodeProv  tb_provinsi @relation(fields: [kodeProv], references: [kodeProv])
+  fk_kodeWali tb_dosen     @relation(fields: [kodeWali], references: [nip])
+
+  // FK_OTHER
+  fk_nim_irs       tb_irs?
+  fk_nim_khs       tb_khs?
+  fk_nim_pkl       tb_pkl?
+  fk_nim_skripsi   tb_skripsi?
+  fk_ownerMhs_user tb_user?
 }
 
 model tb_dosen {
-  nip        String   @id @unique
-  nama       String?
-  email      String?  
+  nip   String @id @unique
+  nama  String
+  email String
+
+  // FK_OTHER
+  fk_kodeWali_mhs    tb_mhs[]
+  fk_ownerDosen_user tb_user?
 }
 
 model tb_irs {
-  user      tb_mhs  @relation(fields: [nim], references: [nim])
-  nim    String  @unique
-  smt       String?
-  status    String?
-  jumlahSks Int?
-  fileIrs   String?
+  nim       String @unique
+  semester  String
+  status    String
+  jumlahSks Int
+  fileIrs   String
+
+  // FK_THIS
+  fk_nim tb_mhs @relation(fields: [nim], references: [nim])
+
+  @@id([nim, semester])
 }
 
-model tb_khs{
-  user      tb_mhs  @relation(fields: [nim], references: [nim])
-  nim       String   @id @unique
-  semester  String?
-  status    String?
-  jumlahSksSemester String?
-  Ips       String?
-  jumlahSksKumulatif String?
-  Ipk       String?
-  fileKhs   String?
+model tb_khs {
+  nim                String @unique
+  semester           String
+  status             String
+  jumlahSksSemester  String
+  ips                String
+  jumlahSksKumulatif String
+  ipk                String
+  fileKhs            String
+
+  // FK_THIS
+  fk_nim tb_mhs @relation(fields: [nim], references: [nim])
+
+  @@id([nim, semester])
 }
 
-model tb_pkl{
-  user     tb_mhs  @relation(fields: [nim], references: [nim])
-  nim       String   @id @unique
-  nama     String?
-  semester  String?
-  status    String?
-  filePkl   String?
+model tb_pkl {
+  nim      String @unique
+  semester String
+  status   String
+  filePkl  String
+
+  // FK_THIS
+  fk_nim tb_mhs @relation(fields: [nim], references: [nim])
+
+  @@id([nim, semester])
 }
 
-model tb_skripsi{
-  user   tb_mhs  @relation(fields: [nim], references: [nim])
-  nim       String   @id @unique
-  nama     String?
-  semester  String?
-  status    String?
-  fileSkripsi   String?
+model tb_skripsi {
+  nim                String   @unique
+  semester           String
+  status             String
+  nilai              String
+  tanggalLulusSidang DateTime
+  fileSkripsi        String
+
+  // FK_THIS
+  fk_nim tb_mhs @relation(fields: [nim], references: [nim])
+
+  @@id([nim, semester])
 }
 
-model tb_provinsi{
-  kodeProv  String   @id @unique
-  namaProv  String?
+model tb_provinsi {
+  kodeProv String @id @unique
+  namaProv String
+  
+  // FK_OTHER
+  fk_kodeProv_mhs tb_mhs[]
+  fk_kodeProv_kabupaten tb_kabupaten[]
 }
 
-model tb_kabupaten{
-  user  tb_mhs  @relation(fields: [kodeKab], references: [kodeKab])
-  kodeKab   String   @id @unique
-  namaKab   String?
-  kodeProv  String?
+model tb_kabupaten {
+  kodeKab  String @id @unique
+  namaKab  String
+  kodeProv String
+
+  // FK_THIS
+  fk_kodeProv tb_provinsi @relation(fields: [kodeProv], references: [kodeProv])
+
+  // FK_OTHER
+  fk_kodeKab_mhs tb_mhs[]
 }
 
-model tb_user{
-  id        String   @id @unique
-  username  String?
-  password  String?
-  role      String?
+model tb_user {
+  username   String  @id @unique
+  password   String
+  role       String
+  ownerMhs   String? @unique
+  ownerDosen String? @unique
+
+  // FK_THIS
+  fk_ownerMhs   tb_mhs?   @relation(fields: [ownerMhs], references: [nim])
+  fk_ownerDosen tb_dosen? @relation(fields: [ownerDosen], references: [nip])
 }
