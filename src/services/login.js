@@ -19,24 +19,24 @@ const login = async (username, password) => {
         const userRefreshToken = jwt.sign({username: user.username, role: user.role}, process.env.REFRESH_TOKEN_SECRET)
         
         // Cari owner
-        // let owner, firstTime = false
-        // if (user.role === "Mahasiswa") {
-        //     owner = await prisma.tb_mhs.findUnique({
-        //         where: user.username
-        //     })
-        //     if (!owner.email) {
-        //         firstTime = true
-        //     }
-        // } else {
-        //     owner = await prisma.tb_dosen.findUnique({
-        //         where: user.username
-        //     })
-        // }
+        let owner, firstTime = false
+        if (user.role === "Mahasiswa") {
+            owner = await prisma.tb_mhs.findUnique({
+                where: user.username
+            })
+            if (!owner.email) {
+                firstTime = true
+            }
+        } else {
+            owner = await prisma.tb_dosen.findUnique({
+                where: user.username
+            })
+        }
 
         return {
             username: user.username,
             role: user.role,
-            // firstTime: firstTime,
+            firstTime: firstTime,
             accessToken: userAccessToken,
             refreshToken: userRefreshToken
         }
