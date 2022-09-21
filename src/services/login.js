@@ -3,7 +3,7 @@ const prisma = new PrismaClient()
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken')
 
-async function login(username, password) {
+const login = async (username, password) => {
     // Find user in database
     const user = await prisma.tb_user.findUnique({
         where: {
@@ -27,5 +27,4 @@ async function login(username, password) {
         throw new Error("Wrong password")
     }
 }
-
 module.exports = {login}
