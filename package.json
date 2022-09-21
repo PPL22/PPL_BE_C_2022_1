@@ -5,6 +5,14 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx prisma db seed && node src/app.js",
+    "prisma:migrate": "prisma migrate dev --skip-seed",
+    "prisma:format": "prisma format",
+    "prisma:generate": "prisma generate",
+    "prisma:generate:watch": "prisma generate --watch",
+    "prisma:seed": "prisma db seed --preview-feature",
+    "prisma:studio": "prisma studio",
+    "prisma:reset": "prisma migrate reset",
     "devStart": "nodemon src/app.js"
   },
   "repository": {
