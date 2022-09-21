@@ -11,42 +11,72 @@ datasource db {
 }
 
 model tb_mhs {
-  nim      String @id @unique
+  nim         String      @id @unique
+  nama        String
+  statusAktif StatusAktif
+  alamat      String
+  email       String
+  kodeKab     String
+  kodeProv    String
+  jalurMasuk  JalurMasuk
+  noHP        String
+  kodeWali    String
+  akun        String      @unique
+
+  // FK_THIS
+  fk_kodeKab  tb_kabupaten @relation(fields: [kodeKab], references: [kodeKab])
+  fk_kodeProv tb_provinsi  @relation(fields: [kodeProv], references: [kodeProv])
+  fk_kodeWali tb_dosen     @relation(fields: [kodeWali], references: [nip])
+  fk_akun     tb_user      @relation(fields: [akun], references: [username])
+
+  // FK_OTHER
+  fk_nim_irs     tb_irs?
+  fk_nim_khs     tb_khs?
+  fk_nim_pkl     tb_pkl?
+  fk_nim_skripsi tb_skripsi?
+}
+
+enum JalurMasuk {
+  SBMPTN
+  SNMPTN
+  Mandiri
+  Lainnya
+}
+
+enum StatusAktif {
+  Aktif
+  Cuti
+  Mangkir
+  DO
+  UndurDiri
+  Lulus
+  MeninggalDunia
+}
+
+model tb_dosen {
+  nip      String @id @unique
   nama     String
   alamat   String
   email    String
   kodeKab  String
   kodeProv String
-  kodeWali String
+  noHP     String
+  akun     String @unique
 
   // FK_THIS
   fk_kodeKab  tb_kabupaten @relation(fields: [kodeKab], references: [kodeKab])
-  fk_kodeProv  tb_provinsi @relation(fields: [kodeProv], references: [kodeProv])
-  fk_kodeWali tb_dosen     @relation(fields: [kodeWali], references: [nip])
+  fk_kodeProv tb_provinsi  @relation(fields: [kodeProv], references: [kodeProv])
+  fk_akun     tb_user      @relation(fields: [akun], references: [username])
 
   // FK_OTHER
-  fk_nim_irs       tb_irs?
-  fk_nim_khs       tb_khs?
-  fk_nim_pkl       tb_pkl?
-  fk_nim_skripsi   tb_skripsi?
-  fk_ownerMhs_user tb_user?
-}
-
-model tb_dosen {
-  nip   String @id @unique
-  nama  String
-  email String
-
-  // FK_OTHER
-  fk_kodeWali_mhs    tb_mhs[]
-  fk_ownerDosen_user tb_user?
+  fk_kodeWali_mhs tb_mhs[]
 }
 
 model tb_irs {
   nim       String @unique
   semester  String
   status    String
-  jumlahSks Int
+  jumlahSks String
   fileIrs   String
 
   // FK_THIS
@@ -88,7 +118,7 @@ model tb_skripsi {
   semester           String
   status             String
   nilai              String
-  tanggalLulusSidang DateTime
+  tanggalLulusSidang DateTime @db.Date
   fileSkripsi        String
 
   // FK_THIS
@@ -100,9 +130,10 @@ model tb_skripsi {
 model tb_provinsi {
   kodeProv String @id @unique
   namaProv String
-  
+
   // FK_OTHER
-  fk_kodeProv_mhs tb_mhs[]
+  fk_kodeProv_mhs       tb_mhs[]
+  fk_kodeProv_dosen     tb_dosen[]
   fk_kodeProv_kabupaten tb_kabupaten[]
 }
 
@@ -115,17 +146,29 @@ model tb_kabupaten {
   fk_kodeProv tb_provinsi @relation(fields: [kodeProv], references: [kodeProv])
 
   // FK_OTHER
-  fk_kodeKab_mhs tb_mhs[]
+  fk_kodeKab_mhs   tb_mhs[]
+  fk_kodeKab_dosen tb_dosen[]
 }
 
 model tb_user {
-  username   String  @id @unique
-  password   String
-  role       String
-  ownerMhs   String? @unique
-  ownerDosen String? @unique
+  username String     @id @unique
+  password String
+  status   StatusAkun
+  role     Role
 
-  // FK_THIS
-  fk_ownerMhs   tb_mhs?   @relation(fields: [ownerMhs], references: [nim])
-  fk_ownerDosen tb_dosen? @relation(fields: [ownerDosen], references: [nip])
+  // FK_OTHER
+  fk_user_mhs   tb_mhs?
+  fk_user_dosen tb_dosen?
+}
+
+enum Role {
+  Operator
+  Departemen
+  Dosen
+  Mahasiswa
+}
+
+enum StatusAkun {
+  Aktif
+  NonAktif
 }
