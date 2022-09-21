@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,80 +8,80 @@ datasource db {
 }
 
 model tb_mhs {
-  nim       String   @id @unique
-  nama      String?  
-  alamat    String?
-  email     String?
-  kodeKab   String? @unique
-  kodeProv  String?
-  kodeWali  String?
-  tb_irs   tb_irs?
-  tb_khs   tb_khs?
-  tb_pkl  tb_pkl?
-  tb_skripsi  tb_skripsi?
-  tb_kabupaten  tb_kabupaten?
+  nim          String       @id @unique
+  nama         String?
+  alamat       String?
+  email        String?
+  kodeKab      String       @unique
+  kodeProv     String
+  kodeWali     String
+  tb_kabupaten tb_kabupaten @relation(fields: [kodeKab], references: [kodeKab])
+  tb_irs       tb_irs?
+  tb_khs       tb_khs?
+  tb_pkl       tb_pkl?
+  tb_skripsi   tb_skripsi?
 }
 
 model tb_dosen {
-  nip        String   @id @unique
-  nama       String?
-  email      String?  
+  nip   String  @id @unique
+  nama  String?
+  email String?
 }
 
 model tb_irs {
-  user      tb_mhs  @relation(fields: [nim], references: [nim])
-  nim    String  @unique
+  nim       String  @unique
   smt       String?
   status    String?
   jumlahSks Int?
   fileIrs   String?
-}
-
-model tb_khs{
   user      tb_mhs  @relation(fields: [nim], references: [nim])
-  nim       String   @id @unique
-  semester  String?
-  status    String?
-  jumlahSksSemester String?
-  Ips       String?
+}
+
+model tb_khs {
+  nim                String  @id @unique
+  semester           String?
+  status             String?
+  jumlahSksSemester  String?
+  Ips                String?
   jumlahSksKumulatif String?
-  Ipk       String?
-  fileKhs   String?
+  Ipk                String?
+  fileKhs            String?
+  user               tb_mhs  @relation(fields: [nim], references: [nim])
 }
 
-model tb_pkl{
+model tb_pkl {
+  nim      String  @id @unique
+  nama     String?
+  semester String?
+  status   String?
+  filePkl  String?
   user     tb_mhs  @relation(fields: [nim], references: [nim])
-  nim       String   @id @unique
-  nama     String?
-  semester  String?
-  status    String?
-  filePkl   String?
 }
 
-model tb_skripsi{
-  user   tb_mhs  @relation(fields: [nim], references: [nim])
-  nim       String   @id @unique
-  nama     String?
-  semester  String?
-  status    String?
-  fileSkripsi   String?
+model tb_skripsi {
+  nim         String  @id @unique
+  nama        String?
+  semester    String?
+  status      String?
+  fileSkripsi String?
+  user        tb_mhs  @relation(fields: [nim], references: [nim])
 }
 
-model tb_provinsi{
-  kodeProv  String   @id @unique
-  namaProv  String?
+model tb_provinsi {
+  kodeProv String  @id @unique
+  namaProv String?
 }
 
-model tb_kabupaten{
-  user  tb_mhs  @relation(fields: [kodeKab], references: [kodeKab])
-  kodeKab   String   @id @unique
-  namaKab   String?
-  kodeProv  String?
+model tb_kabupaten {
+  kodeKab  String  @id @unique
+  namaKab  String?
+  kodeProv String?
+  mhs      tb_mhs?
 }
 
-model tb_user{
-  id        String   @id @unique
-  username  String?
-  password  String?
-  role      String?
+model tb_user {
+  id       String  @id @unique
+  username String?
+  password String?
+  role     String?
 }
