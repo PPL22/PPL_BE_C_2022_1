@@ -2719,6 +2719,45 @@ async function main() {
       ],
       skipDuplicates: true
   })
+
+  const createUser = await prisma.tb_user.createMany({
+    data: [
+      {
+        username: "operator",
+        password: "operator",
+        role: "Operator",
+        status: "Aktif"
+      },
+      {
+        username: "dosen1",
+        password: "dosen1",
+        role: "Dosen",
+        status: "Aktif"
+      },
+      {
+        username: "departemen1",
+        password: "departemen1",
+        role: "Departemen",
+        status: "Aktif"
+      },
+      {
+        username: "mhs1",
+        password: "mhs1",
+        role: "Mahasiswa",
+        status: "Aktif"
+      }
+    ],
+    skipDuplicates: true
+  })
+
+
+  const data = await prisma.tb_provinsi.findFirst({
+    where: {
+      kodeProv: '11'
+    }
+  })
+  console.log(data)
+  console.log({ createProvinsi, createKabupaten })
 }
 
 main()
