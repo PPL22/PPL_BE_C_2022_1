@@ -2719,14 +2719,6 @@ async function main() {
       ],
       skipDuplicates: true
   })
-  
-  const data = await prisma.tb_provinsi.findFirst({
-    where: {
-      kodeProv: '11'
-    }
-  })
-  console.log(data)
-  console.log({ createProvinsi, createKabupaten })
 }
 
 main()
