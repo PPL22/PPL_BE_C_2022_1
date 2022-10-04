@@ -1,10 +1,11 @@
-const { PrismaClient } = require('@prisma/client')
+const {
+  PrismaClient
+} = require('@prisma/client')
 const prisma = new PrismaClient()
 
 async function main() {
   const createKabupaten = await prisma.tb_kabupaten.createMany({
-    data: [
-      {
+    data: [{
         kodeKab: "1101",
         namaKab: "KAB. ACEH SELATAN",
         kodeProv: "11"
@@ -2577,178 +2578,255 @@ async function main() {
     ],
     skipDuplicates: true
   })
-  
-  const createProvinsi = await prisma.tb_provinsi.createMany({
-      data: [
-          {
-              kodeProv: "11",
-              namaProv: "ACEH"
-            },
-            {
-              kodeProv: "12",
-              namaProv: "SUMATERA UTARA"
-            },
-            {
-              kodeProv: "13",
-              namaProv: "SUMATERA BARAT"
-            },
-            {
-              kodeProv: "14",
-              namaProv: "RIAU"
-            },
-            {
-              kodeProv: "15",
-              namaProv: "JAMBI"
-            },
-            {
-              kodeProv: "16",
-              namaProv: "SUMATERA SELATAN"
-            },
-            {
-              kodeProv: "17",
-              namaProv: "BENGKULU"
-            },
-            {
-              kodeProv: "18",
-              namaProv: "LAMPUNG"
-            },
-            {
-              kodeProv: "19",
-              namaProv: "KEPULAUAN BANGKA BELITUNG"
-            },
-            {
-              kodeProv: "21",
-              namaProv: "KEPULAUAN RIAU"
-            },
-            {
-              kodeProv: "31",
-              namaProv: "DKI JAKARTA"
-            },
-            {
-              kodeProv: "32",
-              namaProv: "JAWA BARAT"
-            },
-            {
-              kodeProv: "33",
-              namaProv: "JAWA TENGAH"
-            },
-            {
-              kodeProv: "34",
-              namaProv: "DAERAH ISTIMEWA YOGYAKARTA"
-            },
-            {
-              kodeProv: "35",
-              namaProv: "JAWA TIMUR"
-            },
-            {
-              kodeProv: "36",
-              namaProv: "BANTEN"
-            },
-            {
-              kodeProv: "51",
-              namaProv: "BALI"
-            },
-            {
-              kodeProv: "52",
-              namaProv: "NUSA TENGGARA BARAT"
-            },
-            {
-              kodeProv: "53",
-              namaProv: "NUSA TENGGARA TIMUR"
-            },
-            {
-              kodeProv: "61",
-              namaProv: "KALIMANTAN BARAT"
-            },
-            {
-              kodeProv: "62",
-              namaProv: "KALIMANTAN TENGAH"
-            },
-            {
-              kodeProv: "63",
-              namaProv: "KALIMANTAN SELATAN"
-            },
-            {
-              kodeProv: "64",
-              namaProv: "KALIMANTAN TIMUR"
-            },
-            {
-              kodeProv: "65",
-              namaProv: "KALIMANTAN UTARA"
-            },
-            {
-              kodeProv: "71",
-              namaProv: "SULAWESI UTARA"
-            },
-            {
-              kodeProv: "72",
-              namaProv: "SULAWESI TENGAH"
-            },
-            {
-              kodeProv: "73",
-              namaProv: "SULAWESI SELATAN"
-            },
-            {
-              kodeProv: "74",
-              namaProv: "SULAWESI TENGGARA"
-            },
-            {
-              kodeProv: "75",
-              namaProv: "GORONTALO"
-            },
-            {
-            kodeProv: "76",
-              namaProv: "SULAWESI BARAT"
-            },
-            {
-              kodeProv: "81",
-              namaProv: "MALUKU"
-            },
-            {
-              kodeProv: "82",
-              namaProv: "MALUKU UTARA"
-            },
-            {
-              kodeProv: "91",
-              namaProv: "PAPUA"
-            },
-            {
-              kodeProv: "92",
-              namaProv: "PAPUA BARAT"
-            }
-      ],
-      skipDuplicates: true
-  })
 
-  const createUser = await prisma.tb_user.createMany({
-    data: [
-      {
-        username: "operator",
-        password: "operator",
-        role: "Operator",
-        status: "Aktif"
+  const createProvinsi = await prisma.tb_provinsi.createMany({
+    data: [{
+        kodeProv: "11",
+        namaProv: "ACEH"
       },
       {
-        username: "dosen1",
-        password: "dosen1",
-        role: "Dosen",
-        status: "Aktif"
+        kodeProv: "12",
+        namaProv: "SUMATERA UTARA"
       },
       {
-        username: "departemen1",
-        password: "departemen1",
-        role: "Departemen",
-        status: "Aktif"
+        kodeProv: "13",
+        namaProv: "SUMATERA BARAT"
       },
       {
-        username: "mhs1",
-        password: "mhs1",
-        role: "Mahasiswa",
-        status: "Aktif"
+        kodeProv: "14",
+        namaProv: "RIAU"
+      },
+      {
+        kodeProv: "15",
+        namaProv: "JAMBI"
+      },
+      {
+        kodeProv: "16",
+        namaProv: "SUMATERA SELATAN"
+      },
+      {
+        kodeProv: "17",
+        namaProv: "BENGKULU"
+      },
+      {
+        kodeProv: "18",
+        namaProv: "LAMPUNG"
+      },
+      {
+        kodeProv: "19",
+        namaProv: "KEPULAUAN BANGKA BELITUNG"
+      },
+      {
+        kodeProv: "21",
+        namaProv: "KEPULAUAN RIAU"
+      },
+      {
+        kodeProv: "31",
+        namaProv: "DKI JAKARTA"
+      },
+      {
+        kodeProv: "32",
+        namaProv: "JAWA BARAT"
+      },
+      {
+        kodeProv: "33",
+        namaProv: "JAWA TENGAH"
+      },
+      {
+        kodeProv: "34",
+        namaProv: "DAERAH ISTIMEWA YOGYAKARTA"
+      },
+      {
+        kodeProv: "35",
+        namaProv: "JAWA TIMUR"
+      },
+      {
+        kodeProv: "36",
+        namaProv: "BANTEN"
+      },
+      {
+        kodeProv: "51",
+        namaProv: "BALI"
+      },
+      {
+        kodeProv: "52",
+        namaProv: "NUSA TENGGARA BARAT"
+      },
+      {
+        kodeProv: "53",
+        namaProv: "NUSA TENGGARA TIMUR"
+      },
+      {
+        kodeProv: "61",
+        namaProv: "KALIMANTAN BARAT"
+      },
+      {
+        kodeProv: "62",
+        namaProv: "KALIMANTAN TENGAH"
+      },
+      {
+        kodeProv: "63",
+        namaProv: "KALIMANTAN SELATAN"
+      },
+      {
+        kodeProv: "64",
+        namaProv: "KALIMANTAN TIMUR"
+      },
+      {
+        kodeProv: "65",
+        namaProv: "KALIMANTAN UTARA"
+      },
+      {
+        kodeProv: "71",
+        namaProv: "SULAWESI UTARA"
+      },
+      {
+        kodeProv: "72",
+        namaProv: "SULAWESI TENGAH"
+      },
+      {
+        kodeProv: "73",
+        namaProv: "SULAWESI SELATAN"
+      },
+      {
+        kodeProv: "74",
+        namaProv: "SULAWESI TENGGARA"
+      },
+      {
+        kodeProv: "75",
+        namaProv: "GORONTALO"
+      },
+      {
+        kodeProv: "76",
+        namaProv: "SULAWESI BARAT"
+      },
+      {
+        kodeProv: "81",
+        namaProv: "MALUKU"
+      },
+      {
+        kodeProv: "82",
+        namaProv: "MALUKU UTARA"
+      },
+      {
+        kodeProv: "91",
+        namaProv: "PAPUA"
+      },
+      {
+        kodeProv: "92",
+        namaProv: "PAPUA BARAT"
       }
     ],
     skipDuplicates: true
   })
+
+  const createDosen = await prisma.tb_dosen.createMany({
+    data: [{
+        nip: "1234567",
+        nama: "Dosen Cuy",
+      },
+      {
+        nip: "2345678",
+        nama: "Operator Cuy",
+      },
+      {
+        nip: "3456789",
+        nama: "Departemen Cuy",
+      }
+    ],
+    skipDuplicates: true
+  })
+
+  const createMhs = await prisma.tb_mhs.createMany({
+    data: [{
+        nim: "24060120130059",
+        nama: "Liem, Roy Marcelino",
+        statusAktif: "Aktif",
+        jalurMasuk: "SBMPTN",
+        kodeWali: "1234567"
+      },
+      {
+        nim: "123456",
+        nama: "Dummy",
+        statusAktif: "Aktif",
+        jalurMasuk: "SNMPTN",
+        kodeWali: "1234567"
+      }
+    ],
+    skipDuplicates: true
+  })
+
+  createAkunMhs = await prisma.tb_akun_mhs.createMany({
+    data: [{
+        username: "mhs1",
+        password: "$2a$10$j4QbEynF6D8ljPGsWn4usudw8wktqkBP/rPxVCROZEcFaMlvi6iUO",
+        status: "Aktif",
+        pemilik: "24060120130059"
+      },
+      {
+        username: "mhs2",
+        password: "$2a$12$hsOPHiVrB0zW/LLFd3LvR.BYRVb2RzgbbiBCJrmqAsn0W8NFvvQN.",
+        status: "Aktif",
+        pemilik: "123456"
+      }
+    ],
+    skipDuplicates: true
+  })
+
+  const createAkunDosen = await prisma.tb_akun_dosen.createMany({
+    data: [{
+        username: "dosen1",
+        password: "$2a$10$pfO134TMuXtD3Vf9uvewsunJ.wbUTdNJA7jzSOPACDrG1MQYuuM0.",
+        status: "Aktif",
+        pemilik: "1234567"
+      },
+
+      {
+        username: "operator",
+        password: "$2a$10$7DcU6CTtQRsfID4tN1.cPeXiUeHvHgYJ8COLG5r0sEvKOyMK7jm3K",
+        status: "Aktif",
+        pemilik: "2345678"
+      },
+
+      {
+        username: "departemen1",
+        password: "$2a$10$tefIsmz.WlBFwwZEL1tux.l81k1.DLP0L9Jnvx7Zob9HLf1rRfygu",
+        status: "Aktif",
+        pemilik: "3456789"
+      },
+    ],
+    skipDuplicates: true
+  })
+
+  const createRoleAkunDosen = await prisma.tb_role_akun_dosen.createMany({
+    data: [{
+        username: "dosen1",
+        role: "Dosen"
+      },
+      {
+        username: "operator",
+        role: "Operator"
+      },
+      {
+        username: "operator",
+        role: "Dosen"
+      },
+      {
+        username: "departemen1",
+        role: "Departemen"
+      },
+      {
+        username: "departemen1",
+        role: "Dosen"
+      },
+      {
+        username: "departemen1",
+        role: "Operator"
+      }
+    ],
+    skipDuplicates: true
+  })
+
 }
 
 main()
