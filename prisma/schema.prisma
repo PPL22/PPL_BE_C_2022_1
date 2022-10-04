@@ -18,6 +18,8 @@ model tb_mhs {
   jalurMasuk  JalurMasuk
   noHP        String?
   kodeWali    String
+  foto        String?
+
   
   // FK_THIS
   fk_kodeKab  tb_kabupaten? @relation(fields: [kodeKab], references: [kodeKab])
