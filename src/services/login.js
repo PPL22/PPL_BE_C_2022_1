@@ -1,8 +1,7 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 const bcrypt = require('bcrypt');
-const e = require('cors');
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 
 const login = async (username, password) => {
     let dosen = true
