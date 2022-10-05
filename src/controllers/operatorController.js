@@ -2,7 +2,7 @@ const {
   getDataDosen,
   generateUsername,
   addMahasiswa,
-} = require("../services/operator");
+} = require("../services/operatorServices");
 
 async function getDataDosenController(req, res) {
   try {

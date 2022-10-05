@@ -3,13 +3,16 @@ const {
   validasiDataKhs,
   validasiDataPkl,
   validasiDataSkripsi,
+} = require('../services/dosenServices');
+
+const {
   rekapStatusMahasiswa,
   daftarStatusMahasiswa,
   rekapPklMahasiswa,
   daftarPklMahasiswa,
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
-} = require("../services/dosenServices");
+} = require('../services/rekapServices')
 
 const validasiDataIrsController = async (req, res) => {
   const { nim, semester, status, jumlahSks } = req.body;
@@ -146,10 +149,9 @@ const validasiDataSkripsiController = async (req, res) => {
   }
 };
 
-const rekapMahasiswaController = async (req, res) => {
-  const { nip } = req.body;
+const rekapMahasiswaDosenController = async (req, res) => {
+  const { nip } = req.params;
   const path = req.path;
-  console.log(path);
 
   // check null input
   if (!nip) {
@@ -158,15 +160,13 @@ const rekapMahasiswaController = async (req, res) => {
     });
   }
 
-  console.log(path);
-
   try {
     let result;
-    if (path === "/dosen/rekap-pkl") {
+    if (path === `/dosen/rekap-pkl/${nip}`) {
       result = await rekapPklMahasiswa({ nip });
-    } else if (path === "/dosen/rekap-skripsi") {
+    } else if (path === `/dosen/rekap-skripsi/${nip}`) {
       result = await rekapSkripsiMahasiswa({ nip });
-    } else if (path === "/dosen/rekap-status") {
+    } else if (path === `/dosen/rekap-status/${nip}`) {
       result = await rekapStatusMahasiswa({ nip });
     } else {
       return res.status(404).json({ message: "path tidak ditemukan" });
@@ -181,8 +181,8 @@ const rekapMahasiswaController = async (req, res) => {
   }
 };
 
-const daftarMahasiswaController = async (req, res) => {
-  const { nip } = req.body;
+const daftarMahasiswaDosenController = async (req, res) => {
+  const { nip } = req.params;
   const path = req.path;
 
   // check null input
@@ -194,11 +194,11 @@ const daftarMahasiswaController = async (req, res) => {
 
   try {
     let result;
-    if (path === "/dosen/daftar-pkl") {
+    if (path === `/dosen/daftar-pkl/${nip}`) {
       result = await daftarPklMahasiswa({ nip });
-    } else if (path === "/dosen/daftar-skripsi") {
+    } else if (path === `/dosen/daftar-skripsi/${nip}`) {
       result = await daftarSkripsiMahasiswa({ nip });
-    } else if (path === "/dosen/daftar-status") {
+    } else if (path === `/dosen/daftar-status/${nip}`) {
       result = await daftarStatusMahasiswa({ nip });
     } else {
       return res.status(404).json({ message: "path tidak ditemukan" });
@@ -218,6 +218,6 @@ module.exports = {
   validasiDataKhsController,
   validasiDataPklController,
   validasiDataSkripsiController,
-  rekapMahasiswaController,
-  daftarMahasiswaController,
+  rekapMahasiswaDosenController,
+  daftarMahasiswaDosenController,
 };

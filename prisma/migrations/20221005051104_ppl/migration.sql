@@ -8,6 +8,7 @@ CREATE TABLE `tb_mhs` (
     `kodeKab` VARCHAR(191) NULL,
     `kodeProv` VARCHAR(191) NULL,
     `jalurMasuk` ENUM('SBMPTN', 'SNMPTN', 'Mandiri', 'Lainnya') NOT NULL,
+    `angkatan` INTEGER NOT NULL,
     `noHP` VARCHAR(191) NULL,
     `kodeWali` VARCHAR(191) NOT NULL,
     `foto` VARCHAR(191) NULL,
@@ -60,6 +61,7 @@ CREATE TABLE `tb_pkl` (
     `nim` VARCHAR(191) NOT NULL,
     `semester` VARCHAR(191) NOT NULL,
     `status` VARCHAR(191) NOT NULL,
+    `nilai` VARCHAR(191) NOT NULL,
     `filePkl` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`nim`, `semester`)
@@ -72,6 +74,7 @@ CREATE TABLE `tb_skripsi` (
     `status` VARCHAR(191) NOT NULL,
     `nilai` VARCHAR(191) NOT NULL,
     `tanggalLulusSidang` DATE NOT NULL,
+    `lamaStudi` INTEGER NOT NULL,
     `fileSkripsi` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`nim`, `semester`)
@@ -163,3 +166,6 @@ ALTER TABLE `tb_akun_mhs` ADD CONSTRAINT `tb_akun_mhs_pemilik_fkey` FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE `tb_akun_dosen` ADD CONSTRAINT `tb_akun_dosen_pemilik_fkey` FOREIGN KEY (`pemilik`) REFERENCES `tb_dosen`(`nip`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `tb_role_akun_dosen` ADD CONSTRAINT `tb_role_akun_dosen_username_fkey` FOREIGN KEY (`username`) REFERENCES `tb_akun_dosen`(`username`) ON DELETE RESTRICT ON UPDATE CASCADE;
