@@ -2749,6 +2749,30 @@ async function main() {
         kodeWali: "1234567",
       },
       {
+        nim: "24060120130010",
+        nama: "Celino",
+        statusAktif: "Cuti",
+        jalurMasuk: "SBMPTN",
+        angkatan: 2019,
+        kodeWali: "1234567",
+      },
+      {
+        nim: "24060120130011",
+        nama: "Liem, Roy",
+        statusAktif: "DO",
+        jalurMasuk: "SBMPTN",
+        angkatan: 2022,
+        kodeWali: "2345678",
+      },
+      {
+        nim: "2406012345678",
+        nama: "Liem",
+        statusAktif: "Aktif",
+        jalurMasuk: "SBMPTN",
+        angkatan: 2020,
+        kodeWali: "2345678",
+      },
+      {
         nim: "123456",
         nama: "Dummy",
         statusAktif: "Aktif",
@@ -2756,6 +2780,7 @@ async function main() {
         angkatan: 2018,
         kodeWali: "1234567",
       },
+      
     ],
     skipDuplicates: true,
   });
