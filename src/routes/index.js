@@ -40,7 +40,7 @@ const router = express.Router();
 // Login
 router.post("/login", loginController);
 
-// router.use(verifyToken);
+router.use(verifyToken);
 
 // Operator
 router.get("/operator/data-dosen", getDataDosenController);
