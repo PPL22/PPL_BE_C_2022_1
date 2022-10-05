@@ -259,10 +259,25 @@ const entryDataSkripsiController = async (req, res) => {
   }
 };
 
+const getProfileMahasiswaController = async (req, res) => {
+  console.log(req.params);
+  try {
+    const result = await getProfileMahasiswa(req.params);
+    return res.status(200).json({
+      message: "Data berhasil diambil",
+      data: result,
+    });
+  } catch (err) {
+    console.log(err.message);
+    return res.status(400).json({ message: err.message });
+  }
+};
+
 module.exports = {
   updateDataMahasiswaController,
   entryDataIrsController,
   entryDataKhsController,
   entryDataPklController,
   entryDataSkripsiController,
+  getProfileMahasiswaController,
 };

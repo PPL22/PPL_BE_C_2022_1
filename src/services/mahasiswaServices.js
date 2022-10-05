@@ -164,15 +164,34 @@ const entryDataSkripsi = async (data) => {
   }
 };
 
-const getProfileMahasiswa = async ({ data }) => {
+const getProfileMahasiswa = async (data) => {
   try {
     const result = await prisma.tb_mhs.findUnique({
       where: {
         nim: data.nim,
       },
       select: {
-        fk_nim_khs: true,
+        fk_kodeWali: {
+          select: {
+            nama: true,
+            nip: true,
+          },
+        },
+        fk_nim_khs: {
+          orderBy: {
+            semester: "desc",
+          },
+          take: 1,
+          select: {
+            ipk: true,
+            jumlahSksKumulatif: true,
+          },
+        },
         fk_nim_irs: {
+          orderBy: {
+            semester: "desc",
+          },
+          take: 1,
           select: {
             semester: true,
             status: true,
@@ -180,7 +199,21 @@ const getProfileMahasiswa = async ({ data }) => {
         },
       },
     });
-    return result;
+    // spread operator
+    const profile = {
+      namaDosenWali: result.fk_kodeWali.nama,
+      nipDosenWali: result.fk_kodeWali.nip,
+      semester:
+        result.fk_nim_irs.length > 0 ? result.fk_nim_irs[0].semester : "-",
+      status: result.fk_nim_irs.length > 0 ? result.fk_nim_irs[0].status : "-",
+      ipk: result.fk_nim_khs.length > 0 ? result.fk_nim_khs[0].ipk : "-",
+      jumlahSksKumulatif:
+        result.fk_nim_khs.length > 0
+          ? result.fk_nim_khs[0].jumlahSksKumulatif
+          : "-",
+    };
+
+    return profile;
   } catch (error) {
     throw new Error(error);
   }
