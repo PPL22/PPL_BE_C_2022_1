@@ -16,6 +16,7 @@ const {
   entryDataKhsController,
   entryDataPklController,
   entryDataSkripsiController,
+  getProfileMahasiswaController,
 } = require("../controllers/mahasiswaController");
 
 const {
@@ -47,6 +48,7 @@ router.get("/operator/generate-username", generateUsernameController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
 
 // Mahasiswa Controller
+router.get("/mahasiswa/profile/:nim", getProfileMahasiswaController);
 router.post(
   "/mahasiswa/update-data",
   uploadImage.single("foto"),
