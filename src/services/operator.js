@@ -4,8 +4,32 @@ const bcrypt = require('bcrypt')
 
 async function getDataDosen() {
     // Get all dosen data
-    const dosen = await prisma.tb_dosen.findMany()
-    return dosen
+    const doswalAccounts = await prisma.tb_role_akun_dosen.findMany({
+        where: {
+            role: "Dosen"
+        },
+        include: {
+            fk_username: {
+                include: {
+                    fk_pemilik: true
+                }
+            }
+        },
+    })
+
+    doswalAccounts.map(user => {
+        const {fk_username} = user;
+        const {fk_pemilik} = fk_username
+        user.nip = fk_pemilik.nip
+        user.nama = fk_pemilik.nama
+        delete user.fk_username
+        delete user.username
+        delete user.role
+    })
+
+    console.log(doswalAccounts)
+
+    return doswalAccounts
 }
 
 async function generateUsername() {
