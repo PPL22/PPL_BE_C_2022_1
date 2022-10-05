@@ -16,6 +16,7 @@ model tb_mhs {
   kodeKab     String?
   kodeProv    String?
   jalurMasuk  JalurMasuk
+  angkatan    Int
   noHP        String?
   kodeWali    String
   foto        String?
@@ -24,13 +25,13 @@ model tb_mhs {
   // FK_THIS
   fk_kodeKab  tb_kabupaten? @relation(fields: [kodeKab], references: [kodeKab])
   fk_kodeProv tb_provinsi?  @relation(fields: [kodeProv], references: [kodeProv])
-  fk_kodeWali tb_dosen     @relation(fields: [kodeWali], references: [nip])
+  fk_kodeWali tb_dosen      @relation(fields: [kodeWali], references: [nip])
 
   // FK_OTHER
-  fk_nim_irs     tb_irs[]
-  fk_nim_khs     tb_khs[]
-  fk_nim_pkl     tb_pkl[]
-  fk_nim_skripsi tb_skripsi[]
+  fk_nim_irs          tb_irs[]
+  fk_nim_khs          tb_khs[]
+  fk_nim_pkl          tb_pkl[]
+  fk_nim_skripsi      tb_skripsi[]
   fk_pemilik_akun_mhs tb_akun_mhs?
 }
 
@@ -52,7 +53,7 @@ enum StatusAktif {
 }
 
 model tb_dosen {
-  nip      String @id @unique
+  nip      String  @id @unique
   nama     String
   alamat   String?
   email    String?
@@ -65,7 +66,7 @@ model tb_dosen {
   fk_kodeProv tb_provinsi?  @relation(fields: [kodeProv], references: [kodeProv])
 
   // FK_OTHER
-  fk_kodeWali_mhs tb_mhs[]
+  fk_kodeWali_mhs       tb_mhs[]
   fk_pemilik_akun_dosen tb_akun_dosen?
 }
 
@@ -102,6 +103,7 @@ model tb_pkl {
   nim      String
   semester String
   status   String
+  nilai    String
   filePkl  String
 
   // FK_THIS
@@ -116,6 +118,7 @@ model tb_skripsi {
   status             String
   nilai              String
   tanggalLulusSidang DateTime @db.Date
+  lamaStudi          Int
   fileSkripsi        String
 
   // FK_THIS
@@ -148,34 +151,33 @@ model tb_kabupaten {
 }
 
 model tb_akun_mhs {
-  username String     @id @unique 
+  username String     @id @unique
   password String
   status   StatusAkun
-  pemilik  String @unique
+  pemilik  String     @unique
 
   // FK_THIS
-  fk_pemilik  tb_mhs @relation(fields: [pemilik], references: [nim])
+  fk_pemilik tb_mhs @relation(fields: [pemilik], references: [nim])
 }
 
 model tb_akun_dosen {
-  username String @id @unique
+  username String     @id @unique
   password String
   status   StatusAkun
-  pemilik  String @unique
+  pemilik  String     @unique
 
   // FK_THIS
-  fk_pemilik  tb_dosen @relation(fields: [pemilik], references: [nip])
+  fk_pemilik tb_dosen @relation(fields: [pemilik], references: [nip])
 }
 
 model tb_role_akun_dosen {
-  username String     
+  username String
   role     Role
-  
+
   @@id([username, role])
 }
 
-
-enum Role  {
+enum Role {
   Operator
   Departemen
   Dosen
