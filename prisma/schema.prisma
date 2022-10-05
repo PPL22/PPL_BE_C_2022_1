@@ -168,11 +168,17 @@ model tb_akun_dosen {
 
   // FK_THIS
   fk_pemilik tb_dosen @relation(fields: [pemilik], references: [nip])
+  
+  // FK_OTHER
+  fk_username_role tb_role_akun_dosen[]
 }
 
 model tb_role_akun_dosen {
   username String
   role     Role
+
+  // FK_THIS
+  fk_username tb_akun_dosen @relation(fields: [username], references: [username])
 
   @@id([username, role])
 }
