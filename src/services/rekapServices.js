@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 const rekapStatusMahasiswa = async (data) => {
     try {
       let result
-        if (data.nip) {
+        if (data) {
             result = await prisma.tb_mhs.groupBy({
               by: ["angkatan", "statusAktif"],
               where: {
@@ -47,7 +47,7 @@ const rekapStatusMahasiswa = async (data) => {
   const daftarStatusMahasiswa = async (data) => {
     try {
         let result
-      if (data.nip) {
+      if (data) {
           result = await prisma.tb_mhs.findMany({
           where: {
             kodeWali: data.nip,
