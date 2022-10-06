@@ -1,4 +1,5 @@
 const {
+  getDataRegisterMahasiswa,
   updateDataMahasiswa,
   entryDataIrs,
   entryDataKhs,
@@ -8,10 +9,27 @@ const {
 } = require("../services/mahasiswaServices");
 const path = require("path");
 
+const getDataRegisterMahasiswaController = async (req, res) => {
+  const { nim } = req.params;
+  try {
+    const result = await getDataRegisterMahasiswa(nim);
+    res.status(200).json({
+      status: "success",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
 const updateDataMahasiswaController = async (req, res) => {
   const { nim, oldUsername, username, email, password, alamat, kodeKab, noHP } =
     req.body;
   const foto = req.file;
+  console.log(req.body);
 
   // check null input
   if (
@@ -274,6 +292,7 @@ const getProfileMahasiswaController = async (req, res) => {
 };
 
 module.exports = {
+  getDataRegisterMahasiswaController,
   updateDataMahasiswaController,
   entryDataIrsController,
   entryDataKhsController,

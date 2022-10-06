@@ -2,6 +2,7 @@ const {
   getDataDosen,
   generateUsername,
   addMahasiswa,
+  getDataAkunMahasiswa,
 } = require("../services/operatorServices");
 
 async function getDataDosenController(req, res) {
@@ -27,6 +28,7 @@ async function addMahasiswaController(req, res) {
     username,
     namaLengkap,
     nim,
+    angkatan,
     password,
     status,
     jalurMasuk,
@@ -38,6 +40,7 @@ async function addMahasiswaController(req, res) {
       username,
       namaLengkap,
       nim,
+      angkatan,
       password,
       status,
       jalurMasuk,
@@ -48,8 +51,19 @@ async function addMahasiswaController(req, res) {
     return res.status(403).json({ message: err.message });
   }
 }
+
+const getDataAkunMahasiswaController = async (req, res) => {
+  try {
+    const result = await getDataAkunMahasiswa();
+    return res.json(result);
+  } catch (err) {
+    return res.status(403).json({ message: err.message });
+  }
+};
+
 module.exports = {
   getDataDosenController,
   generateUsernameController,
   addMahasiswaController,
+  getDataAkunMahasiswaController,
 };

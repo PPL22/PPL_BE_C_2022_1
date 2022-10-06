@@ -76,7 +76,7 @@ const login = async (username, password) => {
 
       // Create new token
       const userAccessToken = jwt.sign(
-        { role: role },
+        { role: role, firstTime: firstTime },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "12h" }
       );
@@ -90,6 +90,7 @@ const login = async (username, password) => {
         role: role,
         nama: nama,
         id: id,
+        image: akun.fk_pemilik.foto,
         firstTime: firstTime,
         accessToken: userAccessToken,
         refreshToken: userRefreshToken,

@@ -22,11 +22,9 @@ const verifyToken = (req, res, next) => {
         } else if (req.originalUrl.includes(role.toLowerCase())) {
           next();
         } else {
-          res
-            .status(403)
-            .json({
-              message: "You are not authorized to access this resource",
-            });
+          res.status(403).json({
+            message: "You are not authorized to access this resource",
+          });
         }
       }
     });

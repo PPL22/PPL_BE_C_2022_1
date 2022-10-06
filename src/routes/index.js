@@ -8,9 +8,11 @@ const {
   getDataDosenController,
   generateUsernameController,
   addMahasiswaController,
+  getDataAkunMahasiswaController,
 } = require("../controllers/operatorController");
 
 const {
+  getDataRegisterMahasiswaController,
   updateDataMahasiswaController,
   entryDataIrsController,
   entryDataKhsController,
@@ -33,21 +35,27 @@ const {
   daftarMahasiswaDepartemenController,
 } = require("../controllers/departemenController");
 
+const { getKotaController } = require("../controllers/locationController");
+
 const verifyToken = require("../middlewares/verifyToken");
 
 const router = express.Router();
+const app = express();
 
 // Login
 router.post("/login", loginController);
 
-router.use(verifyToken);
+// app.use(verifyToken);
 
 // Operator
 router.get("/operator/data-dosen", getDataDosenController);
+router.get("/operator/data-mahasiswa", getDataAkunMahasiswaController);
 router.get("/operator/generate-username", generateUsernameController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
 
 // Mahasiswa Controller
+router.get("/mahasiswa/register/:nim", getDataRegisterMahasiswaController);
+router.get("/mahasiswa/kota", getKotaController);
 router.get("/mahasiswa/profile/:nim", getProfileMahasiswaController);
 router.post(
   "/mahasiswa/update-data",

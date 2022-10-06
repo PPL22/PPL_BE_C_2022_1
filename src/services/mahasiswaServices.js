@@ -5,6 +5,47 @@ const ResizeFile = require("../utils/resizeFile");
 const path = require("path");
 const fs = require("fs");
 
+const getDataRegisterMahasiswa = async (nim) => {
+  try {
+    const data = await prisma.tb_mhs.findUnique({
+      where: {
+        nim: nim,
+      },
+      select: {
+        nama: true,
+        nim: true,
+        statusAktif: true,
+        jalurMasuk: true,
+        fk_kodeWali: {
+          select: {
+            nama: true,
+          },
+        },
+        fk_pemilik_akun_mhs: {
+          select: {
+            username: true,
+            password: true,
+          },
+        },
+      },
+    });
+
+    const result = {
+      nama: data.nama,
+      nim: data.nim,
+      statusAktif: data.statusAktif,
+      jalurMasuk: data.jalurMasuk,
+      namaWali: data.fk_kodeWali.nama,
+      username: data.fk_pemilik_akun_mhs.username,
+      password: data.fk_pemilik_akun_mhs.password,
+    };
+
+    return result;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
 const updateDataMahasiswa = async (data) => {
   try {
     if (data.oldUsername !== data.username) {
@@ -220,6 +261,7 @@ const getProfileMahasiswa = async (data) => {
 };
 
 module.exports = {
+  getDataRegisterMahasiswa,
   updateDataMahasiswa,
   entryDataIrs,
   entryDataKhs,
