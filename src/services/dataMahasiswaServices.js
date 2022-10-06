@@ -48,4 +48,46 @@ const searchMahasiswa = async (data) => {
     }
 }
 
-module.exports = { searchMahasiswa }
+const getDataAkademikMhs = async (data) => {
+    try {
+        const irs = await prisma.tb_irs.findMany({
+            where: {
+                nim: data.nim
+            }
+        })
+    
+        const khs = await prisma.tb_khs.findMany({
+            where: {
+                nim: data.nim
+            }
+        })
+        
+        const pkl = await prisma.tb_pkl.findMany({
+            where: {
+                nim: data.nim
+            }
+        })
+        
+        const skripsi = await prisma.tb_skripsi.findMany({
+            where: {
+                nim: data.nim
+            }
+        })
+
+        // Append all queried data into one array
+        const combinedData = irs.concat(khs, pkl, skripsi)
+        
+        // Groups the data by semesters
+        // Idk what these codes mean, but it works :D
+        const groupBySmt = combinedData.reduce((r, a) => {
+            r[a.semester] = r[a.semester] || []
+            r[a.semester].push(a)
+            return r
+        }, Object.create(null)) 
+
+        return groupBySmt
+    } catch (err) {
+        throw err
+    }
+}
+module.exports = { searchMahasiswa, getDataAkademikMhs }

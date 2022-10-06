@@ -1,4 +1,4 @@
-const { searchMahasiswa } = require('../services/dataMahasiswaServices');
+const { searchMahasiswa, getDataAkademikMhs } = require('../services/dataMahasiswaServices');
 const {
   validasiDataIrs,
   validasiDataKhs,
@@ -241,6 +241,21 @@ const searchMahasiswaDosenController = async (req, res) => {
   }
 }
 
+// !!! Harus cek nip?
+const getDataAkademikMhsDosenController = async (req, res) => {
+  const { nim } = req.params
+
+  try {
+    const result = await getDataAkademikMhs({ nim })
+    return res.status(200).json({
+      message: "data mahasiswa berhasil diambil",
+      data: result 
+    })
+  } catch (err) {
+    return res.status(400).json({message: err.message})
+  }
+}
+
 module.exports = {
   validasiDataIrsController,
   validasiDataKhsController,
@@ -248,5 +263,6 @@ module.exports = {
   validasiDataSkripsiController,
   rekapMahasiswaDosenController,
   daftarMahasiswaDosenController,
-  searchMahasiswaDosenController
+  searchMahasiswaDosenController,
+  getDataAkademikMhsDosenController
 };

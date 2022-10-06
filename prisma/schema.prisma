@@ -73,7 +73,7 @@ model tb_dosen {
 model tb_irs {
   nim       String
   semester  String
-  status    String
+  status    String // TODO: ubah jadi enum
   jumlahSks String
   fileIrs   String
 

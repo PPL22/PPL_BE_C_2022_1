@@ -28,7 +28,8 @@ const {
   validasiDataSkripsiController,
   rekapMahasiswaDosenController,
   daftarMahasiswaDosenController,
-  searchMahasiswaDosenController
+  searchMahasiswaDosenController,
+  getDataAkademikMhsDosenController
 } = require("../controllers/dosenController");
 
 const {
@@ -97,6 +98,7 @@ router.get("/dosen/daftar-status/:nip", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-pkl/:nip", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-skripsi/:nip", daftarMahasiswaDosenController);
 router.get("/dosen/search-mhs/", searchMahasiswaDosenController);
+router.get("/dosen/get-data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
 
 // Departemen Controller
 router.get("/departemen/rekap-status", rekapMahasiswaDepartemenController);
