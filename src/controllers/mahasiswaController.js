@@ -145,7 +145,7 @@ const entryDataKhsController = async (req, res) => {
     status,
     jumlahSksSemester,
     ips,
-    jumlahSKsKumulatif,
+    jumlahSksKumulatif,
     ipk,
   } = req.body;
   const dokumen = req.file;
@@ -157,7 +157,7 @@ const entryDataKhsController = async (req, res) => {
     !status ||
     !jumlahSksSemester ||
     !ips ||
-    !jumlahSKsKumulatif ||
+    !jumlahSksKumulatif ||
     !ipk ||
     !dokumen
   ) {
@@ -179,7 +179,7 @@ const entryDataKhsController = async (req, res) => {
       status,
       jumlahSksSemester,
       ips,
-      jumlahSKsKumulatif,
+      jumlahSksKumulatif,
       ipk,
       dokumen,
     };
@@ -195,8 +195,9 @@ const entryDataKhsController = async (req, res) => {
   }
 };
 
-const entryDataPklController = async (req, res) => {
-  const { nim, semester, status, nilai, tanggalLulusSidang } = req.body;
+const entryDataSkripsiController = async (req, res) => {
+  const { nim, semester, status, nilai, tanggalLulusSidang, lamaStudi } =
+    req.body;
   const dokumen = req.file;
 
   // check null input
@@ -206,7 +207,8 @@ const entryDataPklController = async (req, res) => {
     !status ||
     !nilai ||
     !tanggalLulusSidang ||
-    !dokumen
+    !dokumen ||
+    !lamaStudi
   ) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
@@ -227,11 +229,12 @@ const entryDataPklController = async (req, res) => {
       nilai,
       tanggalLulusSidang,
       dokumen,
+      lamaStudi,
     };
 
-    const result = await entryDataPkl(data);
+    const result = await entryDataSkripsi(data);
     return res.status(200).json({
-      message: "Entry data progress PKL berhasil",
+      message: "Entry data progress Skripsi berhasil",
       data: result,
     });
   } catch (err) {
@@ -240,7 +243,7 @@ const entryDataPklController = async (req, res) => {
   }
 };
 
-const entryDataSkripsiController = async (req, res) => {
+const entryDataPklController = async (req, res) => {
   const { nim, semester, status, nilai } = req.body;
   const dokumen = req.file;
 
@@ -266,7 +269,7 @@ const entryDataSkripsiController = async (req, res) => {
       dokumen,
     };
 
-    const result = await entryDataSkripsi(data);
+    const result = await entryDataPkl(data);
     return res.status(200).json({
       message: "Entry data progress PKL berhasil",
       data: result,

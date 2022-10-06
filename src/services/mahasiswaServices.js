@@ -105,7 +105,6 @@ const updateDataMahasiswa = async (data) => {
 };
 
 const entryDataIrs = async (data) => {
-  console.log(data);
   try {
     const fileName = `irs-${data.nim}-${data.semester}.pdf`;
     fs.renameSync(
@@ -144,7 +143,7 @@ const entryDataKhs = async (data) => {
         status: data.status,
         jumlahSksSemester: data.jumlahSksSemester,
         ips: data.ips,
-        jumlahSKsKumulatif: data.jumlahSKsKumulatif,
+        jumlahSksKumulatif: data.jumlahSksKumulatif,
         ipk: data.ipk,
         fileKhs: fileName,
       },
@@ -170,7 +169,7 @@ const entryDataPkl = async (data) => {
         semester: data.semester,
         status: data.status,
         nilai: data.nilai,
-        file: fileName,
+        filePkl: fileName,
       },
     });
 
@@ -194,8 +193,9 @@ const entryDataSkripsi = async (data) => {
         semester: data.semester,
         status: data.status,
         nilai: data.nilai,
-        tanggalLulusSidang: data.tanggalLulusSidang,
+        tanggalLulusSidang: new Date(data.tanggalLulusSidang),
         fileSkripsi: fileName,
+        lamaStudi: parseInt(data.lamaStudi),
       },
     });
 
