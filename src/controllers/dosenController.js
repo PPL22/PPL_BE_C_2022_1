@@ -1,3 +1,4 @@
+const { searchMahasiswa } = require('../services/dataMahasiswaServices');
 const {
   validasiDataIrs,
   validasiDataKhs,
@@ -213,6 +214,33 @@ const daftarMahasiswaDosenController = async (req, res) => {
   }
 };
 
+const searchMahasiswaDosenController = async (req, res) => {
+  // Check if keyword is nim / nama
+  const { nip, keyword } = req.query
+  let type = "Nama"
+
+  if (!nip) {
+    return res.status(400).json({
+      message: "NIP tidak boleh kosong",
+    });
+  }
+
+  if (!isNaN(keyword)) {
+    type = "NIM"
+  }
+
+  try {
+    const result = await searchMahasiswa({ nip, keyword, type })
+  
+    return res.status(200).json({
+      message: "search berhasil", 
+      data: result
+    })
+  } catch (err) {
+    return res.status(400).json({message: err.message})
+  }
+}
+
 module.exports = {
   validasiDataIrsController,
   validasiDataKhsController,
@@ -220,4 +248,5 @@ module.exports = {
   validasiDataSkripsiController,
   rekapMahasiswaDosenController,
   daftarMahasiswaDosenController,
+  searchMahasiswaDosenController
 };

@@ -28,11 +28,13 @@ const {
   validasiDataSkripsiController,
   rekapMahasiswaDosenController,
   daftarMahasiswaDosenController,
+  searchMahasiswaDosenController
 } = require("../controllers/dosenController");
 
 const {
   rekapMahasiswaDepartemenController,
   daftarMahasiswaDepartemenController,
+  searchMahasiswaDepartemenController,
 } = require("../controllers/departemenController");
 
 const { getKotaController } = require("../controllers/locationController");
@@ -94,13 +96,15 @@ router.get("/dosen/rekap-skripsi/:nip", rekapMahasiswaDosenController);
 router.get("/dosen/daftar-status/:nip", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-pkl/:nip", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-skripsi/:nip", daftarMahasiswaDosenController);
+router.get("/dosen/search-mhs/", searchMahasiswaDosenController);
 
-// Dosen Controller
+// Departemen Controller
 router.get("/departemen/rekap-status", rekapMahasiswaDepartemenController);
 router.get("/departemen/rekap-pkl", rekapMahasiswaDepartemenController);
 router.get("/departemen/rekap-skripsi", rekapMahasiswaDepartemenController);
 router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
+router.get("/departemen/search-mhs/", searchMahasiswaDepartemenController);
 
 module.exports = router;

@@ -1,3 +1,4 @@
+const { searchMahasiswa } = require('../services/dataMahasiswaServices');
 const {
   rekapStatusMahasiswa,
   daftarStatusMahasiswa,
@@ -53,7 +54,29 @@ const daftarMahasiswaDepartemenController = async (req, res) => {
   }
 };
 
+const searchMahasiswaDepartemenController = async (req, res) => {
+  // Check if keyword is nim / nama
+  const { keyword } = req.query
+  let type = "Nama"
+
+  if (!isNaN(keyword)) {
+    type = "NIM"
+  }
+
+  try {
+    const result = await searchMahasiswa({ keyword, type })
+  
+    return res.status(200).json({
+      message: "search berhasil", 
+      data: result
+    })
+  } catch (err) {
+    return res.status(400).json({message: err.message})
+  }
+}
+
 module.exports = {
   rekapMahasiswaDepartemenController,
   daftarMahasiswaDepartemenController,
+  searchMahasiswaDepartemenController
 };
