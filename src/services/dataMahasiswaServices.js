@@ -5,6 +5,7 @@ const searchMahasiswa = async (data) => {
     try {
         // Can't use prisma query because wildcards (%) are not supported
         // https://github.com/prisma/prisma/discussions/3159
+        // TODO: ganti jadi "contains"
         let result
         let keyword = `%${data.keyword}%`
 

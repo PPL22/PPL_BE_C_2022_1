@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const axios = require("axios");
 const prisma = new PrismaClient();
-
+const bcrypt = require('bcrypt')
 async function getDataDosen() {
   // Get all dosen data
   try {
@@ -91,7 +91,7 @@ async function addMahasiswa(
       prisma.tb_akun_mhs.create({
         data: {
           username: username,
-          password: password,
+          password: bcrypt.hashSync(password, 10),
           status: "Aktif",
           pemilik: nim,
         },
