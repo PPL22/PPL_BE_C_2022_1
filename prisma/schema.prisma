@@ -8,9 +8,9 @@ datasource db {
 }
 
 model tb_mhs {
-  nim         String      @id @unique
+  nim         String     @id @unique
   nama        String
-  statusAktif StatusAktif
+  statusAktif StatusMhs
   alamat      String?
   email       String?
   kodeKab     String?
@@ -21,7 +21,6 @@ model tb_mhs {
   kodeWali    String
   foto        String?
 
-  
   // FK_THIS
   fk_kodeKab  tb_kabupaten? @relation(fields: [kodeKab], references: [kodeKab])
   fk_kodeProv tb_provinsi?  @relation(fields: [kodeProv], references: [kodeProv])
@@ -42,16 +41,18 @@ enum JalurMasuk {
   Lainnya
 }
 
-enum StatusAktif {
+enum StatusMhs {
   Aktif
   Cuti
+  Lulus
+
   Mangkir
   DO
   UndurDiri
-  Lulus
   MeninggalDunia
 }
 
+// ================================================================================
 model tb_dosen {
   nip      String  @id @unique
   nama     String
@@ -71,12 +72,14 @@ model tb_dosen {
   fk_pemilik_akun_dosen tb_akun_dosen?
 }
 
+// ================================================================================
 model tb_irs {
-  nim       String
-  semester  String
-  status    String // TODO: ubah jadi enum
-  jumlahSks String
-  fileIrs   String
+  nim            String
+  semester       String
+  status         StatusAktif // TODO: ubah jadi enum
+  jumlahSks      String?
+  fileIrs        String?
+  statusValidasi Boolean     @default(false)
 
   // FK_THIS
   fk_nim tb_mhs @relation(fields: [nim], references: [nim])
@@ -87,12 +90,13 @@ model tb_irs {
 model tb_khs {
   nim                String
   semester           String
-  status             String
-  jumlahSksSemester  String
-  ips                String
-  jumlahSksKumulatif String
-  ipk                String
-  fileKhs            String
+  status             StatusAktif
+  jumlahSksSemester  String?
+  ips                String?
+  jumlahSksKumulatif String?
+  ipk                String?
+  fileKhs            String?
+  statusValidasi     Boolean     @default(false)
 
   // FK_THIS
   fk_nim tb_mhs @relation(fields: [nim], references: [nim])
@@ -100,12 +104,19 @@ model tb_khs {
   @@id([nim, semester])
 }
 
+enum StatusAktif {
+  Aktif
+  Cuti
+}
+
+// ============================================================================
+
 model tb_pkl {
-  nim      String
-  semester String
-  status   String
-  nilai    String
-  filePkl  String
+  nim            String
+  semester       String
+  nilai          String
+  filePkl        String
+  statusValidasi Boolean @default(false)
 
   // FK_THIS
   fk_nim tb_mhs @relation(fields: [nim], references: [nim])
@@ -116,17 +127,19 @@ model tb_pkl {
 model tb_skripsi {
   nim                String
   semester           String
-  status             String
   nilai              String
   tanggalLulusSidang DateTime @db.Date
   lamaStudi          Int
   fileSkripsi        String
+  statusValidasi     Boolean  @default(false)
 
   // FK_THIS
   fk_nim tb_mhs @relation(fields: [nim], references: [nim])
 
   @@id([nim, semester])
 }
+
+// ============================================================================
 
 model tb_provinsi {
   kodeProv String @id @unique
@@ -151,6 +164,8 @@ model tb_kabupaten {
   fk_kodeKab_dosen tb_dosen[]
 }
 
+// ============================================================================
+
 model tb_akun_mhs {
   username String     @id @unique
   password String
@@ -169,7 +184,7 @@ model tb_akun_dosen {
 
   // FK_THIS
   fk_pemilik tb_dosen @relation(fields: [pemilik], references: [nip])
-  
+
   // FK_OTHER
   fk_username_role tb_role_akun_dosen[]
 }

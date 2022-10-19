@@ -195,6 +195,43 @@ const entryDataKhsController = async (req, res) => {
   }
 };
 
+const entryDataPklController = async (req, res) => {
+  const { nim, semester, status, nilai } = req.body;
+  const dokumen = req.file;
+
+  // check null input
+  if (!nim || !semester || !status || !nilai || !dokumen) {
+    return res.status(400).json({
+      message: "Data tidak boleh kosong",
+    });
+  }
+
+  if (path.extname(dokumen.originalname) !== ".pdf") {
+    return res.status(400).json({
+      message: "Format dokumen harus pdf",
+    });
+  }
+
+  try {
+    const data = {
+      nim,
+      semester,
+      status,
+      nilai,
+      dokumen,
+    };
+
+    const result = await entryDataPkl(data);
+    return res.status(200).json({
+      message: "Entry data progress PKL berhasil",
+      data: result,
+    });
+  } catch (err) {
+    console.log(err.message);
+    return res.status(400).json({ message: err.message });
+  }
+};
+
 const entryDataSkripsiController = async (req, res) => {
   const { nim, semester, status, nilai, tanggalLulusSidang, lamaStudi } =
     req.body;
@@ -204,7 +241,6 @@ const entryDataSkripsiController = async (req, res) => {
   if (
     !nim ||
     !semester ||
-    !status ||
     !nilai ||
     !tanggalLulusSidang ||
     !dokumen ||
@@ -235,43 +271,6 @@ const entryDataSkripsiController = async (req, res) => {
     const result = await entryDataSkripsi(data);
     return res.status(200).json({
       message: "Entry data progress Skripsi berhasil",
-      data: result,
-    });
-  } catch (err) {
-    console.log(err.message);
-    return res.status(400).json({ message: err.message });
-  }
-};
-
-const entryDataPklController = async (req, res) => {
-  const { nim, semester, status, nilai } = req.body;
-  const dokumen = req.file;
-
-  // check null input
-  if (!nim || !semester || !status || !nilai || !dokumen) {
-    return res.status(400).json({
-      message: "Data tidak boleh kosong",
-    });
-  }
-
-  if (path.extname(dokumen.originalname) !== ".pdf") {
-    return res.status(400).json({
-      message: "Format dokumen harus pdf",
-    });
-  }
-
-  try {
-    const data = {
-      nim,
-      semester,
-      status,
-      nilai,
-      dokumen,
-    };
-
-    const result = await entryDataPkl(data);
-    return res.status(200).json({
-      message: "Entry data progress PKL berhasil",
       data: result,
     });
   } catch (err) {
