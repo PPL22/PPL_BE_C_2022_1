@@ -19,6 +19,7 @@ const {
   entryDataPklController,
   entryDataSkripsiController,
   getProfileMahasiswaController,
+  dashboardMahasiswaController,
 } = require("../controllers/mahasiswaController");
 
 const {
@@ -29,7 +30,8 @@ const {
   rekapMahasiswaDosenController,
   daftarMahasiswaDosenController,
   searchMahasiswaDosenController,
-  getDataAkademikMhsDosenController
+  getDataAkademikMhsDosenController,
+  getStatusValidasiController
 } = require("../controllers/dosenController");
 
 const {
@@ -56,15 +58,22 @@ router.get("/operator/data-mahasiswa", getDataAkunMahasiswaController);
 router.get("/operator/generate-username", generateUsernameController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
 
+//=======================================================
 // Mahasiswa Controller
-router.get("/mahasiswa/register/:nim", getDataRegisterMahasiswaController);
+router.get("/mahasiswa/register", getDataRegisterMahasiswaController);
+router.get("/mahasiswa/profile", getProfileMahasiswaController);
 router.get("/mahasiswa/kota", getKotaController);
-router.get("/mahasiswa/profile/:nim", getProfileMahasiswaController);
+
+// Dashboard
+router.get("/mahasiswa/dashboard", dashboardMahasiswaController);
+
 router.post(
   "/mahasiswa/update-data",
   uploadImage.single("foto"),
   updateDataMahasiswaController
 );
+
+// Entry data
 router.post(
   "/mahasiswa/entry-irs",
   uploadDocument.single("dokumen"),
@@ -86,6 +95,7 @@ router.post(
   entryDataSkripsiController
 );
 
+//=======================================================
 // Dosen Controller
 // Get status validasi
 router.get("/dosen/status-validasi/irs", getStatusValidasiController);
@@ -109,7 +119,7 @@ router.get("/dosen/daftar-skripsi", daftarMahasiswaDosenController);
 
 // Search mahasiswa
 router.get("/dosen/search-mhs/", searchMahasiswaDosenController);
-router.get("/dosen/get-data-akademik-mhs/", getDataAkademikMhsDosenController);
+router.get("/dosen/data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
 
 //=======================================================
 // Departemen Controller

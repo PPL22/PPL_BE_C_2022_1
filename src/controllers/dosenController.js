@@ -7,6 +7,10 @@ const {
   validasiDataKhs,
   validasiDataPkl,
   validasiDataSkripsi,
+  getStatusValidasiIRS,
+  getStatusValidasiKHS,
+  getStatusValidasiPKL,
+  getStatusValidasiSkripsi,
 } = require('../services/dosenServices');
 
 const {
@@ -18,6 +22,7 @@ const {
   daftarSkripsiMahasiswa,
 } = require('../services/rekapServices')
 
+// Get status validasi
 const getStatusValidasiController = async (req, res) => {
   const nip = req.id
   const path = req.path
@@ -28,9 +33,31 @@ const getStatusValidasiController = async (req, res) => {
     })
   }
   try {
+    const data = { nip }
+    let result = null
     switch (path) {
-      
+      case "/dosen/status-validasi/irs":
+        result = await getStatusValidasiIRS(data); 
+        break;
+      case "/dosen/status-validasi/khs":
+        result = await getStatusValidasiKHS(data); 
+        break;
+      case "/dosen/status-validasi/pkl":
+        result = await getStatusValidasiPKL(data); 
+        break;
+      case "/dosen/status-validasi/skripsi":
+        result = await getStatusValidasiSkripsi(data); 
+        break; 
     }
+
+    if (!result) return res.status(400).json({
+      message: "Failed to retrieve list status validasi"
+    })
+
+    return res.status(200).json({
+      data: result,
+      message: "Daftar status validasi berhasil diambil"
+    })
   } catch (err) {
     console.log(err.message)
     return res.status(400).json({
@@ -39,6 +66,7 @@ const getStatusValidasiController = async (req, res) => {
   }
 }
 
+// Validasi data
 const validasiDataIrsController = async (req, res) => {
   const {
     nim,
@@ -324,6 +352,7 @@ const getDataAkademikMhsDosenController = async (req, res) => {
     const result = await getDataAkademikMhs({
       nim
     })
+
     return res.status(200).json({
       message: "data mahasiswa berhasil diambil",
       data: result
@@ -336,12 +365,16 @@ const getDataAkademikMhsDosenController = async (req, res) => {
 }
 
 module.exports = {
+  getStatusValidasiController,
+
   validasiDataIrsController,
   validasiDataKhsController,
   validasiDataPklController,
   validasiDataSkripsiController,
+  
   rekapMahasiswaDosenController,
   daftarMahasiswaDosenController,
+  
   searchMahasiswaDosenController,
   getDataAkademikMhsDosenController
 };

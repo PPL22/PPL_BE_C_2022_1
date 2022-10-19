@@ -1,6 +1,85 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+// TODO: refactor get status validasi
+// Get status validasi
+const getStatusValidasiIRS = async (data) => {
+  try {
+    const result = await prisma.tb_irs.findMany({
+      where: {
+        fk_nim: {
+          fk_kodeWali: {
+            nip: data.nip
+          }
+        }
+      }
+    })
+    
+    return result
+
+  } catch (err) {
+    throw new Error(error)
+  }
+}
+
+const getStatusValidasiKHS = async (data) => {
+  try {
+    const result = await prisma.tb_khs.findMany({
+      where: {
+        fk_nim: {
+          fk_kodeWali: {
+            nip: data.nip
+          }
+        }
+      }
+    })
+    
+    return result
+
+  } catch (err) {
+    throw new Error(error)
+  }
+}
+
+const getStatusValidasiPKL = async (data) => {
+  try {
+    const result = await prisma.tb_pkl.findMany({
+      where: {
+        fk_nim: {
+          fk_kodeWali: {
+            nip: data.nip
+          }
+        }
+      }
+    })
+    
+    return result
+
+  } catch (err) {
+    throw new Error(error)
+  }
+}
+
+const getStatusValidasiSkripsi = async (data) => {
+  try {
+    const result = await prisma.tb_skripsi.findMany({
+      where: {
+        fk_nim: {
+          fk_kodeWali: {
+            nip: data.nip
+          }
+        }
+      }
+    })
+    
+    return result
+
+  } catch (err) {
+    throw new Error(error)
+  }
+}
+
+// Validasi data mahasiswa
 const validasiDataIrs = async (data) => {
   try {
     const result = await prisma.tb_irs.update({
@@ -88,6 +167,11 @@ const validasiDataSkripsi = async (data) => {
 };
 
 module.exports = {
+  getStatusValidasiIRS,
+  getStatusValidasiKHS,
+  getStatusValidasiPKL,
+  getStatusValidasiSkripsi,
+
   validasiDataIrs,
   validasiDataKhs,
   validasiDataPkl,

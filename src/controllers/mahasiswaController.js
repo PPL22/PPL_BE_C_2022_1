@@ -8,9 +8,10 @@ const {
   getProfileMahasiswa,
 } = require("../services/mahasiswaServices");
 const path = require("path");
+const { getDataAkademikMhs } = require("../services/dataMahasiswaServices");
 
 const getDataRegisterMahasiswaController = async (req, res) => {
-  const { nim } = req.params;
+  const nim = req.id;
   try {
     const result = await getDataRegisterMahasiswa(nim);
     res.status(200).json({
@@ -100,6 +101,19 @@ const updateDataMahasiswaController = async (req, res) => {
     return res.status(400).json({ message: err.message });
   }
 };
+
+const dashboardMahasiswaController = async (req, res) => {
+  const nim = req.id
+
+  try {
+    const data = { nim }
+    const result = await getDataAkademikMhs(data)
+
+    res.status(200).json(result)
+  } catch (err) {
+    res.status(400).json({ message: err.message })
+  }
+}
 
 const entryDataIrsController = async (req, res) => {
   const { nim, semester, status, jumlahSks } = req.body;
@@ -280,9 +294,8 @@ const entryDataSkripsiController = async (req, res) => {
 };
 
 const getProfileMahasiswaController = async (req, res) => {
-  console.log(req.params);
   try {
-    const result = await getProfileMahasiswa(req.params);
+    const result = await getProfileMahasiswa(req.id);
     return res.status(200).json({
       message: "Data berhasil diambil",
       data: result,
@@ -296,6 +309,8 @@ const getProfileMahasiswaController = async (req, res) => {
 module.exports = {
   getDataRegisterMahasiswaController,
   updateDataMahasiswaController,
+  dashboardMahasiswaController,
+
   entryDataIrsController,
   entryDataKhsController,
   entryDataPklController,
