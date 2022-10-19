@@ -11,9 +11,10 @@ const validasiDataIrs = async (data) => {
         semester: data.semester,
         status: data.status,
         jumlahSks: data.jumlahSks,
+        statusValidasi: true
       },
     });
-
+    
     return result;
   } catch (error) {
     throw new Error(error);
@@ -33,9 +34,10 @@ const validasiDataKhs = async (data) => {
         ips: data.ips,
         jumlahSKsKumulatif: data.jumlahSKsKumulatif,
         ipk: data.ipk,
+        statusValidasi: true
       },
     });
-
+    
     return result;
   } catch (error) {
     throw new Error(error);
@@ -51,14 +53,13 @@ const validasiDataPkl = async (data) => {
       data: {
         nim: data.nim,
         semester: data.semester,
-        status: data.status,
         nilai: data.nilai,
-        file: fileName,
+        statusValidasi: true
       },
     });
     const { PrismaClient } = require("@prisma/client");
     const prisma = new PrismaClient();
-
+    
     return result;
   } catch (error) {
     throw new Error(error);
@@ -73,13 +74,13 @@ const validasiDataSkripsi = async (data) => {
       },
       data: {
         semester: data.semester,
-        status: data.status,
         nilai: data.nilai,
         tanggalLulusSidang: data.tanggalLulusSidang,
-        fileSkripsi: fileName,
+        lamaStudi: data.lamaStudi,
+        statusValidasi: true
       },
     });
-
+    
     return result;
   } catch (error) {
     throw new Error(error);

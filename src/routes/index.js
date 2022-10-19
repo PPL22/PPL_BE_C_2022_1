@@ -87,20 +87,31 @@ router.post(
 );
 
 // Dosen Controller
-// router.get("/dosen/list-status-validasi/irs/:nip", getStatusValidasiController);
-router.put("/dosen/validasi-irs", validasiDataIrsController);
-router.put("/dosen/validasi-khs", validasiDataKhsController);
-router.put("/dosen/validasi-pkl", validasiDataPklController);
-router.put("/dosen/validasi-skripsi", validasiDataSkripsiController);
-router.get("/dosen/rekap-status/:nip", rekapMahasiswaDosenController);
-router.get("/dosen/rekap-pkl/:nip", rekapMahasiswaDosenController);
-router.get("/dosen/rekap-skripsi/:nip", rekapMahasiswaDosenController);
-router.get("/dosen/daftar-status/:nip", daftarMahasiswaDosenController);
-router.get("/dosen/daftar-pkl/:nip", daftarMahasiswaDosenController);
-router.get("/dosen/daftar-skripsi/:nip", daftarMahasiswaDosenController);
+// Get status validasi
+router.get("/dosen/status-validasi/irs", getStatusValidasiController);
+router.get("/dosen/status-validasi/khs", getStatusValidasiController);
+router.get("/dosen/status-validasi/pkl", getStatusValidasiController);
+router.get("/dosen/status-validasi/skripsi", getStatusValidasiController);
+
+// Validate data mahasiswa
+router.put("/dosen/validasi/irs", validasiDataIrsController);
+router.put("/dosen/validasi/khs", validasiDataKhsController);
+router.put("/dosen/validasi/pkl", validasiDataPklController);
+router.put("/dosen/validasi/skripsi", validasiDataSkripsiController);
+
+// Rekap
+router.get("/dosen/rekap-status", rekapMahasiswaDosenController);
+router.get("/dosen/rekap-pkl", rekapMahasiswaDosenController);
+router.get("/dosen/rekap-skripsi", rekapMahasiswaDosenController);
+router.get("/dosen/daftar-status", daftarMahasiswaDosenController);
+router.get("/dosen/daftar-pkl", daftarMahasiswaDosenController);
+router.get("/dosen/daftar-skripsi", daftarMahasiswaDosenController);
+
+// Search mahasiswa
 router.get("/dosen/search-mhs/", searchMahasiswaDosenController);
 router.get("/dosen/get-data-akademik-mhs/", getDataAkademikMhsDosenController);
 
+//=======================================================
 // Departemen Controller
 router.get("/departemen/rekap-status", rekapMahasiswaDepartemenController);
 router.get("/departemen/rekap-pkl", rekapMahasiswaDepartemenController);

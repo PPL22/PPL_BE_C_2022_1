@@ -18,30 +18,26 @@ const {
   daftarSkripsiMahasiswa,
 } = require('../services/rekapServices')
 
-// const getStatusValidasiController = async (req, res) => {
-//   const {
-//     nip
-//   } = req.query
-//   const path = req.path
+const getStatusValidasiController = async (req, res) => {
+  const nip = req.id
+  const path = req.path
 
-//   if (!nip) {
-//     return res.status(400).json({
-//       message: "ID kosong"
-//     })
-//   }
-//   // TODO: Change every NIP in get url to getting NIP from token
-//   try {
-//     const data = {
-//       nip
-//     }
-
-//   } catch (err) {
-//     console.log(err.message)
-//     return res.status(400).json({
-//       message: err.message
-//     })
-//   }
-// }
+  if (!nip) {
+    return res.status(400).json({
+      message: "ID kosong"
+    })
+  }
+  try {
+    switch (path) {
+      
+    }
+  } catch (err) {
+    console.log(err.message)
+    return res.status(400).json({
+      message: err.message
+    })
+  }
+}
 
 const validasiDataIrsController = async (req, res) => {
   const {
@@ -52,7 +48,7 @@ const validasiDataIrsController = async (req, res) => {
   } = req.body;
 
   // check null input
-  if (!nim || !semester || !status || !jumlahSks) {
+  if (!nim || !semester || !status || !jumlahSks || !statusValidasi) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -63,7 +59,7 @@ const validasiDataIrsController = async (req, res) => {
       nim,
       semester,
       status,
-      jumlahSks,
+      jumlahSks
     };
 
     const result = await validasiDataIrs(data);
@@ -133,7 +129,6 @@ const validasiDataPklController = async (req, res) => {
   const {
     nim,
     semester,
-    status,
     nilai,
     tanggalLulusSidang
   } = req.body;
@@ -149,7 +144,6 @@ const validasiDataPklController = async (req, res) => {
     const data = {
       nim,
       semester,
-      status,
       nilai,
       tanggalLulusSidang,
     };
@@ -172,7 +166,9 @@ const validasiDataSkripsiController = async (req, res) => {
     nim,
     semester,
     status,
-    nilai
+    nilai,
+    tanggalLulusSidang,
+    lamaStudi
   } = req.body;
 
   // check null input
@@ -187,6 +183,8 @@ const validasiDataSkripsiController = async (req, res) => {
       semester,
       status,
       nilai,
+      tanggalLulusSidang,
+      lamaStudi
     };
 
     const result = await validasiDataSkripsi(data);

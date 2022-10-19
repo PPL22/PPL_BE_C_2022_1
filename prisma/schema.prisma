@@ -76,9 +76,9 @@ model tb_irs {
   nim            String
   semester       String
   status         StatusAktif // TODO: ubah jadi enum
-  jumlahSks      String
-  fileIrs        String
-  statusValidasi Boolean
+  jumlahSks      String?
+  fileIrs        String?
+  statusValidasi Boolean     @default(false)
 
   // FK_THIS
   fk_nim tb_mhs @relation(fields: [nim], references: [nim])
@@ -90,12 +90,12 @@ model tb_khs {
   nim                String
   semester           String
   status             StatusAktif
-  jumlahSksSemester  String
-  ips                String
-  jumlahSksKumulatif String
-  ipk                String
-  fileKhs            String
-  statusValidasi     Boolean
+  jumlahSksSemester  String?
+  ips                String?
+  jumlahSksKumulatif String?
+  ipk                String?
+  fileKhs            String?
+  statusValidasi     Boolean     @default(false)
 
   // FK_THIS
   fk_nim tb_mhs @relation(fields: [nim], references: [nim])
@@ -115,7 +115,7 @@ model tb_pkl {
   semester       String
   nilai          String
   filePkl        String
-  statusValidasi Boolean
+  statusValidasi Boolean @default(false)
 
   // FK_THIS
   fk_nim tb_mhs @relation(fields: [nim], references: [nim])
@@ -130,7 +130,7 @@ model tb_skripsi {
   tanggalLulusSidang DateTime @db.Date
   lamaStudi          Int
   fileSkripsi        String
-  statusValidasi     Boolean
+  statusValidasi     Boolean  @default(false)
 
   // FK_THIS
   fk_nim tb_mhs @relation(fields: [nim], references: [nim])
