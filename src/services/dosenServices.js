@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const countSemester = require("../utils/countSemester");
 const prisma = new PrismaClient();
 
 // TODO: refactor get status validasi
@@ -12,13 +13,26 @@ const getStatusValidasiIRS = async (data) => {
             nip: data.nip
           }
         }
+      },
+      include: {
+        fk_nim: true
       }
     })
-    
-    return result
+  
+    const newRes = result.map((d) => {
+      const dataMhs = d.fk_nim
+      delete d['fk_nim']
+      return {...d,
+      nama: dataMhs.nama,
+      nim: dataMhs.nim,
+      angkatan: dataMhs.angkatan,
+      semester: countSemester(dataMhs.angkatan)}
+    })
+
+    return newRes
 
   } catch (err) {
-    throw new Error(error)
+    throw new Error(err)
   }
 }
 
@@ -31,13 +45,26 @@ const getStatusValidasiKHS = async (data) => {
             nip: data.nip
           }
         }
+      },
+      include: {
+        fk_nim: true
       }
     })
     
-    return result
+    const newRes = result.map((d) => {
+      const dataMhs = d.fk_nim
+      delete d['fk_nim']
+      return {...d,
+      nama: dataMhs.nama,
+      nim: dataMhs.nim,
+      angkatan: dataMhs.angkatan,
+      semester: countSemester(dataMhs.angkatan)}
+    })
+    
+    return newRes
 
   } catch (err) {
-    throw new Error(error)
+    throw new Error(err)
   }
 }
 
@@ -50,13 +77,26 @@ const getStatusValidasiPKL = async (data) => {
             nip: data.nip
           }
         }
+      },
+      include: {
+        fk_nim: true
       }
     })
     
-    return result
+    const newRes = result.map((d) => {
+      const dataMhs = d.fk_nim
+      delete d['fk_nim']
+      return {...d,
+      nama: dataMhs.nama,
+      nim: dataMhs.nim,
+      angkatan: dataMhs.angkatan,
+      semester: countSemester(dataMhs.angkatan)}
+    })
+    
+    return newRes
 
   } catch (err) {
-    throw new Error(error)
+    throw new Error(err)
   }
 }
 
@@ -69,13 +109,26 @@ const getStatusValidasiSkripsi = async (data) => {
             nip: data.nip
           }
         }
+      },
+      include: {
+        fk_nim: true
       }
     })
     
-    return result
+    const newRes = result.map((d) => {
+      const dataMhs = d.fk_nim
+      delete d['fk_nim']
+      return {...d,
+      nama: dataMhs.nama,
+      nim: dataMhs.nim,
+      angkatan: dataMhs.angkatan,
+      semester: countSemester(dataMhs.angkatan)}
+    })
+    
+    return newRes
 
   } catch (err) {
-    throw new Error(error)
+    throw new Error(err)
   }
 }
 

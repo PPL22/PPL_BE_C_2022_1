@@ -21,7 +21,7 @@ const login = async (data) => {
     dosen = false;
     akun = await prisma.tb_akun_mhs.findUnique({
       where: {
-        username: username,
+        username: data.username,
       },
       include: {
         fk_pemilik: true,
