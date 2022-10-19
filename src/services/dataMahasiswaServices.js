@@ -20,6 +20,10 @@ const searchMahasiswa = async (data) => {
         where: {
           ...filterWali,
         },
+        select: {
+          nama: true,
+          nim: true
+        }
       });
     } else {
       result = await prisma.tb_mhs.findMany({
@@ -38,9 +42,13 @@ const searchMahasiswa = async (data) => {
           ],
           ...filterWali,
         },
+        select: {
+          nama: true,
+          nim: true
+        }
       });
     }
-
+    
     return result;
   } catch (err) {
     throw err;
