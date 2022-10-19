@@ -26,6 +26,7 @@ CREATE TABLE `tb_dosen` (
     `kodeKab` VARCHAR(191) NULL,
     `kodeProv` VARCHAR(191) NULL,
     `noHP` VARCHAR(191) NULL,
+    `foto` VARCHAR(191) NULL,
 
     UNIQUE INDEX `tb_dosen_nip_key`(`nip`),
     PRIMARY KEY (`nip`)
