@@ -48,7 +48,7 @@ const app = express();
 // Login
 router.post("/login", loginController);
 
-// app.use(verifyToken);
+router.use(verifyToken);
 
 // Operator
 router.get("/operator/data-dosen", getDataDosenController);
@@ -87,7 +87,8 @@ router.post(
 );
 
 // Dosen Controller
-router.put("/dosen/validasi-irs/", validasiDataIrsController);
+// router.get("/dosen/list-status-validasi/irs/:nip", getStatusValidasiController);
+router.put("/dosen/validasi-irs", validasiDataIrsController);
 router.put("/dosen/validasi-khs", validasiDataKhsController);
 router.put("/dosen/validasi-pkl", validasiDataPklController);
 router.put("/dosen/validasi-skripsi", validasiDataSkripsiController);
@@ -98,7 +99,7 @@ router.get("/dosen/daftar-status/:nip", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-pkl/:nip", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-skripsi/:nip", daftarMahasiswaDosenController);
 router.get("/dosen/search-mhs/", searchMahasiswaDosenController);
-router.get("/dosen/get-data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
+router.get("/dosen/get-data-akademik-mhs/", getDataAkademikMhsDosenController);
 
 // Departemen Controller
 router.get("/departemen/rekap-status", rekapMahasiswaDepartemenController);
