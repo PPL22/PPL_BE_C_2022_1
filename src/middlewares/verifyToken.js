@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 
 const verifyToken = (req, res, next) => {
   const token = req.headers["x-access-token"];
-  // console.log(req.headers);
   if (token) {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) {
@@ -10,6 +9,7 @@ const verifyToken = (req, res, next) => {
         res.status(401).json({ message: "Token is not valid" });
       } else {
         const { id, role } = decoded;
+        console.log(decoded);
         req.id = id;
         req.role = role;
         // Check if user can access the route based on their roles
@@ -27,7 +27,7 @@ const verifyToken = (req, res, next) => {
           // One role, check url immediately
         } else if (req.originalUrl.includes(role.toLowerCase())) {
           next();
-        // User don't have the valid role to access the route
+          // User don't have the valid role to access the route
         } else {
           res.status(403).json({
             message: "You are not authorized to access this resource",

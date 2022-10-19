@@ -31,7 +31,7 @@ const {
   daftarMahasiswaDosenController,
   searchMahasiswaDosenController,
   getDataAkademikMhsDosenController,
-  getStatusValidasiController
+  getStatusValidasiController,
 } = require("../controllers/dosenController");
 
 const {
@@ -45,7 +45,6 @@ const { getKotaController } = require("../controllers/locationController");
 const verifyToken = require("../middlewares/verifyToken");
 
 const router = express.Router();
-const app = express();
 
 // Login
 router.post("/login", loginController);

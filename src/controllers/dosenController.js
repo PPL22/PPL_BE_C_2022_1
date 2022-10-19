@@ -1,7 +1,7 @@
 const {
   searchMahasiswa,
-  getDataAkademikMhs
-} = require('../services/dataMahasiswaServices');
+  getDataAkademikMhs,
+} = require("../services/dataMahasiswaServices");
 const {
   validasiDataIrs,
   validasiDataKhs,
@@ -11,7 +11,7 @@ const {
   getStatusValidasiKHS,
   getStatusValidasiPKL,
   getStatusValidasiSkripsi,
-} = require('../services/dosenServices');
+} = require("../services/dosenServices");
 
 const {
   rekapStatusMahasiswa,
@@ -20,63 +20,59 @@ const {
   daftarPklMahasiswa,
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
-} = require('../services/rekapServices')
+} = require("../services/rekapServices");
 
 // Get status validasi
 const getStatusValidasiController = async (req, res) => {
-  const nip = req.id
-  const path = req.path
+  const nip = req.id;
+  const path = req.path;
 
   if (!nip) {
     return res.status(400).json({
-      message: "ID kosong"
-    })
+      message: "ID kosong",
+    });
   }
   try {
-    const data = { nip }
-    let result = null
+    const data = { nip };
+    let result = null;
     switch (path) {
       case "/dosen/status-validasi/irs":
-        result = await getStatusValidasiIRS(data); 
+        result = await getStatusValidasiIRS(data);
         break;
       case "/dosen/status-validasi/khs":
-        result = await getStatusValidasiKHS(data); 
+        result = await getStatusValidasiKHS(data);
         break;
       case "/dosen/status-validasi/pkl":
-        result = await getStatusValidasiPKL(data); 
+        result = await getStatusValidasiPKL(data);
         break;
       case "/dosen/status-validasi/skripsi":
-        result = await getStatusValidasiSkripsi(data); 
-        break; 
+        result = await getStatusValidasiSkripsi(data);
+        break;
     }
 
-    if (!result) return res.status(400).json({
-      message: "Failed to retrieve list status validasi"
-    })
+    if (!result)
+      return res.status(400).json({
+        message: "Failed to retrieve list status validasi",
+      });
 
     return res.status(200).json({
       data: result,
-      message: "Daftar status validasi berhasil diambil"
-    })
+      message: "Daftar status validasi berhasil diambil",
+    });
   } catch (err) {
-    console.log(err.message)
+    console.log(err.message);
     return res.status(400).json({
-      message: err.message
-    })
+      message: err.message,
+    });
   }
-}
+};
 
 // Validasi data
 const validasiDataIrsController = async (req, res) => {
-  const {
-    nim,
-    semester,
-    status,
-    jumlahSks
-  } = req.body;
+  const { nim, semester, status, jumlahSks } = req.body;
 
   // check null input
-  if (!nim || !semester || !status || !jumlahSks || !statusValidasi) {
+  if (!nim || !semester || !status || !jumlahSks) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -87,7 +83,7 @@ const validasiDataIrsController = async (req, res) => {
       nim,
       semester,
       status,
-      jumlahSks
+      jumlahSks,
     };
 
     const result = await validasiDataIrs(data);
@@ -98,7 +94,7 @@ const validasiDataIrsController = async (req, res) => {
   } catch (err) {
     console.log(err.message);
     return res.status(400).json({
-      message: err.message
+      message: err.message,
     });
   }
 };
@@ -148,18 +144,13 @@ const validasiDataKhsController = async (req, res) => {
   } catch (err) {
     console.log(err.message);
     return res.status(400).json({
-      message: err.message
+      message: err.message,
     });
   }
 };
 
 const validasiDataPklController = async (req, res) => {
-  const {
-    nim,
-    semester,
-    nilai,
-    tanggalLulusSidang
-  } = req.body;
+  const { nim, semester, nilai, tanggalLulusSidang } = req.body;
 
   // check null input
   if (!nim || !semester || !status || !nilai || !tanggalLulusSidang) {
@@ -184,20 +175,14 @@ const validasiDataPklController = async (req, res) => {
   } catch (err) {
     console.log(err.message);
     return res.status(400).json({
-      message: err.message
+      message: err.message,
     });
   }
 };
 
 const validasiDataSkripsiController = async (req, res) => {
-  const {
-    nim,
-    semester,
-    status,
-    nilai,
-    tanggalLulusSidang,
-    lamaStudi
-  } = req.body;
+  const { nim, semester, status, nilai, tanggalLulusSidang, lamaStudi } =
+    req.body;
 
   // check null input
   if (!nim || !semester || !status || !nilai) {
@@ -212,7 +197,7 @@ const validasiDataSkripsiController = async (req, res) => {
       status,
       nilai,
       tanggalLulusSidang,
-      lamaStudi
+      lamaStudi,
     };
 
     const result = await validasiDataSkripsi(data);
@@ -223,7 +208,7 @@ const validasiDataSkripsiController = async (req, res) => {
   } catch (err) {
     console.log(err.message);
     return res.status(400).json({
-      message: err.message
+      message: err.message,
     });
   }
 };
@@ -243,19 +228,19 @@ const rekapMahasiswaDosenController = async (req, res) => {
     let result;
     if (path === `/dosen/rekap-pkl/${nip}`) {
       result = await rekapPklMahasiswa({
-        nip
+        nip,
       });
     } else if (path === `/dosen/rekap-skripsi/${nip}`) {
       result = await rekapSkripsiMahasiswa({
-        nip
+        nip,
       });
     } else if (path === `/dosen/rekap-status/${nip}`) {
       result = await rekapStatusMahasiswa({
-        nip
+        nip,
       });
     } else {
       return res.status(404).json({
-        message: "path tidak ditemukan"
+        message: "path tidak ditemukan",
       });
     }
     return res.status(200).json({
@@ -265,7 +250,7 @@ const rekapMahasiswaDosenController = async (req, res) => {
   } catch (err) {
     console.log(err.message);
     return res.status(400).json({
-      message: err.message
+      message: err.message,
     });
   }
 };
@@ -285,19 +270,19 @@ const daftarMahasiswaDosenController = async (req, res) => {
     let result;
     if (path === `/dosen/daftar-pkl/${nip}`) {
       result = await daftarPklMahasiswa({
-        nip
+        nip,
       });
     } else if (path === `/dosen/daftar-skripsi/${nip}`) {
       result = await daftarSkripsiMahasiswa({
-        nip
+        nip,
       });
     } else if (path === `/dosen/daftar-status/${nip}`) {
       result = await daftarStatusMahasiswa({
-        nip
+        nip,
       });
     } else {
       return res.status(404).json({
-        message: "path tidak ditemukan"
+        message: "path tidak ditemukan",
       });
     }
     return res.status(200).json({
@@ -307,18 +292,16 @@ const daftarMahasiswaDosenController = async (req, res) => {
   } catch (err) {
     console.log(err.message);
     return res.status(400).json({
-      message: err.message
+      message: err.message,
     });
   }
 };
 
 const searchMahasiswaDosenController = async (req, res) => {
   // Check if keyword is nim / nama
-  const {
-    keyword
-  } = req.query;
+  const { keyword } = req.query;
   const nip = req.id;
-    
+
   if (!nip) {
     return res.status(400).json({
       message: "NIP tidak boleh kosong",
@@ -329,40 +312,38 @@ const searchMahasiswaDosenController = async (req, res) => {
     const result = await searchMahasiswa({
       nip,
       keyword,
-    })
+    });
 
     return res.status(200).json({
       message: "search berhasil",
-      data: result
-    })
+      data: result,
+    });
   } catch (err) {
     return res.status(400).json({
-      message: err.message
-    })
+      message: err.message,
+    });
   }
-}
+};
 
 // !!! Harus cek nip?
 const getDataAkademikMhsDosenController = async (req, res) => {
-  const {
-    nim
-  } = req.params
+  const { nim } = req.params;
 
   try {
     const result = await getDataAkademikMhs({
-      nim
-    })
+      nim,
+    });
 
     return res.status(200).json({
       message: "data mahasiswa berhasil diambil",
-      data: result
-    })
+      data: result,
+    });
   } catch (err) {
     return res.status(400).json({
-      message: err.message
-    })
+      message: err.message,
+    });
   }
-}
+};
 
 module.exports = {
   getStatusValidasiController,
@@ -371,10 +352,10 @@ module.exports = {
   validasiDataKhsController,
   validasiDataPklController,
   validasiDataSkripsiController,
-  
+
   rekapMahasiswaDosenController,
   daftarMahasiswaDosenController,
-  
+
   searchMahasiswaDosenController,
-  getDataAkademikMhsDosenController
+  getDataAkademikMhsDosenController,
 };

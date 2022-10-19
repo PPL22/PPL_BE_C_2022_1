@@ -5,7 +5,6 @@ const jwt = require("jsonwebtoken");
 
 const login = async (data) => {
   let dosen = true;
-
   // Find akun in akun_dosen table
   let akun = await prisma.tb_akun_dosen.findFirst({
     where: {
@@ -21,7 +20,7 @@ const login = async (data) => {
     dosen = false;
     akun = await prisma.tb_akun_mhs.findUnique({
       where: {
-        username: username,
+        username: data.username,
       },
       include: {
         fk_pemilik: true,
@@ -52,7 +51,7 @@ const login = async (data) => {
         jsonRole = await prisma.tb_role_akun_dosen.findMany({
           where: {
             username: akun.username,
-          }
+          },
         });
 
         // Akun doesn't have any role

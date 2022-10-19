@@ -2,7 +2,7 @@
 CREATE TABLE `tb_mhs` (
     `nim` VARCHAR(191) NOT NULL,
     `nama` VARCHAR(191) NOT NULL,
-    `statusAktif` ENUM('Aktif', 'Cuti', 'Mangkir', 'DO', 'UndurDiri', 'Lulus', 'MeninggalDunia') NOT NULL,
+    `statusAktif` ENUM('Aktif', 'Cuti', 'Lulus', 'Mangkir', 'DO', 'UndurDiri', 'MeninggalDunia') NOT NULL,
     `alamat` VARCHAR(191) NULL,
     `email` VARCHAR(191) NULL,
     `kodeKab` VARCHAR(191) NULL,
@@ -36,9 +36,10 @@ CREATE TABLE `tb_dosen` (
 CREATE TABLE `tb_irs` (
     `nim` VARCHAR(191) NOT NULL,
     `semester` VARCHAR(191) NOT NULL,
-    `status` VARCHAR(191) NOT NULL,
-    `jumlahSks` VARCHAR(191) NOT NULL,
-    `fileIrs` VARCHAR(191) NOT NULL,
+    `status` ENUM('Aktif', 'Cuti') NOT NULL,
+    `jumlahSks` VARCHAR(191) NULL,
+    `fileIrs` VARCHAR(191) NULL,
+    `statusValidasi` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`nim`, `semester`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -47,12 +48,13 @@ CREATE TABLE `tb_irs` (
 CREATE TABLE `tb_khs` (
     `nim` VARCHAR(191) NOT NULL,
     `semester` VARCHAR(191) NOT NULL,
-    `status` VARCHAR(191) NOT NULL,
-    `jumlahSksSemester` VARCHAR(191) NOT NULL,
-    `ips` VARCHAR(191) NOT NULL,
-    `jumlahSksKumulatif` VARCHAR(191) NOT NULL,
-    `ipk` VARCHAR(191) NOT NULL,
-    `fileKhs` VARCHAR(191) NOT NULL,
+    `status` ENUM('Aktif', 'Cuti') NOT NULL,
+    `jumlahSksSemester` VARCHAR(191) NULL,
+    `ips` VARCHAR(191) NULL,
+    `jumlahSksKumulatif` VARCHAR(191) NULL,
+    `ipk` VARCHAR(191) NULL,
+    `fileKhs` VARCHAR(191) NULL,
+    `statusValidasi` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`nim`, `semester`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -61,9 +63,9 @@ CREATE TABLE `tb_khs` (
 CREATE TABLE `tb_pkl` (
     `nim` VARCHAR(191) NOT NULL,
     `semester` VARCHAR(191) NOT NULL,
-    `status` VARCHAR(191) NOT NULL,
     `nilai` VARCHAR(191) NOT NULL,
     `filePkl` VARCHAR(191) NOT NULL,
+    `statusValidasi` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`nim`, `semester`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -72,11 +74,11 @@ CREATE TABLE `tb_pkl` (
 CREATE TABLE `tb_skripsi` (
     `nim` VARCHAR(191) NOT NULL,
     `semester` VARCHAR(191) NOT NULL,
-    `status` VARCHAR(191) NOT NULL,
     `nilai` VARCHAR(191) NOT NULL,
     `tanggalLulusSidang` DATE NOT NULL,
     `lamaStudi` INTEGER NOT NULL,
     `fileSkripsi` VARCHAR(191) NOT NULL,
+    `statusValidasi` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`nim`, `semester`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

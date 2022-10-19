@@ -103,17 +103,17 @@ const updateDataMahasiswaController = async (req, res) => {
 };
 
 const dashboardMahasiswaController = async (req, res) => {
-  const nim = req.id
+  const nim = req.id;
 
   try {
-    const data = { nim }
-    const result = await getDataAkademikMhs(data)
+    const data = { nim };
+    const result = await getDataAkademikMhs(data);
 
-    res.status(200).json(result)
+    res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message })
+    res.status(400).json({ message: err.message });
   }
-}
+};
 
 const entryDataIrsController = async (req, res) => {
   const { nim, semester, status, jumlahSks } = req.body;
@@ -210,11 +210,11 @@ const entryDataKhsController = async (req, res) => {
 };
 
 const entryDataPklController = async (req, res) => {
-  const { nim, semester, status, nilai } = req.body;
+  const { nim, semester, nilai } = req.body;
   const dokumen = req.file;
 
   // check null input
-  if (!nim || !semester || !status || !nilai || !dokumen) {
+  if (!nim || !semester || !nilai || !dokumen) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -230,7 +230,6 @@ const entryDataPklController = async (req, res) => {
     const data = {
       nim,
       semester,
-      status,
       nilai,
       dokumen,
     };
@@ -247,8 +246,7 @@ const entryDataPklController = async (req, res) => {
 };
 
 const entryDataSkripsiController = async (req, res) => {
-  const { nim, semester, status, nilai, tanggalLulusSidang, lamaStudi } =
-    req.body;
+  const { nim, semester, nilai, tanggalLulusSidang, lamaStudi } = req.body;
   const dokumen = req.file;
 
   // check null input
@@ -275,7 +273,6 @@ const entryDataSkripsiController = async (req, res) => {
     const data = {
       nim,
       semester,
-      status,
       nilai,
       tanggalLulusSidang,
       dokumen,
