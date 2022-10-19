@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const countSemester = require("../utils/countSemester");
 const prisma = new PrismaClient();
 
 // TODO: refactor get status validasi
@@ -9,6 +10,7 @@ const getStatusValidasiIRS = async (data) => {
       where: {
         fk_nim: {
           fk_kodeWali: {
+<<<<<<< HEAD
             nip: data.nip,
           },
         },
@@ -28,6 +30,28 @@ const getStatusValidasiIRS = async (data) => {
         },
       },
     });
+=======
+            nip: data.nip
+          }
+        }
+      },
+      include: {
+        fk_nim: true
+      }
+    })
+  
+    const newRes = result.map((d) => {
+      const dataMhs = d.fk_nim
+      delete d['fk_nim']
+      return {...d,
+      nama: dataMhs.nama,
+      nim: dataMhs.nim,
+      angkatan: dataMhs.angkatan,
+      semester: countSemester(dataMhs.angkatan)}
+    })
+
+    return newRes
+>>>>>>> 16d35ba96d0ed096d1730cf8920755979dda1db6
 
     // destructuring nama
     result = result.map((item) => {
@@ -38,7 +62,11 @@ const getStatusValidasiIRS = async (data) => {
 
     return result;
   } catch (err) {
+<<<<<<< HEAD
     throw new Error(err);
+=======
+    throw new Error(err)
+>>>>>>> 16d35ba96d0ed096d1730cf8920755979dda1db6
   }
 };
 
@@ -48,15 +76,42 @@ const getStatusValidasiKHS = async (data) => {
       where: {
         fk_nim: {
           fk_kodeWali: {
+<<<<<<< HEAD
             nip: data.nip,
           },
         },
       },
     });
+=======
+            nip: data.nip
+          }
+        }
+      },
+      include: {
+        fk_nim: true
+      }
+    })
+    
+    const newRes = result.map((d) => {
+      const dataMhs = d.fk_nim
+      delete d['fk_nim']
+      return {...d,
+      nama: dataMhs.nama,
+      nim: dataMhs.nim,
+      angkatan: dataMhs.angkatan,
+      semester: countSemester(dataMhs.angkatan)}
+    })
+    
+    return newRes
+>>>>>>> 16d35ba96d0ed096d1730cf8920755979dda1db6
 
     return result;
   } catch (err) {
+<<<<<<< HEAD
     throw new Error(err);
+=======
+    throw new Error(err)
+>>>>>>> 16d35ba96d0ed096d1730cf8920755979dda1db6
   }
 };
 
@@ -66,15 +121,42 @@ const getStatusValidasiPKL = async (data) => {
       where: {
         fk_nim: {
           fk_kodeWali: {
+<<<<<<< HEAD
             nip: data.nip,
           },
         },
       },
     });
+=======
+            nip: data.nip
+          }
+        }
+      },
+      include: {
+        fk_nim: true
+      }
+    })
+    
+    const newRes = result.map((d) => {
+      const dataMhs = d.fk_nim
+      delete d['fk_nim']
+      return {...d,
+      nama: dataMhs.nama,
+      nim: dataMhs.nim,
+      angkatan: dataMhs.angkatan,
+      semester: countSemester(dataMhs.angkatan)}
+    })
+    
+    return newRes
+>>>>>>> 16d35ba96d0ed096d1730cf8920755979dda1db6
 
     return result;
   } catch (err) {
+<<<<<<< HEAD
     throw new Error(err);
+=======
+    throw new Error(err)
+>>>>>>> 16d35ba96d0ed096d1730cf8920755979dda1db6
   }
 };
 
@@ -84,15 +166,42 @@ const getStatusValidasiSkripsi = async (data) => {
       where: {
         fk_nim: {
           fk_kodeWali: {
+<<<<<<< HEAD
             nip: data.nip,
           },
         },
       },
     });
+=======
+            nip: data.nip
+          }
+        }
+      },
+      include: {
+        fk_nim: true
+      }
+    })
+    
+    const newRes = result.map((d) => {
+      const dataMhs = d.fk_nim
+      delete d['fk_nim']
+      return {...d,
+      nama: dataMhs.nama,
+      nim: dataMhs.nim,
+      angkatan: dataMhs.angkatan,
+      semester: countSemester(dataMhs.angkatan)}
+    })
+    
+    return newRes
+>>>>>>> 16d35ba96d0ed096d1730cf8920755979dda1db6
 
     return result;
   } catch (err) {
+<<<<<<< HEAD
     throw new Error(err);
+=======
+    throw new Error(err)
+>>>>>>> 16d35ba96d0ed096d1730cf8920755979dda1db6
   }
 };
 

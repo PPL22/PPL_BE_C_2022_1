@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const { PrismaClientRustPanicError } = require("@prisma/client/runtime");
+const countSemester = require("../utils/countSemester");
 const prisma = new PrismaClient();
 
 const searchMahasiswa = async (data) => {
@@ -19,6 +20,10 @@ const searchMahasiswa = async (data) => {
         where: {
           ...filterWali,
         },
+        select: {
+          nama: true,
+          nim: true
+        }
       });
     } else {
       result = await prisma.tb_mhs.findMany({
@@ -37,9 +42,13 @@ const searchMahasiswa = async (data) => {
           ],
           ...filterWali,
         },
+        select: {
+          nama: true,
+          nim: true
+        }
       });
     }
-
+    
     return result;
   } catch (err) {
     throw err;
@@ -64,11 +73,7 @@ const getDataAkademikMhs = async (data) => {
       },
     });
 
-    const currentDate = new Date()
-    let currentSmt = (currentDate.getFullYear() - dataMhs.angkatan) * 2
-    if (currentDate.getMonth() > 6) currentSmt++
-    console.log(currentSmt)
-
+    const currentSmt = countSemester(data.angkatan)
     let irs = await prisma.tb_irs.findMany({
       where: {
         nim: data.nim,
