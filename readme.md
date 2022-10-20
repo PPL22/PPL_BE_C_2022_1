@@ -6,7 +6,13 @@
     git clone https://github.com/PPL22/backend.git
 ```
 
-2. Clone repo frontend
+2. Checkout to branch `dev`
+
+```
+    git checkout dev
+```
+
+3. Clone repo frontend
 
 ```
     git clone https://github.com/PPL22/frontend.git
