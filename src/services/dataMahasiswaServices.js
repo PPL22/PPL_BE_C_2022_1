@@ -55,6 +55,7 @@ const searchMahasiswa = async (data) => {
   }
 };
 
+// TODO: Refactor get data algorithm
 const getDataAkademikMhs = async (data) => {
   try {
     const dataMhs = await prisma.tb_mhs.findUnique({
@@ -67,13 +68,15 @@ const getDataAkademikMhs = async (data) => {
         angkatan: true,
         fk_kodeWali: {
           select: {
+            nip: true,
             nama: true,
           },
         },
       },
     });
-
-    const currentSmt = countSemester(data.angkatan)
+    
+    const currentSmt = countSemester(dataMhs.angkatan)
+    // ============== IRS ==============
     let irs = await prisma.tb_irs.findMany({
       where: {
         nim: data.nim,
@@ -83,14 +86,17 @@ const getDataAkademikMhs = async (data) => {
       }
     });
     irs = irs.map((data) => ({ type: "irs", available: true, ...data }));
-
+    
     // Insert empty irs
+    let offset = 0
     for (let i = 0; i < currentSmt; i++) {
-      if (irs[i].semester !== i+1) {
-        irs.push({ type: "irs", available: false, semester: i+1})
+      if (parseInt(irs[i].semester)-offset !== i+1) {
+        irs.push({ type: "irs", available: false, semester: (i+1).toString()})
+        offset++
       }
     }
     
+    // ============== KHS ==============
     let khs = await prisma.tb_khs.findMany({
       where: {
         nim: data.nim,
@@ -102,12 +108,15 @@ const getDataAkademikMhs = async (data) => {
     khs = khs.map((data) => ({ type: "khs", available: true, ...data }));
     
     // Insert empty khs
+    offset = 0
     for (let i = 0; i < currentSmt; i++) {
-      if (khs[i].semester !== i+1) {
-        khs.push({ type: "khs", available: false, semester: i+1})
+      if (parseInt(khs[i].semester)-offset !== i+1) {
+        khs.push({ type: "khs", available: false, semester: (i+1).toString()})
+        offset++
       }
     }
     
+    // ============== PKL ==============
     let pkl = await prisma.tb_pkl.findMany({
       where: {
         nim: data.nim,
@@ -118,6 +127,7 @@ const getDataAkademikMhs = async (data) => {
     });
     pkl = pkl.map((data) => ({ type: "pkl", available: true, ...data }));
     
+    // ============== SKRIPSI ==============
     let skripsi = await prisma.tb_skripsi.findMany({
       where: {
         nim: data.nim,
@@ -134,16 +144,31 @@ const getDataAkademikMhs = async (data) => {
     // Groups the data by semesters
     // Idk what these codes mean, but it works :D
     let groupBySmt = combinedData.reduce((r, a) => {
+      delete a.nim
       r[a.semester] = r[a.semester] || [];
       r[a.semester].push(a);
       return r;
-    }, Object.create(null));
+    }, {});
+
+    // // Change type as key
+    // for (const smt in groupBySmt) {
+    //   groupBySmt[smt] = groupBySmt[smt].reduce((obj, dokumen) => {
+    //     const type = dokumen.type
+    //     delete dokumen.nim
+    //     delete dokumen.type
+    //     return {
+    //       [type]: {...dokumen}
+    //     }
+    //   }, {})
+    // }
 
     return {
       nama: dataMhs.nama,
       nim: dataMhs.nim,
       angkatan: dataMhs.angkatan,
+      semester: currentSmt,
       namaDoswal: dataMhs.fk_kodeWali.nama,
+      nipDoswal: dataMhs.fk_kodeWali.nip,
       dataAkademik: groupBySmt,
     };
   } catch (err) {
