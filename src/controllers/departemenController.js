@@ -10,7 +10,7 @@ const {
 
 const getDashboardDepartemenController = async (req, res) => {
   try {
-    const result = await getCountStatusDataAkademikMhs(result)
+    const result = await getCountStatusDataAkademikMhs()
     
     return res.status(200).json({
       message: "Data dashboard berhasil diretrieve",

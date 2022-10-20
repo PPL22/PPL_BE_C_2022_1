@@ -66,6 +66,7 @@ const getDataAkademikMhs = async (data) => {
         nama: true,
         nim: true,
         angkatan: true,
+        foto: true,
         fk_kodeWali: {
           select: {
             nip: true,
@@ -75,6 +76,8 @@ const getDataAkademikMhs = async (data) => {
       },
     });
     
+    if (!dataMhs) throw new Error("Mahasiswa not found")
+
     const currentSmt = countSemester(dataMhs.angkatan)
     // ============== IRS ==============
     let irs = await prisma.tb_irs.findMany({
@@ -85,14 +88,18 @@ const getDataAkademikMhs = async (data) => {
         semester: 'asc'
       }
     });
-    irs = irs.map((data) => ({ type: "irs", available: true, ...data }));
+
+    // Get available semester
+    let availableSmt = []
+    irs = irs.map((data) => { 
+      availableSmt.push(data.semester)
+      return {type: "irs", available: true, ...data} 
+    });
     
     // Insert empty irs
-    let offset = 0
-    for (let i = 0; i < currentSmt; i++) {
-      if (parseInt(irs[i].semester)-offset !== i+1) {
-        irs.push({ type: "irs", available: false, semester: (i+1).toString()})
-        offset++
+    for (let i = 1; i <= currentSmt; i++) {
+      if (!(availableSmt.find(e => e === i.toString()))) {
+        irs.push({ type: "irs", available: false, semester: (i).toString()})
       }
     }
     
@@ -105,14 +112,17 @@ const getDataAkademikMhs = async (data) => {
         semester: 'asc'
       }
     });
-    khs = khs.map((data) => ({ type: "khs", available: true, ...data }));
-    
+    availableSmt = []
+    khs = khs.map((data) => {
+      availableSmt.push(data.semester)
+      return { type: "khs", available: true, ...data }
+    });
+
     // Insert empty khs
-    offset = 0
-    for (let i = 0; i < currentSmt; i++) {
-      if (parseInt(khs[i].semester)-offset !== i+1) {
-        khs.push({ type: "khs", available: false, semester: (i+1).toString()})
-        offset++
+    for (let i = 1; i <= currentSmt; i++) {
+      // console.log(parseInt(khs[i].semester)-offset, i+1)
+      if (!(availableSmt.find(e => e === i.toString()))) {
+        khs.push({ type: "khs", available: false, semester: i.toString()})
       }
     }
     
@@ -154,6 +164,7 @@ const getDataAkademikMhs = async (data) => {
       nim: dataMhs.nim,
       angkatan: dataMhs.angkatan,
       semester: currentSmt,
+      foto: dataMhs.foto,
       namaDoswal: dataMhs.fk_kodeWali.nama,
       nipDoswal: dataMhs.fk_kodeWali.nip,
       dataAkademik: groupBySmt,
@@ -167,7 +178,7 @@ const getDataAkademikMhs = async (data) => {
 // Count status, for dashboard
 const getCountStatusDataAkademikMhs = async (data) => {
   try {
-    const filterWali = data.nip ? {kodeWali: data.nip} : {} 
+    const filterWali = data ? {kodeWali: data.nip} : {} 
     
     // Count mahasiswa and amount of irs and khs entry required
     const allMhs = await prisma.tb_mhs.groupBy({
