@@ -16,15 +16,23 @@ const verifyToken = (req, res, next) => {
         // Check multiple role
         if (Array.isArray(role)) {
           // console.log(role);
+          let roleExists = false
           role.forEach((item) => {
             // console.log(item);
             // console.log(req.originalUrl);
             // If url consists of the role, (/dosen/search), continue
             if (req.originalUrl.includes(item.toLowerCase())) {
+              roleExists = true
               next();
             }
           });
-          // One role, check url immediately
+
+          if (!roleExists) {
+            res.status(403).json({
+              message: "You are not authorized to access this resource",
+            });
+          }
+        // One role, check url immediately
         } else if (req.originalUrl.includes(role.toLowerCase())) {
           next();
           // User don't have the valid role to access the route

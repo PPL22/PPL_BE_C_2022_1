@@ -46,6 +46,7 @@ const {
 const { getKotaController } = require("../controllers/locationController");
 
 const verifyToken = require("../middlewares/verifyToken");
+const getProfileDosenController = require("../controllers/profileDosenController");
 
 const router = express.Router();
 
@@ -98,9 +99,12 @@ router.post(
 );
 
 //=======================================================
+
 // Dosen Controller
-// Dashboard
+// Dashboard and profile
+// TODO: refactor profile route, controller, and service
 router.get("/dosen/dashboard", getDashboardDosenController)
+router.get("/dosen/profile", getProfileDosenController)
 
 // Get status validasi
 router.get("/dosen/status-validasi/irs", getStatusValidasiController);
@@ -130,12 +134,17 @@ router.get("/dosen/data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
 // Departemen Controller
 // Dashboard
 router.get("/departemen/dashboard", getDashboardDepartemenController);
+router.get("/departemen/profile", getProfileDosenController)
+
+// Rekap
 router.get("/departemen/rekap-status", rekapMahasiswaDepartemenController);
 router.get("/departemen/rekap-pkl", rekapMahasiswaDepartemenController);
 router.get("/departemen/rekap-skripsi", rekapMahasiswaDepartemenController);
 router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
+
+// Search mahasiswa
 router.get("/departemen/search-mhs/", searchMahasiswaDepartemenController);
 router.get("/departemen/data-akademik-mhs/:nim", getDataAkademikMhsDepartemenController);
 

@@ -21,7 +21,7 @@ function hashPassword(name) {
 function getRole(name) {
   const regex =
     /(Dr\.?|Drs\.?|S\.?S\.?i\.?|S\.?T\.?|M\.?T\.?|S\.?K\.?om\.?|M\.?K\.?om\.?|M\.?Cs\.?|B\.?Eng\.?)/g;
-  if (name.includes("Aris Pudji") || name.includes("Adi Wibowo")) {
+  if (name.includes("Aris Puji") || name.includes("Adi Wibowo")) {
     return "Departemen";
   } else if (regex.test(name)) {
     return "Dosen";
