@@ -142,25 +142,12 @@ const getDataAkademikMhs = async (data) => {
     let combinedData = irs.concat(khs, pkl, skripsi);
     
     // Groups the data by semesters
-    // Idk what these codes mean, but it works :D
     let groupBySmt = combinedData.reduce((r, a) => {
       delete a.nim
       r[a.semester] = r[a.semester] || [];
       r[a.semester].push(a);
       return r;
     }, {});
-
-    // // Change type as key
-    // for (const smt in groupBySmt) {
-    //   groupBySmt[smt] = groupBySmt[smt].reduce((obj, dokumen) => {
-    //     const type = dokumen.type
-    //     delete dokumen.nim
-    //     delete dokumen.type
-    //     return {
-    //       [type]: {...dokumen}
-    //     }
-    //   }, {})
-    // }
 
     return {
       nama: dataMhs.nama,
@@ -175,7 +162,150 @@ const getDataAkademikMhs = async (data) => {
     throw err;
   }
 };
+
+// TODO: Refactor get count status
+// Count status, for dashboard
+const getCountStatusDataAkademikMhs = async (data) => {
+  try {
+    const filterWali = data.nip ? {kodeWali: data.nip} : {} 
+    
+    // Count mahasiswa and amount of irs and khs entry required
+    const allMhs = await prisma.tb_mhs.groupBy({
+      by: ["angkatan"],
+      where: {
+        ...filterWali
+      },
+      _count: {
+        nim: true
+      }
+    })
+
+    // Amount of required data calculated from semester mhs
+    let countMhs = 0
+    const countRequiredData = allMhs.reduce((count, mhs) => {
+      const {_count, angkatan} = mhs
+      countMhs += _count.nim
+      return count + _count.nim * countSemester(angkatan)
+    }, 0)
+
+    let result = {}
+
+    
+    // ============== IRS ==============
+    const irs = await prisma.tb_irs.groupBy({
+      by: ["statusValidasi"],
+      where: {
+        fk_nim: filterWali
+      },
+      _count: {
+        nim: true
+      }
+    }) 
+    
+    // Count validated and not validated
+    let countIRS = 0
+    result.irs = irs.reduce((res, obj) => {
+      const {_count, statusValidasi} = obj 
+      res[statusValidasi ? "validated" : "notValidated"] = _count.nim 
+      countIRS += _count.nim
+      return res    
+    }, {})
+    
+    // No entry calculated from how many required data - how many IRS available
+    if (!result.irs.validated) result.irs.validate = 0
+    if (!result.irs.notValidated) result.irs.validate = 0
+    result.irs.noEntry = countRequiredData - countIRS
+    
+
+    // ============== KHS ==============
+    const khs = await prisma.tb_khs.groupBy({
+      by: ["statusValidasi"],
+      where: {
+        fk_nim: filterWali
+      },
+      _count: {
+        nim: true
+      }
+    }) 
+    
+    // Count validated and not validated
+    let countKHS = 0
+    result.khs = khs.reduce((res, obj) => {
+      const {_count, statusValidasi} = obj 
+      res[statusValidasi ? "validated" : "notValidated"] = _count.nim 
+      countKHS += _count.nim
+      return res    
+    }, {})
+    
+    // No entry calculated from how many required data - how many KHS available
+    if (!result.khs.validated) result.khs.validated = 0
+    if (!result.khs.notValidated) result.khs.validate = 0
+    result.khs.noEntry = countRequiredData - countKHS
+    
+  
+    // ============== PKL ==============
+    const pkl = await prisma.tb_pkl.groupBy({
+      by: ["statusValidasi"],
+      where: {
+        fk_nim: filterWali
+      },
+      _count: {
+        nim: true
+      }
+    }) 
+    
+    // Only count not validated one
+    let countPKL = 0
+    result.pkl = pkl.reduce((res, obj) => {
+      const {_count, statusValidasi} = obj 
+      if (!statusValidasi) {
+        res["notValidated"] = _count.nim 
+      }
+      countPKL += _count.nim
+      return res    
+    }, {})
+    
+    // Lulus --> PKL mhs that has been validated
+    // Tidak lulus --> PKL mhs that hasn't been validated + no entry
+    result.pkl.lulus = countPKL - result.pkl.notValidated
+    result.pkl.blmLulus = countMhs - result.pkl.lulus
+    
+
+    // ============== SKRIPSI ==============
+    const skripsi = await prisma.tb_skripsi.groupBy({
+      by: ["statusValidasi"],
+      where: {
+        fk_nim: filterWali
+      },
+      _count: {
+        nim: true
+      }
+    }) 
+    
+    // Only count not validated one
+    let countSkripsi = 0
+    result.skripsi = skripsi.reduce((res, obj) => {
+      const {_count, statusValidasi} = obj 
+      if (!statusValidasi) {
+        res["notValidated"] = _count.nim 
+      }
+      countSkripsi += _count.nim
+      return res    
+    }, {})
+    
+    // Lulus --> Skripsi mhs that has been validated
+    // Tidak lulus --> Skripsi mhs that hasn't been validated + no entry
+    result.skripsi.lulus = countSkripsi - result.skripsi.notValidated
+    result.skripsi.blmLulus = countMhs - result.skripsi.lulus
+    
+    return result
+  } catch (err) {
+    throw err;
+  }
+}
+
 module.exports = {
   searchMahasiswa,
   getDataAkademikMhs,
+  getCountStatusDataAkademikMhs
 };

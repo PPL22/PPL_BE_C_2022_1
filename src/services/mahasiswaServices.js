@@ -6,7 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const { getDataAkademikMhs } = require("./dataMahasiswaServices");
 
-const getDashboardMhs = async (data) => {
+const getDashboardMahasiswa = async (data) => {
   const result = await getDataAkademikMhs(data)
 
   const khs = result.dataAkademik[result.semester].filter(obj => obj.type === 'khs')
@@ -275,7 +275,7 @@ module.exports = {
   getDataRegisterMahasiswa,
   updateDataMahasiswa,
 
-  getDashboardMhs,
+  getDashboardMahasiswa,
   entryDataIrs,
   entryDataKhs,
   entryDataPkl,

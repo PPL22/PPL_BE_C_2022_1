@@ -32,7 +32,7 @@ async function main() {
         nama: "Liem, Roy Marcelino",
         statusAktif: "Aktif",
         jalurMasuk: "SBMPTN",
-        angkatan: 2020,
+        angkatan: 2019,
         kodeWali: getKodeWaliRandom(),
       },
       {
@@ -246,7 +246,6 @@ async function main() {
       {
         nim: "24060120130059",
         semester: "6",
-        status: "Lulus",
         nilai: "B",
         filePkl: "pkl.pdf"
       }
@@ -259,7 +258,6 @@ async function main() {
       { // Edge case
         nim: "24060120130059",
         semester: "7",
-        status: "Sedang ambil",
         nilai: "",
         tanggalLulusSidang: new Date(),
         lamaStudi: 0, // Harusnya jangan int

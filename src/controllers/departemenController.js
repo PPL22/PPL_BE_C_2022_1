@@ -1,4 +1,4 @@
-const { searchMahasiswa } = require('../services/dataMahasiswaServices');
+const { searchMahasiswa, getCountStatusDataAkademikMhs, getDataAkademikMhs } = require('../services/dataMahasiswaServices');
 const {
   rekapStatusMahasiswa,
   daftarStatusMahasiswa,
@@ -7,6 +7,21 @@ const {
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
 } = require('../services/rekapServices')
+
+const getDashboardDepartemenController = async (req, res) => {
+  try {
+    const result = await getCountStatusDataAkademikMhs(result)
+    
+    return res.status(200).json({
+      message: "Data dashboard berhasil diretrieve",
+      data: result
+    })
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message
+    })
+  }
+}
 
 const rekapMahasiswaDepartemenController = async (req, res) => {
   const path = req.path;
@@ -75,8 +90,31 @@ const searchMahasiswaDepartemenController = async (req, res) => {
   }
 }
 
+const getDataAkademikMhsDepartemenController = async (req, res) => {
+  const {
+    nim
+  } = req.params
+
+  try {
+    const result = await getDataAkademikMhs({
+      nim
+    })
+
+    return res.status(200).json({
+      message: "data mahasiswa berhasil diambil",
+      data: result
+    })
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message
+    })
+  }
+}
+
 module.exports = {
+  getDashboardDepartemenController,
   rekapMahasiswaDepartemenController,
   daftarMahasiswaDepartemenController,
-  searchMahasiswaDepartemenController
+  searchMahasiswaDepartemenController,
+  getDataAkademikMhsDepartemenController
 };
