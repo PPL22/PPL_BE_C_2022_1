@@ -1,5 +1,4 @@
 const { PrismaClient } = require("@prisma/client");
-const axios = require("axios");
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt')
 async function getDataDosen() {

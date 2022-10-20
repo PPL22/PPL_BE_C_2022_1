@@ -46,7 +46,20 @@ const rekapStatusMahasiswa = async (data) => {
       return acc;
     }, {});
 
-    return filterByAngkatan;
+    const rekapStatus = Object.keys(filterByAngkatan).map((item) => {
+      return {
+        angkatan: item,
+        aktif: filterByAngkatan[item].Aktif,
+        cuti: filterByAngkatan[item].Cuti,
+        mangkir: filterByAngkatan[item].Mangkir,
+        dropout: filterByAngkatan[item].DO,
+        undurDiri: filterByAngkatan[item].UndurDiri,
+        lulus: filterByAngkatan[item].Lulus,
+        meninggalDunia: filterByAngkatan[item].MeninggalDunia,
+      };
+    });
+
+    return rekapStatus;
   } catch (error) {
     throw new Error(error);
   }
@@ -129,6 +142,12 @@ const daftarStatusMahasiswa = async (data) => {
       delete item.fk_nim_khs;
     });
 
+    result.sort((a, b) => {
+      if (a.ipk === 0) return 1;
+      if (b.ipk === 0) return -1;
+      return 0;
+    });
+
     return result;
   } catch (error) {
     throw new Error(error);
@@ -141,29 +160,21 @@ const rekapPklMahasiswa = async (data) => {
       select: {
         nim: true,
         kodeWali: true,
-        fk_nim_pkl: {
-          select: {
-            status: true,
-          },
-        },
+        fk_nim_pkl: true,
         angkatan: true,
       },
     });
 
-    let pkl = result
+    let pkl = result;
     if (data) {
-      pkl = result.filter(
-        (item) => item.kodeWali === data.nip
-      );
+      pkl = result.filter((item) => item.kodeWali === data.nip);
     }
 
     const filterByAngkatan = pkl.reduce((acc, cur) => {
       const { angkatan, fk_nim_pkl } = cur;
-      console.log(angkatan);
-      const pkl = fk_nim_pkl.filter((item) => item.status === "Lulus");
-      console.log(pkl);
+      const pkl = fk_nim_pkl;
       if (acc[angkatan]) {
-        if (pkl.length > 0) {
+        if (pkl.length > 0 && pkl[0].statusValidasi === true) {
           acc[angkatan].lulus += 1;
         } else {
           acc[angkatan].belum += 1;
@@ -185,7 +196,15 @@ const rekapPklMahasiswa = async (data) => {
       return acc;
     }, {});
 
-    return filterByAngkatan;
+    const rekapPkl = Object.keys(filterByAngkatan).map((item) => {
+      return {
+        angkatan: item,
+        lulus: filterByAngkatan[item].lulus,
+        belum: filterByAngkatan[item].belum,
+      };
+    });
+
+    return rekapPkl;
   } catch (error) {
     throw new Error(error);
   }
@@ -193,7 +212,7 @@ const rekapPklMahasiswa = async (data) => {
 
 const daftarPklMahasiswa = async (data) => {
   try {
-    let result
+    let result;
     if (data) {
       result = await prisma.tb_mhs.findMany({
         where: {
@@ -206,7 +225,8 @@ const daftarPklMahasiswa = async (data) => {
           fk_nim_pkl: {
             select: {
               nilai: true,
-              status: true,
+              semester: true,
+              statusValidasi: true,
             },
           },
         },
@@ -228,7 +248,8 @@ const daftarPklMahasiswa = async (data) => {
           fk_nim_pkl: {
             select: {
               nilai: true,
-              status: true,
+              semester: true,
+              statusValidasi: true,
             },
           },
         },
@@ -246,19 +267,21 @@ const daftarPklMahasiswa = async (data) => {
     // change status pkl
     result.map((item) => {
       const { fk_nim_pkl } = item;
-      const pkl = fk_nim_pkl.filter((item) => item.status === "Lulus");
-      if (pkl.length > 0) {
-        item.status = "Lulus";
-        item.nilai = pkl[0].nilai;
+      if (fk_nim_pkl.length > 0 && fk_nim_pkl[0].statusValidasi === true) {
+        item.nilai = fk_nim_pkl[0].nilai;
+        item.semester = fk_nim_pkl[0].semester;
       } else {
-        item.status = "Belum";
         item.nilai = "-";
+        item.semester = "-";
       }
+      delete item.fk_nim_pkl;
     });
 
-    //remove fk_nim_pkl
-    result.map((item) => {
-      delete item.fk_nim_pkl;
+    // sort result by statusValidasi
+    result.sort((a, b) => {
+      if (a.nilai === "-") return 1;
+      if (b.nilai === "-") return -1;
+      return 0;
     });
 
     return result;
@@ -273,27 +296,20 @@ const rekapSkripsiMahasiswa = async (data) => {
       select: {
         nim: true,
         kodeWali: true,
-        fk_nim_skripsi: {
-          select: {
-            status: true,
-          },
-        },
+        fk_nim_skripsi: true,
         angkatan: true,
       },
     });
-
-    let pkl = result
+    let skripsi = result;
     if (data) {
-      pkl = result.filter(
-        (item) => item.kodeWali === data.nip
-      );
+      skripsi = result.filter((item) => item.kodeWali === data.nip);
     }
 
-    const filterByAngkatan = pkl.reduce((acc, cur) => {
+    const filterByAngkatan = skripsi.reduce((acc, cur) => {
       const { angkatan, fk_nim_skripsi } = cur;
-      const skripsi = fk_nim_skripsi.filter((item) => item.status === "Lulus");
+      const skripsi = fk_nim_skripsi;
       if (acc[angkatan]) {
-        if (skripsi.length > 0) {
+        if (skripsi.length > 0 && skripsi[0].statusValidasi === true) {
           acc[angkatan].lulus += 1;
         } else {
           acc[angkatan].belum += 1;
@@ -315,7 +331,15 @@ const rekapSkripsiMahasiswa = async (data) => {
       return acc;
     }, {});
 
-    return filterByAngkatan;
+    const rekapSkripsi = Object.keys(filterByAngkatan).map((item) => {
+      return {
+        angkatan: item,
+        lulus: filterByAngkatan[item].lulus,
+        belum: filterByAngkatan[item].belum,
+      };
+    });
+
+    return rekapSkripsi;
   } catch (error) {
     throw new Error(error);
   }
@@ -323,8 +347,8 @@ const rekapSkripsiMahasiswa = async (data) => {
 
 const daftarSkripsiMahasiswa = async (data) => {
   try {
-    let result
-  
+    let result;
+
     if (data) {
       result = await prisma.tb_mhs.findMany({
         where: {
@@ -337,9 +361,10 @@ const daftarSkripsiMahasiswa = async (data) => {
           fk_nim_skripsi: {
             select: {
               nilai: true,
-              status: true,
+              statusValidasi: true,
               tanggalLulusSidang: true,
               lamaStudi: true,
+              semester: true,
             },
           },
         },
@@ -354,9 +379,6 @@ const daftarSkripsiMahasiswa = async (data) => {
       });
     } else {
       result = await prisma.tb_mhs.findMany({
-        where: {
-          kodeWali: data.nip,
-        },
         select: {
           nim: true,
           nama: true,
@@ -364,9 +386,10 @@ const daftarSkripsiMahasiswa = async (data) => {
           fk_nim_skripsi: {
             select: {
               nilai: true,
-              status: true,
+              statusValidasi: true,
               tanggalLulusSidang: true,
               lamaStudi: true,
+              semester: true,
             },
           },
         },
@@ -384,25 +407,28 @@ const daftarSkripsiMahasiswa = async (data) => {
     // change status skripsi
     result.map((item) => {
       const { fk_nim_skripsi } = item;
-      const skripsi = fk_nim_skripsi.filter((item) => item.status === "Lulus");
-      if (skripsi.length > 0) {
-        item.status = "Lulus";
-        item.nilai = skripsi[0].nilai;
-        item.tanggalLulusSidang = skripsi[0].tanggalLulusSidang;
-        item.lamaStudi = skripsi[0].lamaStudi;
+      if (
+        fk_nim_skripsi.length > 0 &&
+        fk_nim_skripsi[0].statusValidasi === true
+      ) {
+        item.nilai = fk_nim_skripsi[0].nilai;
+        item.tanggalLulusSidang = fk_nim_skripsi[0].tanggalLulusSidang;
+        item.lamaStudi = fk_nim_skripsi[0].lamaStudi;
+        item.semester = fk_nim_skripsi[0].semester;
       } else {
-        item.status = "Belum";
         item.nilai = "-";
         item.tanggalLulusSidang = "-";
         item.lamaStudi = "-";
+        item.semester = "-";
       }
-    });
-
-    //remove fk_nim_skripsi
-    result.map((item) => {
       delete item.fk_nim_skripsi;
     });
 
+    result.sort((a, b) => {
+      if (a.nilai === "-") return 1;
+      if (b.nilai === "-") return -1;
+      return 0;
+    });
     return result;
   } catch (error) {
     throw new Error(error);

@@ -48,7 +48,6 @@ const { getKotaController } = require("../controllers/locationController");
 const verifyToken = require("../middlewares/verifyToken");
 
 const router = express.Router();
-const app = express();
 
 // Login
 router.post("/login", loginController);
@@ -116,9 +115,9 @@ router.put("/dosen/validasi/pkl", validasiDataPklController);
 router.put("/dosen/validasi/skripsi", validasiDataSkripsiController);
 
 // Rekap
-router.get("/dosen/rekap-status", rekapMahasiswaDosenController);
-router.get("/dosen/rekap-pkl", rekapMahasiswaDosenController);
-router.get("/dosen/rekap-skripsi", rekapMahasiswaDosenController);
+router.get("/dosen/rekap/status", rekapMahasiswaDosenController);
+router.get("/dosen/rekap/pkl", rekapMahasiswaDosenController);
+router.get("/dosen/rekap/skripsi", rekapMahasiswaDosenController);
 router.get("/dosen/daftar-status", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-pkl", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-skripsi", daftarMahasiswaDosenController);
