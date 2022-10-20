@@ -6,14 +6,14 @@ const {
   entryDataPkl,
   entryDataSkripsi,
   getProfileMahasiswa,
+  getDashboardMhs,
 } = require("../services/mahasiswaServices");
 const path = require("path");
-const { getDataAkademikMhs } = require("../services/dataMahasiswaServices");
 
 const getDataRegisterMahasiswaController = async (req, res) => {
   const nim = req.id;
   try {
-    const result = await getDataRegisterMahasiswa(nim);
+    const result = await getDataRegisterMahasiswa({ nim });
     res.status(200).json({
       status: "success",
       data: result,
@@ -102,12 +102,13 @@ const updateDataMahasiswaController = async (req, res) => {
   }
 };
 
+// Dashboard
 const dashboardMahasiswaController = async (req, res) => {
   const nim = req.id
 
   try {
     const data = { nim }
-    const result = await getDataAkademikMhs(data)
+    const result = await getDashboardMhs(data)
 
     res.status(200).json(result)
   } catch (err) {

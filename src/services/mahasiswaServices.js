@@ -4,12 +4,25 @@ const bcrypt = require("bcrypt");
 const ResizeFile = require("../utils/resizeFile");
 const path = require("path");
 const fs = require("fs");
+const { getDataAkademikMhs } = require("./dataMahasiswaServices");
 
-const getDataRegisterMahasiswa = async (nim) => {
+const getDashboardMhs = async (data) => {
+  const result = await getDataAkademikMhs(data)
+
+  const khs = result.dataAkademik[result.semester].filter(obj => obj.type === 'khs')
+
+  return {
+    ipkNow: khs[0].ipk,
+    sksNow: khs[0].jumlahSksKumulatif,
+    ...result
+  }
+}
+
+const getDataRegisterMahasiswa = async (data) => {
   try {
-    const data = await prisma.tb_mhs.findUnique({
+    const result = await prisma.tb_mhs.findUnique({
       where: {
-        nim: nim,
+        nim: data.nim,
       },
       select: {
         nama: true,
@@ -30,17 +43,15 @@ const getDataRegisterMahasiswa = async (nim) => {
       },
     });
 
-    const result = {
-      nama: data.nama,
-      nim: data.nim,
-      statusAktif: data.statusAktif,
-      jalurMasuk: data.jalurMasuk,
-      namaWali: data.fk_kodeWali.nama,
-      username: data.fk_pemilik_akun_mhs.username,
-      password: data.fk_pemilik_akun_mhs.password,
+    return {
+      nama: result.nama,
+      nim: result.nim,
+      statusAktif: result.statusAktif,
+      jalurMasuk: result.jalurMasuk,
+      namaWali: result.fk_kodeWali.nama,
+      username: result.fk_pemilik_akun_mhs.username,
+      password: result.fk_pemilik_akun_mhs.password,
     };
-
-    return result;
   } catch (error) {
     throw new Error(error);
   }
@@ -263,6 +274,8 @@ const getProfileMahasiswa = async (data) => {
 module.exports = {
   getDataRegisterMahasiswa,
   updateDataMahasiswa,
+
+  getDashboardMhs,
   entryDataIrs,
   entryDataKhs,
   entryDataPkl,
