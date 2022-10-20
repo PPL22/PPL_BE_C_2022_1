@@ -117,7 +117,7 @@ router.get("/dosen/daftar-pkl", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-skripsi", daftarMahasiswaDosenController);
 
 // Search mahasiswa
-router.get("/dosen/search-mhs/", searchMahasiswaDosenController);
+router.get("/dosen/search-mhs", searchMahasiswaDosenController);
 router.get("/dosen/data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
 
 //=======================================================
@@ -128,6 +128,6 @@ router.get("/departemen/rekap/skripsi", rekapMahasiswaDepartemenController);
 router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
-router.get("/departemen/search-mhs/", searchMahasiswaDepartemenController);
+router.get("/departemen/search-mhs", searchMahasiswaDepartemenController);
 
 module.exports = router;
