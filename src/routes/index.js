@@ -136,7 +136,7 @@ router.get("/departemen/rekap-skripsi", rekapMahasiswaDepartemenController);
 router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
-router.get("/departemen/search-mhs", searchMahasiswaDepartemenController);
+router.get("/departemen/search-mhs/", searchMahasiswaDepartemenController);
 router.get(
   "/departemen/data-akademik-mhs/:nim",
   getDataAkademikMhsDepartemenController
