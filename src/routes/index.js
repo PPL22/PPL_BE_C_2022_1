@@ -109,9 +109,9 @@ router.put("/dosen/validasi/pkl", validasiDataPklController);
 router.put("/dosen/validasi/skripsi", validasiDataSkripsiController);
 
 // Rekap
-router.get("/dosen/rekap-status", rekapMahasiswaDosenController);
-router.get("/dosen/rekap-pkl", rekapMahasiswaDosenController);
-router.get("/dosen/rekap-skripsi", rekapMahasiswaDosenController);
+router.get("/dosen/rekap/status", rekapMahasiswaDosenController);
+router.get("/dosen/rekap/pkl", rekapMahasiswaDosenController);
+router.get("/dosen/rekap/skripsi", rekapMahasiswaDosenController);
 router.get("/dosen/daftar-status", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-pkl", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-skripsi", daftarMahasiswaDosenController);
@@ -122,9 +122,9 @@ router.get("/dosen/data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
 
 //=======================================================
 // Departemen Controller
-router.get("/departemen/rekap-status", rekapMahasiswaDepartemenController);
-router.get("/departemen/rekap-pkl", rekapMahasiswaDepartemenController);
-router.get("/departemen/rekap-skripsi", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap/status", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap/pkl", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap/skripsi", rekapMahasiswaDepartemenController);
 router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);

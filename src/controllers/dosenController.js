@@ -106,10 +106,9 @@ const validasiDataKhsController = async (req, res) => {
     status,
     jumlahSksSemester,
     ips,
-    jumlahSKsKumulatif,
+    jumlahSksKumulatif,
     ipk,
   } = req.body;
-
   // check null input
   if (
     !nim ||
@@ -117,7 +116,7 @@ const validasiDataKhsController = async (req, res) => {
     !status ||
     !jumlahSksSemester ||
     !ips ||
-    !jumlahSKsKumulatif ||
+    !jumlahSksKumulatif ||
     !ipk
   ) {
     return res.status(400).json({
@@ -132,7 +131,7 @@ const validasiDataKhsController = async (req, res) => {
       status,
       jumlahSksSemester,
       ips,
-      jumlahSKsKumulatif,
+      jumlahSksKumulatif,
       ipk,
     };
 
@@ -150,10 +149,10 @@ const validasiDataKhsController = async (req, res) => {
 };
 
 const validasiDataPklController = async (req, res) => {
-  const { nim, semester, nilai, tanggalLulusSidang } = req.body;
+  const { nim, semester, nilai } = req.body;
 
   // check null input
-  if (!nim || !semester || !status || !nilai || !tanggalLulusSidang) {
+  if (!nim || !semester || !nilai) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -164,7 +163,6 @@ const validasiDataPklController = async (req, res) => {
       nim,
       semester,
       nilai,
-      tanggalLulusSidang,
     };
 
     const result = await validasiDataPkl(data);
@@ -181,11 +179,12 @@ const validasiDataPklController = async (req, res) => {
 };
 
 const validasiDataSkripsiController = async (req, res) => {
-  const { nim, semester, status, nilai, tanggalLulusSidang, lamaStudi } =
-    req.body;
+  const { nim, semester, nilai, tanggalLulusSidang, lamaStudi } = req.body;
+
+  console.log(req.body);
 
   // check null input
-  if (!nim || !semester || !status || !nilai) {
+  if (!nim || !semester || !nilai || !tanggalLulusSidang || !lamaStudi) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -194,7 +193,6 @@ const validasiDataSkripsiController = async (req, res) => {
     const data = {
       nim,
       semester,
-      status,
       nilai,
       tanggalLulusSidang,
       lamaStudi,
@@ -226,15 +224,15 @@ const rekapMahasiswaDosenController = async (req, res) => {
 
   try {
     let result;
-    if (path === `/dosen/rekap-pkl/${nip}`) {
+    if (path === `/dosen/rekap/pkl`) {
       result = await rekapPklMahasiswa({
         nip,
       });
-    } else if (path === `/dosen/rekap-skripsi/${nip}`) {
+    } else if (path === `/dosen/rekap/skripsi`) {
       result = await rekapSkripsiMahasiswa({
         nip,
       });
-    } else if (path === `/dosen/rekap-status/${nip}`) {
+    } else if (path === `/dosen/rekap/status`) {
       result = await rekapStatusMahasiswa({
         nip,
       });
@@ -268,15 +266,15 @@ const daftarMahasiswaDosenController = async (req, res) => {
 
   try {
     let result;
-    if (path === `/dosen/daftar-pkl/${nip}`) {
+    if (path === `/dosen/daftar-pkl`) {
       result = await daftarPklMahasiswa({
         nip,
       });
-    } else if (path === `/dosen/daftar-skripsi/${nip}`) {
+    } else if (path === `/dosen/daftar-skripsi`) {
       result = await daftarSkripsiMahasiswa({
         nip,
       });
-    } else if (path === `/dosen/daftar-status/${nip}`) {
+    } else if (path === `/dosen/daftar-status`) {
       result = await daftarStatusMahasiswa({
         nip,
       });
