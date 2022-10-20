@@ -6,7 +6,7 @@ const {
   entryDataPkl,
   entryDataSkripsi,
   getProfileMahasiswa,
-  getDashboardMhs,
+  getDashboardMahasiswa,
 } = require("../services/mahasiswaServices");
 const path = require("path");
 
@@ -103,12 +103,12 @@ const updateDataMahasiswaController = async (req, res) => {
 };
 
 // Dashboard
-const dashboardMahasiswaController = async (req, res) => {
-  const nim = req.id;
+const getDashboardMahasiswaController = async (req, res) => {
+  const nim = req.id
 
   try {
-    const data = { nim };
-    const result = await getDashboardMhs(data);
+    const data = { nim }
+    const result = await getDashboardMahasiswa(data)
 
     res.status(200).json(result);
   } catch (err) {
@@ -116,6 +116,7 @@ const dashboardMahasiswaController = async (req, res) => {
   }
 };
 
+// !!! CHECK APAKAH SEMESTER YANG AKAN DIINPUT VALID
 const entryDataIrsController = async (req, res) => {
   const { nim, semester, status, jumlahSks } = req.body;
   const dokumen = req.file;
@@ -307,7 +308,7 @@ const getProfileMahasiswaController = async (req, res) => {
 module.exports = {
   getDataRegisterMahasiswaController,
   updateDataMahasiswaController,
-  dashboardMahasiswaController,
+  getDashboardMahasiswaController,
 
   entryDataIrsController,
   entryDataKhsController,

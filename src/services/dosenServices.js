@@ -2,10 +2,8 @@ const { PrismaClient } = require("@prisma/client");
 const countSemester = require("../utils/countSemester");
 const prisma = new PrismaClient();
 
-// Dashboard
-// const 
-
 // TODO: refactor get status validasi
+// !!! Forgot to add who hasn't entered the data yet
 // Get status validasi
 const getStatusValidasiIRS = async (data) => {
   try {

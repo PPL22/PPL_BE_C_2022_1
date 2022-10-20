@@ -1,7 +1,8 @@
 const {
   searchMahasiswa,
   getDataAkademikMhs,
-} = require("../services/dataMahasiswaServices");
+  getCountStatusDataAkademikMhs
+} = require('../services/dataMahasiswaServices');
 const {
   validasiDataIrs,
   validasiDataKhs,
@@ -21,6 +22,30 @@ const {
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
 } = require("../services/rekapServices");
+
+// Dashboard
+const getDashboardDosenController = async (req, res) => {
+  const nip = req.id
+  if (!nip) {
+    return res.status(400).json({
+      message: "ID kosong"
+    })
+  }
+
+  try {
+    const data = {nip}
+    const result = await getCountStatusDataAkademikMhs(data);
+
+    return res.status(200).json({
+      message: "Data dashboard berhasil diretrieve",
+      data: result
+    })
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message
+    })
+  }
+}
 
 // Get status validasi
 const getStatusValidasiController = async (req, res) => {
@@ -326,12 +351,16 @@ const searchMahasiswaDosenController = async (req, res) => {
 // !!! Harus cek nip?
 const getDataAkademikMhsDosenController = async (req, res) => {
   const { nim } = req.params;
-
+  const nip = req.id
   try {
     const result = await getDataAkademikMhs({
       nim,
     });
-
+    if (result.nipDoswal != nip) {
+      return res.status(403).json({
+        message: "bukan dosen wali, data mahasiswa tidak dapat diambil"
+      })
+    }
     return res.status(200).json({
       message: "data mahasiswa berhasil diambil",
       data: result,
@@ -344,6 +373,7 @@ const getDataAkademikMhsDosenController = async (req, res) => {
 };
 
 module.exports = {
+  getDashboardDosenController,
   getStatusValidasiController,
 
   validasiDataIrsController,

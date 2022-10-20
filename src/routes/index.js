@@ -19,7 +19,7 @@ const {
   entryDataPklController,
   entryDataSkripsiController,
   getProfileMahasiswaController,
-  dashboardMahasiswaController,
+  getDashboardMahasiswaController,
 } = require("../controllers/mahasiswaController");
 
 const {
@@ -32,12 +32,15 @@ const {
   searchMahasiswaDosenController,
   getDataAkademikMhsDosenController,
   getStatusValidasiController,
+  getDashboardDosenController,
 } = require("../controllers/dosenController");
 
 const {
   rekapMahasiswaDepartemenController,
   daftarMahasiswaDepartemenController,
   searchMahasiswaDepartemenController,
+  getDashboardDepartemenController,
+  getDataAkademikMhsDepartemenController,
 } = require("../controllers/departemenController");
 
 const { getKotaController } = require("../controllers/locationController");
@@ -64,7 +67,7 @@ router.get("/mahasiswa/profile", getProfileMahasiswaController);
 router.get("/mahasiswa/kota", getKotaController);
 
 // Dashboard
-router.get("/mahasiswa/dashboard", dashboardMahasiswaController);
+router.get("/mahasiswa/dashboard", getDashboardMahasiswaController);
 
 router.post(
   "/mahasiswa/update-data",
@@ -96,6 +99,9 @@ router.post(
 
 //=======================================================
 // Dosen Controller
+// Dashboard
+router.get("/dosen/dashboard", getDashboardDosenController);
+
 // Get status validasi
 router.get("/dosen/status-validasi/irs", getStatusValidasiController);
 router.get("/dosen/status-validasi/khs", getStatusValidasiController);
@@ -122,12 +128,18 @@ router.get("/dosen/data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
 
 //=======================================================
 // Departemen Controller
-router.get("/departemen/rekap/status", rekapMahasiswaDepartemenController);
-router.get("/departemen/rekap/pkl", rekapMahasiswaDepartemenController);
-router.get("/departemen/rekap/skripsi", rekapMahasiswaDepartemenController);
+// Dashboard
+router.get("/departemen/dashboard", getDashboardDepartemenController);
+router.get("/departemen/rekap-status", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap-pkl", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap-skripsi", rekapMahasiswaDepartemenController);
 router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
 router.get("/departemen/search-mhs", searchMahasiswaDepartemenController);
+router.get(
+  "/departemen/data-akademik-mhs/:nim",
+  getDataAkademikMhsDepartemenController
+);
 
 module.exports = router;

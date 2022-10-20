@@ -32,7 +32,7 @@ async function main() {
         nama: "Liem, Roy Marcelino",
         statusAktif: "Aktif",
         jalurMasuk: "SBMPTN",
-        angkatan: 2020,
+        angkatan: 2019,
         kodeWali: getKodeWaliRandom(),
       },
       {
