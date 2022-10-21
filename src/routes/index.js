@@ -130,9 +130,9 @@ router.get("/dosen/data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
 // Departemen Controller
 // Dashboard
 router.get("/departemen/dashboard", getDashboardDepartemenController);
-router.get("/departemen/rekap-status", rekapMahasiswaDepartemenController);
-router.get("/departemen/rekap-pkl", rekapMahasiswaDepartemenController);
-router.get("/departemen/rekap-skripsi", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap/status", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap/pkl", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap/skripsi", rekapMahasiswaDepartemenController);
 router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
