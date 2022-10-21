@@ -60,6 +60,7 @@ router.get("/operator/data-dosen", getDataDosenController);
 router.get("/operator/data-mahasiswa", getDataAkunMahasiswaController);
 router.get("/operator/generate-username", generateUsernameController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
+router.get("/operator/profile", getProfileDosenController);
 
 //=======================================================
 // Mahasiswa Controller
