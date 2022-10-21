@@ -118,7 +118,7 @@ const getDashboardMahasiswaController = async (req, res) => {
 
 const getProfileMahasiswaController = async (req, res) => {
   try {
-    const result = await getProfileMahasiswa(req.id);
+    const result = await getProfileMahasiswa({ nim: req.id });
     return res.status(200).json({
       message: "Data berhasil diambil",
       data: result,
