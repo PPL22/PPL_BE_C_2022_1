@@ -33,7 +33,7 @@ async function main() {
         statusAktif: "Aktif",
         jalurMasuk: "SBMPTN",
         angkatan: 2019,
-        kodeWali: getKodeWaliRandom(),
+        kodeWali: "196511071992031001",
       },
       {
         nim: "24060120130010",
@@ -249,7 +249,7 @@ async function main() {
       {
         nim: "24060120130059",
         semester: "6",
-        nilai: "B",
+        nilai: "90",
         filePkl: "pkl.pdf",
       },
     ],

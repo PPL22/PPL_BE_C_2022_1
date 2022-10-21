@@ -1,5 +1,4 @@
 const { PrismaClient } = require("@prisma/client");
-const { PrismaClientRustPanicError } = require("@prisma/client/runtime");
 const countSemester = require("../utils/countSemester");
 const prisma = new PrismaClient();
 
@@ -147,7 +146,7 @@ const getDataAkademikMhs = async (data) => {
       }
     });
     skripsi = skripsi.map((data) => ({ type: "skripsi", available: true, ...data }));
-    
+    // console.log(skripsi)
     // Append all queried data into one array
     let combinedData = irs.concat(khs, pkl, skripsi);
     
@@ -224,7 +223,7 @@ const getCountStatusDataAkademikMhs = async (data) => {
     
     // No entry calculated from how many required data - how many IRS available
     if (!result.irs.validated) result.irs.validate = 0
-    if (!result.irs.notValidated) result.irs.validate = 0
+    if (!result.irs.notValidated) result.irs.notValidated = 0
     result.irs.noEntry = countRequiredData - countIRS
     
 
@@ -250,7 +249,7 @@ const getCountStatusDataAkademikMhs = async (data) => {
     
     // No entry calculated from how many required data - how many KHS available
     if (!result.khs.validated) result.khs.validated = 0
-    if (!result.khs.notValidated) result.khs.validate = 0
+    if (!result.khs.notValidated) result.khs.notValidated = 0
     result.khs.noEntry = countRequiredData - countKHS
     
   
@@ -278,10 +277,11 @@ const getCountStatusDataAkademikMhs = async (data) => {
     
     // Lulus --> PKL mhs that has been validated
     // Tidak lulus --> PKL mhs that hasn't been validated + no entry
+    if (!result.pkl.notValidated) result.pkl.notValidated = 0
     result.pkl.lulus = countPKL - result.pkl.notValidated
     result.pkl.blmLulus = countMhs - result.pkl.lulus
     
-
+    
     // ============== SKRIPSI ==============
     const skripsi = await prisma.tb_skripsi.groupBy({
       by: ["statusValidasi"],
@@ -306,6 +306,7 @@ const getCountStatusDataAkademikMhs = async (data) => {
     
     // Lulus --> Skripsi mhs that has been validated
     // Tidak lulus --> Skripsi mhs that hasn't been validated + no entry
+    if (!result.skripsi.notValidated) result.skripsi.notValidated = 0
     result.skripsi.lulus = countSkripsi - result.skripsi.notValidated
     result.skripsi.blmLulus = countMhs - result.skripsi.lulus
     

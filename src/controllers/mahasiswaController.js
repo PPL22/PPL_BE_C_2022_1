@@ -102,7 +102,7 @@ const updateDataMahasiswaController = async (req, res) => {
   }
 };
 
-// Dashboard
+// Dashboard dan profile
 const getDashboardMahasiswaController = async (req, res) => {
   const nim = req.id;
 
@@ -113,6 +113,19 @@ const getDashboardMahasiswaController = async (req, res) => {
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+};
+
+const getProfileMahasiswaController = async (req, res) => {
+  try {
+    const result = await getProfileMahasiswa(req.id);
+    return res.status(200).json({
+      message: "Data berhasil diambil",
+      data: result,
+    });
+  } catch (err) {
+    console.log(err.message);
+    return res.status(400).json({ message: err.message });
   }
 };
 
@@ -292,27 +305,15 @@ const entryDataSkripsiController = async (req, res) => {
   }
 };
 
-const getProfileMahasiswaController = async (req, res) => {
-  try {
-    const result = await getProfileMahasiswa({ nim: req.id });
-    return res.status(200).json({
-      message: "Data berhasil diambil",
-      data: result,
-    });
-  } catch (err) {
-    console.log(err.message);
-    return res.status(400).json({ message: err.message });
-  }
-};
-
 module.exports = {
   getDataRegisterMahasiswaController,
   updateDataMahasiswaController,
+
   getDashboardMahasiswaController,
+  getProfileMahasiswaController,
 
   entryDataIrsController,
   entryDataKhsController,
   entryDataPklController,
   entryDataSkripsiController,
-  getProfileMahasiswaController,
 };
