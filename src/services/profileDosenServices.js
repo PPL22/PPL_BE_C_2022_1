@@ -9,13 +9,14 @@ const getProfileDosen = async (data) => {
     const result = await prisma.tb_dosen.findUnique({
       where: {
         nip: nip,
-      }
+      },
     });
-
+    delete result.nip;
+    delete result.nama;
     return result;
   } catch (err) {
     throw err;
   }
 };
 
-module.exports = getProfileDosen
+module.exports = getProfileDosen;

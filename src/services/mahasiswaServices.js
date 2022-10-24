@@ -7,16 +7,18 @@ const fs = require("fs");
 const { getDataAkademikMhs } = require("./dataMahasiswaServices");
 
 const getDashboardMahasiswa = async (data) => {
-  const result = await getDataAkademikMhs(data)
+  const result = await getDataAkademikMhs(data);
 
-  const khs = result.dataAkademik[result.semester].filter(obj => obj.type === 'khs')
+  const khs = result.dataAkademik[result.semester].filter(
+    (obj) => obj.type === "khs"
+  );
 
   return {
     ipkNow: khs[0].ipk,
     sksNow: khs[0].jumlahSksKumulatif,
-    ...result
-  }
-}
+    ...result,
+  };
+};
 
 const getDataRegisterMahasiswa = async (data) => {
   try {
@@ -251,6 +253,7 @@ const getProfileMahasiswa = async (data) => {
         },
       },
     });
+
     // spread operator
     const profile = {
       namaDosenWali: result.fk_kodeWali.nama,
@@ -264,6 +267,8 @@ const getProfileMahasiswa = async (data) => {
           ? result.fk_nim_khs[0].jumlahSksKumulatif
           : "-",
     };
+
+    console.log(profile);
 
     return profile;
   } catch (error) {

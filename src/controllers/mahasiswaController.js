@@ -104,11 +104,11 @@ const updateDataMahasiswaController = async (req, res) => {
 
 // Dashboard dan profile
 const getDashboardMahasiswaController = async (req, res) => {
-  const nim = req.id
+  const nim = req.id;
 
   try {
-    const data = { nim }
-    const result = await getDashboardMahasiswa(data)
+    const data = { nim };
+    const result = await getDashboardMahasiswa(data);
 
     res.status(200).json(result);
   } catch (err) {
@@ -118,7 +118,7 @@ const getDashboardMahasiswaController = async (req, res) => {
 
 const getProfileMahasiswaController = async (req, res) => {
   try {
-    const result = await getProfileMahasiswa(req.id);
+    const result = await getProfileMahasiswa({ nim: req.id });
     return res.status(200).json({
       message: "Data berhasil diambil",
       data: result,

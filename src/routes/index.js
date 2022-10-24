@@ -60,6 +60,7 @@ router.get("/operator/data-dosen", getDataDosenController);
 router.get("/operator/data-mahasiswa", getDataAkunMahasiswaController);
 router.get("/operator/generate-username", generateUsernameController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
+router.get("/operator/profile", getProfileDosenController);
 
 //=======================================================
 // Mahasiswa Controller
@@ -103,8 +104,8 @@ router.post(
 // Dosen Controller
 // Dashboard and profile
 // TODO: refactor profile route, controller, and service
-router.get("/dosen/dashboard", getDashboardDosenController)
-router.get("/dosen/profile", getProfileDosenController)
+router.get("/dosen/dashboard", getDashboardDosenController);
+router.get("/dosen/profile", getProfileDosenController);
 
 // Get status validasi
 router.get("/dosen/status-validasi/irs", getStatusValidasiController);
@@ -134,12 +135,12 @@ router.get("/dosen/data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
 // Departemen Controller
 // Dashboard
 router.get("/departemen/dashboard", getDashboardDepartemenController);
-router.get("/departemen/profile", getProfileDosenController)
+router.get("/departemen/profile", getProfileDosenController);
 
 // Rekap
-router.get("/departemen/rekap-status", rekapMahasiswaDepartemenController);
-router.get("/departemen/rekap-pkl", rekapMahasiswaDepartemenController);
-router.get("/departemen/rekap-skripsi", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap/status", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap/pkl", rekapMahasiswaDepartemenController);
+router.get("/departemen/rekap/skripsi", rekapMahasiswaDepartemenController);
 router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
