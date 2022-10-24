@@ -57,9 +57,11 @@ const searchMahasiswa = async (data) => {
 // TODO: Refactor get data algorithm
 const getDataAkademikMhs = async (data) => {
   try {
+    const filterWali = data.nip ? {kodeWali: data.nip} : {}
     const dataMhs = await prisma.tb_mhs.findUnique({
       where: {
         nim: data.nim,
+        ...filterWali
       },
       select: {
         nama: true,
