@@ -1,6 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt')
+const xlsx = require('xlsx')
+
 async function getDataDosen() {
   // Get all dosen data
   try {
@@ -56,21 +58,12 @@ async function generateUsername() {
   }
 }
 
-async function addMahasiswa(
-  username,
-  namaLengkap,
-  nim,
-  angkatan,
-  password,
-  status,
-  jalurMasuk,
-  dosenWali
-) {
+async function addMahasiswa(data) {
   try {
     // Filter duplicate mahasiswa by finding them in database
     const mhs = await prisma.tb_mhs.findUnique({
       where: {
-        nim: nim,
+        nim: data.nim,
       },
     });
 
@@ -79,20 +72,20 @@ async function addMahasiswa(
     const [doneMhs, doneAkun] = await prisma.$transaction([
       prisma.tb_mhs.create({
         data: {
-          nim: nim,
-          nama: namaLengkap,
-          angkatan: angkatan,
-          statusAktif: status,
-          jalurMasuk: jalurMasuk,
-          kodeWali: dosenWali,
+          nim: data.nim,
+          nama: data.namaLengkap,
+          angkatan: data.angkatan,
+          statusAktif: data.status,
+          jalurMasuk: data.jalurMasuk,
+          kodeWali: data.dosenWali,
         },
       }),
       prisma.tb_akun_mhs.create({
         data: {
-          username: username,
-          password: bcrypt.hashSync(password, 10),
+          username: data.username,
+          password: bcrypt.hashSync(data.password, 10),
           status: "Aktif",
-          pemilik: nim,
+          pemilik: data.nim,
         },
       }),
     ]);
@@ -102,6 +95,35 @@ async function addMahasiswa(
     return doneMhs;
   } catch (err) {
     throw err;
+  }
+}
+
+const batchAddMahasiswa = async (data) => {
+  // JSON.parse(JSON.stringify(d ata.dokumen))
+  try {
+    const generateCharacter = () => {
+      return Math.random().toString(36).substring(2);
+    };
+    const fileName = data.dokumen.originalname
+    const docInXlsx = xlsx.readFile(`public/documents/data-mhs/${fileName}`)
+    const sheetNameList = docInXlsx.SheetNames
+    sheetNameList.forEach((sheetName) => {
+      const docInJson = xlsx.utils.sheet_to_json(docInXlsx.Sheets[sheetName])
+
+      // Check validity
+      if (!docInJson[0].nim || !docInJson[0].nama || !docInJson[0].statusAktif || !docInJson[0].angkatan || !docInJson[0].nipWali) {
+        throw new Error("Pastikan format excel anda sesuai format (nim, nama, statusAktif, angkatan, nipWali)")
+      }
+
+      // Generate username and password
+
+      // Input
+      docInJson.forEach((mhs) => {
+        console.log(mhs.nim)
+      })
+    })
+  } catch (err) {
+    throw err
   }
 }
 
@@ -121,5 +143,6 @@ module.exports = {
   getDataDosen,
   generateUsername,
   addMahasiswa,
+  batchAddMahasiswa,
   getDataAkunMahasiswa,
 };

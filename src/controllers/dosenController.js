@@ -348,7 +348,7 @@ const searchMahasiswaDosenController = async (req, res) => {
   }
 };
 
-// !!! Harus cek nip?
+// <R> Harus cek nip?
 const getDataAkademikMhsDosenController = async (req, res) => {
   const { nim } = req.params;
   const nip = req.id

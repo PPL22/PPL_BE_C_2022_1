@@ -1,7 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 
-const uploadDocument = multer({
+const uploadPDF = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, "public/documents/");
@@ -22,10 +22,31 @@ const uploadDocument = multer({
   },
 });
 
+const uploadExcel = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "public/documents/data-mhs/");
+    },
+    filename: function (req, file, cb) {
+      cb(null, file.originalname);
+    },
+  }),
+  limits: {
+    fileSize: 4 * 1024 * 1024,
+  },
+  fileFilter: (req, file, cb) => {
+    if (path.extname(file.originalname) == ".csv" || path.extname(file.originalname) == ".xlsx") {
+      return cb(null, true);
+    } else {
+      return cb("Format dokumen harus CSV / XLSX");
+    }
+  },
+});
+
 const uploadImage = multer({
   limits: {
     fileSize: 4 * 1024 * 1024,
   },
 });
 
-module.exports = { uploadImage, uploadDocument };
+module.exports = { uploadImage, uploadPDF, uploadExcel };
