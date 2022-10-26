@@ -6,10 +6,10 @@ const { loginController } = require("../controllers/loginController");
 
 const {
   getDataDosenController,
-  generateUsernameController,
+  getAkunMahasiswaController,
   addMahasiswaController,
   getDataAkunMahasiswaController,
-  batchAddMahaiswaController,
+  batchAddMahasiswaController,
 } = require("../controllers/operatorController");
 
 const {
@@ -59,14 +59,14 @@ router.use(verifyToken);
 // Operator
 router.get("/operator/data-dosen", getDataDosenController);
 router.get("/operator/data-mahasiswa", getDataAkunMahasiswaController);
-router.get("/operator/generate-username", generateUsernameController);
+router.get("/operator/akun-mahasiswa", getAkunMahasiswaController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
 router.get("/operator/profile", getProfileDosenController);
 
 router.post(
   "/operator/batch-add-mahasiswa",
   uploadExcel.single("dokumen"),
-  batchAddMahaiswaController
+  batchAddMahasiswaController
 );
 
 //=======================================================

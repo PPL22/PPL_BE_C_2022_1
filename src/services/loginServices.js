@@ -33,19 +33,26 @@ const login = async (data) => {
 
   // Compare akun password
   try {
-    if (await bcrypt.compare(data.password, akun.password)) {
+    let firstTime = false;
+    if (!akun.fk_pemilik.email && !dosen) {
+      firstTime = true;
+    }
+    let passwordMatch = false;
+    if (firstTime) {
+      passwordMatch = data.password === akun.password;
+    } else {
+      passwordMatch = await bcrypt.compare(data.password, akun.password);
+    }
+
+    if (passwordMatch) {
       // Find owner
-      let firstTime = false,
-        role = "Mahasiswa",
+      let role = "Mahasiswa",
         nama = "",
         id = "";
 
       if (!dosen) {
         // Mahasiswa has no role
         id = akun.fk_pemilik.nim;
-        if (!akun.fk_pemilik.email) {
-          firstTime = true;
-        }
       } else {
         id = akun.fk_pemilik.nip;
         jsonRole = await prisma.tb_role_akun_dosen.findMany({
