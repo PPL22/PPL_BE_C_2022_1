@@ -122,7 +122,7 @@ const updateDataMahasiswa = async (data) => {
 };
 
 const entryDataIrs = async (data) => {
-  try {
+  try {    
     const fileName = `irs-${data.nim}-${data.semester}.pdf`;
     fs.renameSync(
       `public/documents/${data.dokumen.originalname}`,

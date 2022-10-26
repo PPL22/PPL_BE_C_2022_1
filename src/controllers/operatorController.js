@@ -2,6 +2,7 @@ const {
   getDataDosen,
   getAkunMahasiswa,
   addMahasiswa,
+  batchAddMahasiswa, 
   getDataAkunMahasiswa,
 } = require("../services/operatorServices");
 
@@ -36,7 +37,7 @@ async function addMahasiswaController(req, res) {
   } = req.body;
 
   try {
-    const result = await addMahasiswa(
+    const result = await addMahasiswa({
       username,
       namaLengkap,
       nim,
@@ -45,11 +46,22 @@ async function addMahasiswaController(req, res) {
       status,
       jalurMasuk,
       dosenWali
-    );
-    return res.json(result);
+    });
+    return res.status(200).json({ message: "Mahasiswa berhasil ditambahkan" });
   } catch (err) {
     return res.status(403).json({ message: err.message });
   }
+}
+
+const batchAddMahasiswaController = async (req, res) => {
+  const dokumen = req.file
+  const data = { dokumen }
+  try {
+    const result = await batchAddMahasiswa(data)
+    return res.status(200).json({ message: result });
+  } catch (err) {
+    return res.status(403).json({ message: err.message })
+  } 
 }
 
 const getDataAkunMahasiswaController = async (req, res) => {
@@ -65,5 +77,6 @@ module.exports = {
   getDataDosenController,
   getAkunMahasiswaController,
   addMahasiswaController,
+  batchAddMahasiswaController,
   getDataAkunMahasiswaController,
 };

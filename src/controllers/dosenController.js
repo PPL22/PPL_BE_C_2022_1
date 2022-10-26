@@ -362,19 +362,21 @@ const searchMahasiswaDosenController = async (req, res) => {
   }
 };
 
-// !!! Harus cek nip?
+// <R> Harus cek nip?
 const getDataAkademikMhsDosenController = async (req, res) => {
   const { nim } = req.params;
   const nip = req.id;
   try {
     const result = await getDataAkademikMhs({
       nim,
+      nip,
     });
     if (result.nipDoswal != nip) {
       return res.status(403).json({
         message: "bukan dosen wali, data mahasiswa tidak dapat diambil",
       });
     }
+
     return res.status(200).json({
       message: "data mahasiswa berhasil diambil",
       data: result,

@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
+// <R> JOIN WITH KOTA / KABUPATEN TABLE
 const getProfileDosen = async (data) => {
   const nip = data.nip;
 
@@ -9,10 +10,26 @@ const getProfileDosen = async (data) => {
       where: {
         nip: nip,
       },
+      include: {
+        fk_kodeKab: true,
+        fk_kodeProv: true
+      }
     });
+
     delete result.nip;
     delete result.nama;
-    return result;
+
+    const namaKab = result.fk_kodeKab.namaKab 
+    const namaProv = result.fk_kodeProv.namaProv 
+
+    delete result.fk_kodeKab
+    delete result.fk_kodeProv
+
+    return {
+      ...result,
+      namaKab: namaKab,       
+      namaProv: namaProv
+    };
   } catch (err) {
     throw err;
   }

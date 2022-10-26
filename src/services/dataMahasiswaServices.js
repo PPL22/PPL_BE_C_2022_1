@@ -59,7 +59,7 @@ const getDataAkademikMhs = async (data) => {
   try {
     const dataMhs = await prisma.tb_mhs.findUnique({
       where: {
-        nim: data.nim,
+        nim: data.nim
       },
       select: {
         nama: true,
@@ -77,8 +77,12 @@ const getDataAkademikMhs = async (data) => {
       },
     });
 
-    if (!dataMhs) throw new Error("Mahasiswa not found");
-
+    if (!dataMhs) throw new Error("Mahasiswa tidak ditemukan")
+    // console.log(data.nip, dataMhs)
+    if (data.nip) {
+      if (dataMhs.fk_kodeWali.nip != data.nip) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses")
+    }
+    
     const currentSmt = countSemester(dataMhs.angkatan);
     // ============== IRS ==============
     let irs = await prisma.tb_irs.findMany({

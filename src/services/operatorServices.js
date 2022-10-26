@@ -1,6 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const bcrypt = require("bcrypt");
+const xlsx = require('xlsx')
+const { getKodeWaliRandom } = require("../utils/mahasiswaUtil");
+
 async function getDataDosen() {
   // Get all dosen data
   try {
@@ -76,43 +78,43 @@ async function getAkunMahasiswa() {
   }
 }
 
-async function addMahasiswa(
-  username,
-  namaLengkap,
-  nim,
-  angkatan,
-  password,
-  status,
-  jalurMasuk,
-  dosenWali
-) {
+async function addMahasiswa(data) {
   try {
     // Filter duplicate mahasiswa by finding them in database
-    const mhs = await prisma.tb_mhs.findUnique({
+    const findMhs = await prisma.tb_mhs.findUnique({
       where: {
-        nim: nim,
+        nim: data.nim,
       },
     });
 
-    if (mhs) throw new Error("Mahasiswa already exists");
+    if (findMhs) throw new Error("Mahasiswa already exists");
+    
+    const findDosen = await prisma.tb_dosen.findUnique({
+      where: {
+        nip: data.dosenWali
+      }
+    })
+
+    if (!findDosen) throw new Error("Dosen tidak ditemukan")
 
     const [doneMhs, doneAkun] = await prisma.$transaction([
       prisma.tb_mhs.create({
         data: {
-          nim: nim,
-          nama: namaLengkap,
-          angkatan: angkatan,
-          statusAktif: status,
-          jalurMasuk: jalurMasuk,
-          kodeWali: dosenWali,
+          nim: data.nim,
+          nama: data.namaLengkap,
+          angkatan: data.angkatan,
+          statusAktif: data.status,
+          jalurMasuk: data.jalurMasuk,
+          kodeWali: data.dosenWali,
         },
       }),
+
       prisma.tb_akun_mhs.create({
         data: {
-          username: username,
-          password: password,
+          username: data.username,
+          password: data.password,
           status: "Aktif",
-          pemilik: nim,
+          pemilik: data.nim,
         },
       }),
     ]);
@@ -123,6 +125,90 @@ async function addMahasiswa(
   } catch (err) {
     throw err;
   }
+}
+
+const batchAddMahasiswa = async (data) => {
+  let countMhs = 0, addedMhs = 0
+  try {
+    // JSON.parse(JSON.stringify(d ata.dokumen))
+    const generateCharacter = () => {
+      return Math.random().toString(36).substring(2);
+    };
+    const fileName = data.dokumen.originalname
+    const docInXlsx = xlsx.readFile(`public/documents/data-mhs/${fileName}`)
+    const sheetNameList = docInXlsx.SheetNames
+  
+    sheetNameList.forEach(async sheetName => {
+
+      const docInJson = xlsx.utils.sheet_to_json(docInXlsx.Sheets[sheetNameList[0]])
+  
+      // Check validity
+      if (!docInJson[0].nim || !docInJson[0].nama || !docInJson[0].jalurMasuk || !docInJson[0].nipWali) {
+        throw new Error("Pastikan format excel anda sesuai format (nim, nama, jalurMasuk, nipWali). Angkatan didapat dari NIM")
+      }
+      
+      // Create username and password
+      console.log(docInJson[0].nipWali)
+  
+      // TODO: kode wali error DONE + ngasih tau format data
+      const accounts = []
+      const mhsData = []
+  
+      // TODO: needs to check if foreach error checking is already correct or not
+      let row = 0
+      docInJson.forEach(async mhs => {
+        try {
+          row++
+          if (!mhs.nim || !mhs.nama || !mhs.jalurMasuk || !mhs.nipWali) {
+            throw new Error(`Pastikan semua data sudah terisi (data ke-${row} tidak lengkap)`)
+          }
+    
+          // TODO: refactor this as a new utilites (?)
+          // Find dosen in tb_dosen
+          const findDosen = await prisma.tb_dosen.findUnique({
+            where: {
+              nip: mhs.nipWali
+            }
+          })
+    
+          if (!findDosen) throw new Error(`Dosen tidak ditemukan pada data ke-${row}`)
+    
+          mhsData.push({
+            nim: mhs.nim,
+            nama: mhs.nama,
+            angkatan: parseInt("20"+mhs.nim.substring(6, 8)),
+            statusAktif: "Aktif",
+            jalurMasuk: mhs.jalurMasuk,
+            kodeWali: mhs.nipWali
+          })
+          accounts.push({
+            username: generateCharacter(),
+            password: generateCharacter(),
+            status: "Aktif",
+            pemilik: mhs.nim
+          })
+        } catch (err) {
+          throw err
+        }
+      })
+  
+      const [doneMhs, doneAkun] = await prisma.$transaction([
+        prisma.tb_mhs.createMany({
+          data: mhsData,
+          skipDuplicates: true,
+        }),
+        
+        prisma.tb_akun_mhs.createMany({
+          data: accounts,
+          skipDuplicates: true,
+        })  
+      ]);
+    })
+    return `${addedMhs} mahasiswa dari ${countMhs} berhasil ditambahkan`
+  } catch(err) {
+    throw err
+  }
+  
 }
 
 const getDataAkunMahasiswa = async () => {
@@ -140,6 +226,7 @@ const getDataAkunMahasiswa = async () => {
 module.exports = {
   getDataDosen,
   addMahasiswa,
+  batchAddMahasiswa,
   getDataAkunMahasiswa,
   getAkunMahasiswa,
 };

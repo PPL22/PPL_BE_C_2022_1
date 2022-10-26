@@ -1,5 +1,5 @@
 const express = require("express");
-const { uploadImage, uploadDocument } = require("../middlewares/fileUpload");
+const { uploadImage, uploadPDF, uploadExcel } = require("../middlewares/fileUpload");
 const multer = require("multer");
 
 const { loginController } = require("../controllers/loginController");
@@ -9,6 +9,7 @@ const {
   getAkunMahasiswaController,
   addMahasiswaController,
   getDataAkunMahasiswaController,
+  batchAddMahasiswaController,
 } = require("../controllers/operatorController");
 
 const {
@@ -62,6 +63,12 @@ router.get("/operator/akun-mahasiswa", getAkunMahasiswaController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
 router.get("/operator/profile", getProfileDosenController);
 
+router.post(
+  "/operator/batch-add-mahasiswa",
+  uploadExcel.single("dokumen"),
+  batchAddMahasiswaController
+);
+
 //=======================================================
 // Mahasiswa Controller
 router.get("/mahasiswa/register", getDataRegisterMahasiswaController);
@@ -80,27 +87,26 @@ router.post(
 // Entry data
 router.post(
   "/mahasiswa/entry-irs",
-  uploadDocument.single("dokumen"),
+  uploadPDF.single("dokumen"),
   entryDataIrsController
 );
 router.post(
   "/mahasiswa/entry-khs",
-  uploadDocument.single("dokumen"),
+  uploadPDF.single("dokumen"),
   entryDataKhsController
 );
 router.post(
   "/mahasiswa/entry-pkl",
-  uploadDocument.single("dokumen"),
+  uploadPDF.single("dokumen"),
   entryDataPklController
 );
 router.post(
   "/mahasiswa/entry-skripsi",
-  uploadDocument.single("dokumen"),
+  uploadPDF.single("dokumen"),
   entryDataSkripsiController
 );
 
 //=======================================================
-
 // Dosen Controller
 // Dashboard and profile
 // TODO: refactor profile route, controller, and service
