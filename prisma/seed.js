@@ -36,30 +36,6 @@ async function main() {
         kodeWali: "196511071992031001",
       },
       {
-        nim: "24060120130010",
-        nama: "Celino",
-        statusAktif: "Cuti",
-        jalurMasuk: "SBMPTN",
-        angkatan: 2019,
-        kodeWali: getKodeWaliRandom(),
-      },
-      {
-        nim: "24060120130011",
-        nama: "Liem, Roy",
-        statusAktif: "DO",
-        jalurMasuk: "SBMPTN",
-        angkatan: 2022,
-        kodeWali: getKodeWaliRandom(),
-      },
-      {
-        nim: "2406012345678",
-        nama: "Liem",
-        statusAktif: "Aktif",
-        jalurMasuk: "SBMPTN",
-        angkatan: 2020,
-        kodeWali: getKodeWaliRandom(),
-      },
-      {
         nim: "123456",
         nama: "Dummy",
         statusAktif: "Aktif",
@@ -75,15 +51,13 @@ async function main() {
     data: [
       {
         username: "mhs1",
-        password:
-          "$2a$10$j4QbEynF6D8ljPGsWn4usudw8wktqkBP/rPxVCROZEcFaMlvi6iUO",
+        password: "mhs1",
         status: "Aktif",
         pemilik: "24060120130059",
       },
       {
         username: "mhs2",
-        password:
-          "$2a$12$hsOPHiVrB0zW/LLFd3LvR.BYRVb2RzgbbiBCJrmqAsn0W8NFvvQN.",
+        password: "mhs2",
         status: "Aktif",
         pemilik: "123456",
       },

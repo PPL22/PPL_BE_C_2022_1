@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const countSemester = require("../utils/countSemester");
 const prisma = new PrismaClient();
+const fs = require("fs");
 
 // TODO: refactor get status validasi
 // !!! Forgot to add who hasn't entered the data yet
@@ -136,20 +137,30 @@ const getStatusValidasiSkripsi = async (data) => {
 // Validasi data mahasiswa
 const validasiDataIrs = async (data) => {
   try {
+    const fileName = `irs-${data.nim}-${data.semester}.pdf`;
+    let semester = data.fileName.split("-")[2];
+    semester = semester.substring(0, semester.length - 4);
     const result = await prisma.tb_irs.update({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester,
+          semester: semester,
         },
       },
       data: {
         semester: data.semester,
         status: data.status,
         jumlahSks: data.jumlahSks,
+        fileIrs: fileName,
         statusValidasi: true,
       },
     });
+    if (semester !== data.semester) {
+      fs.renameSync(
+        `public/documents` + data.fileName,
+        `public/documents/irs/${fileName}`
+      );
+    }
 
     return result;
   } catch (error) {
@@ -158,12 +169,15 @@ const validasiDataIrs = async (data) => {
 };
 
 const validasiDataKhs = async (data) => {
+  const fileName = `khs-${data.nim}-${data.semester}.pdf`;
+  let semester = data.fileName.split("-")[2];
+  semester = semester.substring(0, semester.length - 4);
   try {
     const result = await prisma.tb_khs.update({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester,
+          semester: semester,
         },
       },
       data: {
@@ -173,10 +187,17 @@ const validasiDataKhs = async (data) => {
         ips: data.ips,
         jumlahSksKumulatif: data.jumlahSksKumulatif,
         ipk: data.ipk,
+        fileKhs: fileName,
         statusValidasi: true,
       },
     });
 
+    if (semester !== data.semester) {
+      fs.renameSync(
+        `public/documents` + data.fileName,
+        `public/documents/khs/${fileName}`
+      );
+    }
     return result;
   } catch (error) {
     throw new Error(error);
@@ -184,20 +205,30 @@ const validasiDataKhs = async (data) => {
 };
 
 const validasiDataPkl = async (data) => {
+  const fileName = `pkl-${data.nim}-${data.semester}.pdf`;
+  let semester = data.fileName.split("-")[2];
+  semester = semester.substring(0, semester.length - 4);
   try {
     const result = await prisma.tb_pkl.update({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester,
+          semester: semester,
         },
       },
       data: {
         semester: data.semester,
         nilai: data.nilai,
+        filePkl: fileName,
         statusValidasi: true,
       },
     });
+    if (semester !== data.semester) {
+      fs.renameSync(
+        `public/documents` + data.fileName,
+        `public/documents/pkl/${fileName}`
+      );
+    }
     return result;
   } catch (error) {
     throw new Error(error);
@@ -205,12 +236,15 @@ const validasiDataPkl = async (data) => {
 };
 
 const validasiDataSkripsi = async (data) => {
+  const fileName = `skripsi-${data.nim}-${data.semester}.pdf`;
+  let semester = data.fileName.split("-")[2];
+  semester = semester.substring(0, semester.length - 4);
   try {
     const result = await prisma.tb_skripsi.update({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester,
+          semester: semester,
         },
       },
       data: {
@@ -218,10 +252,16 @@ const validasiDataSkripsi = async (data) => {
         nilai: data.nilai,
         tanggalLulusSidang: data.tanggalLulusSidang,
         lamaStudi: data.lamaStudi,
+        fileSkripsi: fileName,
         statusValidasi: true,
       },
     });
-
+    if (semester !== data.semester) {
+      fs.renameSync(
+        `public/documents` + data.fileName,
+        `public/documents/skripsi/${fileName}`
+      );
+    }
     return result;
   } catch (error) {
     throw new Error(error);

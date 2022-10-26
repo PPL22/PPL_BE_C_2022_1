@@ -1,8 +1,8 @@
 const {
   searchMahasiswa,
   getDataAkademikMhs,
-  getCountStatusDataAkademikMhs
-} = require('../services/dataMahasiswaServices');
+  getCountStatusDataAkademikMhs,
+} = require("../services/dataMahasiswaServices");
 const {
   validasiDataIrs,
   validasiDataKhs,
@@ -25,27 +25,27 @@ const {
 
 // Dashboard
 const getDashboardDosenController = async (req, res) => {
-  const nip = req.id
+  const nip = req.id;
   if (!nip) {
     return res.status(400).json({
-      message: "ID kosong"
-    })
+      message: "ID kosong",
+    });
   }
 
   try {
-    const data = {nip}
+    const data = { nip };
     const result = await getCountStatusDataAkademikMhs(data);
 
     return res.status(200).json({
       message: "Data dashboard berhasil diretrieve",
-      data: result
-    })
+      data: result,
+    });
   } catch (err) {
     return res.status(400).json({
-      message: err.message
-    })
+      message: err.message,
+    });
   }
-}
+};
 
 // Get status validasi
 const getStatusValidasiController = async (req, res) => {
@@ -94,10 +94,10 @@ const getStatusValidasiController = async (req, res) => {
 
 // Validasi data
 const validasiDataIrsController = async (req, res) => {
-  const { nim, semester, status, jumlahSks } = req.body;
+  const { nim, semester, status, jumlahSks, fileName } = req.body;
 
   // check null input
-  if (!nim || !semester || !status || !jumlahSks) {
+  if (!nim || !semester || !status || !jumlahSks || !fileName) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -109,6 +109,7 @@ const validasiDataIrsController = async (req, res) => {
       semester,
       status,
       jumlahSks,
+      fileName,
     };
 
     const result = await validasiDataIrs(data);
@@ -133,6 +134,7 @@ const validasiDataKhsController = async (req, res) => {
     ips,
     jumlahSksKumulatif,
     ipk,
+    fileName,
   } = req.body;
   // check null input
   if (
@@ -142,7 +144,8 @@ const validasiDataKhsController = async (req, res) => {
     !jumlahSksSemester ||
     !ips ||
     !jumlahSksKumulatif ||
-    !ipk
+    !ipk ||
+    !fileName
   ) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
@@ -158,6 +161,7 @@ const validasiDataKhsController = async (req, res) => {
       ips,
       jumlahSksKumulatif,
       ipk,
+      fileName,
     };
 
     const result = await validasiDataKhs(data);
@@ -174,10 +178,10 @@ const validasiDataKhsController = async (req, res) => {
 };
 
 const validasiDataPklController = async (req, res) => {
-  const { nim, semester, nilai } = req.body;
+  const { nim, semester, nilai, fileName } = req.body;
 
   // check null input
-  if (!nim || !semester || !nilai) {
+  if (!nim || !semester || !nilai || !fileName) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -188,6 +192,7 @@ const validasiDataPklController = async (req, res) => {
       nim,
       semester,
       nilai,
+      fileName,
     };
 
     const result = await validasiDataPkl(data);
@@ -204,12 +209,20 @@ const validasiDataPklController = async (req, res) => {
 };
 
 const validasiDataSkripsiController = async (req, res) => {
-  const { nim, semester, nilai, tanggalLulusSidang, lamaStudi } = req.body;
+  const { nim, semester, nilai, tanggalLulusSidang, lamaStudi, fileName } =
+    req.body;
 
   console.log(req.body);
 
   // check null input
-  if (!nim || !semester || !nilai || !tanggalLulusSidang || !lamaStudi) {
+  if (
+    !nim ||
+    !semester ||
+    !nilai ||
+    !tanggalLulusSidang ||
+    !lamaStudi ||
+    !fileName
+  ) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -221,6 +234,7 @@ const validasiDataSkripsiController = async (req, res) => {
       nilai,
       tanggalLulusSidang,
       lamaStudi,
+      fileName,
     };
 
     const result = await validasiDataSkripsi(data);
@@ -351,15 +365,15 @@ const searchMahasiswaDosenController = async (req, res) => {
 // !!! Harus cek nip?
 const getDataAkademikMhsDosenController = async (req, res) => {
   const { nim } = req.params;
-  const nip = req.id
+  const nip = req.id;
   try {
     const result = await getDataAkademikMhs({
       nim,
     });
     if (result.nipDoswal != nip) {
       return res.status(403).json({
-        message: "bukan dosen wali, data mahasiswa tidak dapat diambil"
-      })
+        message: "bukan dosen wali, data mahasiswa tidak dapat diambil",
+      });
     }
     return res.status(200).json({
       message: "data mahasiswa berhasil diambil",
