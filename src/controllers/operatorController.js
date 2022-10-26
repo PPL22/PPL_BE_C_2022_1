@@ -1,6 +1,6 @@
 const {
   getDataDosen,
-  generateUsername,
+  getAkunMahasiswa,
   addMahasiswa,
   getDataAkunMahasiswa,
 } = require("../services/operatorServices");
@@ -14,9 +14,9 @@ async function getDataDosenController(req, res) {
   }
 }
 
-async function generateUsernameController(req, res) {
+async function getAkunMahasiswaController(req, res) {
   try {
-    const result = await generateUsername();
+    const result = await getAkunMahasiswa();
     return res.json(result);
   } catch (err) {
     return res.status(403).json({ message: err.message });
@@ -63,7 +63,7 @@ const getDataAkunMahasiswaController = async (req, res) => {
 
 module.exports = {
   getDataDosenController,
-  generateUsernameController,
+  getAkunMahasiswaController,
   addMahasiswaController,
   getDataAkunMahasiswaController,
 };

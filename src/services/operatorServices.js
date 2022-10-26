@@ -1,6 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const bcrypt = require('bcrypt')
+const bcrypt = require("bcrypt");
 async function getDataDosen() {
   // Get all dosen data
   try {
@@ -35,24 +35,44 @@ async function getDataDosen() {
   }
 }
 
-async function generateUsername() {
+async function getAkunMahasiswa() {
   try {
-    // Generate new username
-    let genUsername, user;
-    do {
-      genUsername = Math.random().toString(36).substring(2);
-      user = await prisma.tb_akun_mhs.findUnique({
-        where: {
-          username: genUsername,
-        },
-      });
-    } while (user);
+    const result = await prisma.tb_mhs.findMany({
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        jalurMasuk: true,
+        statusAktif: true,
+        fk_kodeWali: true,
+        fk_pemilik_akun_mhs: true,
+      },
+      orderBy: {
+        angkatan: "desc",
+      },
+    });
 
-    return {
-      username: genUsername,
-    };
+    const mahasiswa = result.map((mahasiswa) => {
+      const namaDoswal = mahasiswa.fk_kodeWali.nama;
+      let username = null;
+      let password = null;
+      if (mahasiswa.fk_pemilik_akun_mhs) {
+        username = mahasiswa.fk_pemilik_akun_mhs.username;
+        password = mahasiswa.fk_pemilik_akun_mhs.password;
+      }
+      delete mahasiswa.fk_kodeWali;
+      delete mahasiswa.fk_pemilik_akun_mhs;
+      return {
+        ...mahasiswa,
+        namaDoswal,
+        username,
+        password,
+      };
+    });
+
+    return mahasiswa;
   } catch (err) {
-    throw err;
+    throw new Error(err);
   }
 }
 
@@ -90,7 +110,7 @@ async function addMahasiswa(
       prisma.tb_akun_mhs.create({
         data: {
           username: username,
-          password: bcrypt.hashSync(password, 10),
+          password: password,
           status: "Aktif",
           pemilik: nim,
         },
@@ -119,7 +139,7 @@ const getDataAkunMahasiswa = async () => {
 
 module.exports = {
   getDataDosen,
-  generateUsername,
   addMahasiswa,
   getDataAkunMahasiswa,
+  getAkunMahasiswa,
 };

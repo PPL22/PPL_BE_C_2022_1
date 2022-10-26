@@ -59,6 +59,7 @@ const getDataRegisterMahasiswa = async (data) => {
   }
 };
 
+// TODO : filename foto belum dikirim diresponse
 const updateDataMahasiswa = async (data) => {
   try {
     if (data.oldUsername !== data.username) {
@@ -111,7 +112,10 @@ const updateDataMahasiswa = async (data) => {
       throw new Error("Terjadi kesalahan, silahkan coba lagi");
     }
 
-    return updateMahasiswa;
+    return {
+      foto: fileName,
+      username: data.username,
+    };
   } catch (error) {
     throw new Error(error);
   }
