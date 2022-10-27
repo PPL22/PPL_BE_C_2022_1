@@ -9,6 +9,8 @@ const {
   getDashboardMahasiswa,
 } = require("../services/mahasiswaServices");
 const path = require("path");
+const fs = require("fs");
+const validateSemester = require("../utils/validateSemester");
 
 const getDataRegisterMahasiswaController = async (req, res) => {
   const nim = req.id;
@@ -30,7 +32,6 @@ const updateDataMahasiswaController = async (req, res) => {
   const { nim, oldUsername, username, email, password, alamat, kodeKab, noHP } =
     req.body;
   const foto = req.file;
-  console.log(req.body);
 
   // check null input
   if (
@@ -49,14 +50,12 @@ const updateDataMahasiswaController = async (req, res) => {
     });
   }
 
-  if (
-    path.extname(foto.originalname) !== ".png" &&
-    path.extname(foto.originalname) !== ".jpg" &&
-    path.extname(foto.originalname) !== ".jpeg"
-  ) {
-    return res.status(400).json({
-      message: "Format foto harus png,jpg,jpeg",
-    });
+  // Check nim
+  if (nim != req.id) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(403).json({
+      message: "NIM berbeda dari data login. Entry tidak dapat dilakukan"
+    })
   }
 
   // regex username hanya boleh huruf kecil, angka, dan underscore
@@ -70,14 +69,33 @@ const updateDataMahasiswaController = async (req, res) => {
   }
 
   // regex email must include undip.ac.id
-  const regexEmail = /undip.ac.id$/;
+  const regexEmail = /students.undip.ac.id|lecturers.undip.ac.id$/;
   //check email
   if (!regexEmail.test(email)) {
     return res.status(400).json({
-      message: "Email harus menggunakan email undip",
+      message: "Email harus menggunakan email Undip",
     });
   }
-
+  
+  // Check nomor HP
+  const regexPhoneIndo = /(\+62 ((\d{3}([ -]\d{3,})([- ]\d{4,})?)|(\d+)))|(\(\d+\) \d+)|\d{3}( \d+)+|(\d+[ -]\d+)|\d+$/
+  if (!regexPhoneIndo.test(noHP)) {
+    return res.status(400).json({
+      message: "Nomor HP tidak valid",
+    });
+  }
+  
+  // Check format foto
+  if (
+    path.extname(foto.originalname) !== ".png" &&
+    path.extname(foto.originalname) !== ".jpg" &&
+    path.extname(foto.originalname) !== ".jpeg"
+  ) {
+    return res.status(400).json({
+      message: "Format foto harus png,jpg,jpeg",
+    });
+  }
+  
   try {
     const data = {
       nim,
@@ -136,17 +154,47 @@ const entryDataIrsController = async (req, res) => {
 
   // check null input
   if (!nim || !semester || !status || !jumlahSks || !dokumen) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
   }
-
+  
+  // Check nim
+  if (nim != req.id) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(403).json({
+      message: "NIM berbeda dari data login. Entry tidak dapat dilakukan"
+    })
+  }
+  
+  // Check semester di service
+  
+  // Check status
+  const statusIRS = ["Aktif", "Cuti"]
+  if (!statusIRS.includes(status)) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(400).json({
+      message: "Status IRS tidak valid"
+    })
+  }
+  
+  // Check jumlah sks
+  if (jumlahSks < 0 || jumlahSks > 24) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(400).json({
+      message: "Jumlah SKS tidak valid"
+    })
+  }
+  
+  // Check file
   if (path.extname(dokumen.originalname) !== ".pdf") { // Errornya ngga json?
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
     return res.status(400).json({
       message: "Format dokumen harus pdf",
     });
   }
-
+  
   try {
     const data = {
       nim,
@@ -155,7 +203,7 @@ const entryDataIrsController = async (req, res) => {
       jumlahSks,
       dokumen,
     };
-
+    
     const result = await entryDataIrs(data);
     return res.status(200).json({
       message: "Entry data IRS berhasil",
@@ -167,6 +215,7 @@ const entryDataIrsController = async (req, res) => {
   }
 };
 
+// TODO: refactor unlink file while deleting
 const entryDataKhsController = async (req, res) => {
   const {
     nim,
@@ -178,7 +227,7 @@ const entryDataKhsController = async (req, res) => {
     ipk,
   } = req.body;
   const dokumen = req.file;
-
+  
   // check null input
   if (
     !nim ||
@@ -189,15 +238,50 @@ const entryDataKhsController = async (req, res) => {
     !jumlahSksKumulatif ||
     !ipk ||
     !dokumen
-  ) {
-    return res.status(400).json({
-      message: "Data tidak boleh kosong",
-    });
-  }
-
-  if (path.extname(dokumen.originalname) !== ".pdf") {
-    return res.status(400).json({
-      message: "Format dokumen harus pdf",
+    ) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+      return res.status(400).json({
+        message: "Data tidak boleh kosong",
+      });
+    }
+    
+    // Check nim
+    if (nim != req.id) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+      return res.status(403).json({
+        message: "NIM berbeda dari data login. Entry tidak dapat dilakukan"
+      })
+    }
+    
+    // Check jumlah sks
+    if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+      return res.status(400).json({
+        message: "Jumlah SKS tidak valid"
+      })
+    }
+    
+    // Check IPS
+    if (parseFloat(ips) < 0 || parseFloat(ips) > 4) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+      return res.status(400).json({
+        message: "IPS tidak valid"
+      })
+    }
+    
+    // Check IPK
+    if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+      return res.status(400).json({
+        message: "IPK tidak valid"
+      })
+    }
+    
+    // Check dokumen
+    if (path.extname(dokumen.originalname) !== ".pdf") {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+      return res.status(400).json({
+        message: "Format dokumen harus pdf",
     });
   }
 
@@ -230,12 +314,31 @@ const entryDataPklController = async (req, res) => {
 
   // check null input
   if (!nim || !semester || !nilai || !dokumen) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
   }
+  // Check nim
+  if (nim != req.id) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(403).json({
+      message: "NIM berbeda dari data login. Entry tidak dapat dilakukan"
+    })
+  }
+
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE: validasi nilai PKL 
 
   if (path.extname(dokumen.originalname) !== ".pdf") {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
     return res.status(400).json({
       message: "Format dokumen harus pdf",
     });
@@ -270,13 +373,31 @@ const entryDataSkripsiController = async (req, res) => {
     !semester ||
     !nilai ||
     !tanggalLulusSidang ||
-    !dokumen ||
-    !lamaStudi
+    !lamaStudi ||
+    !dokumen
   ) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
   }
+
+  // Check nim
+  if (nim != req.id) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(403).json({
+      message: "NIM berbeda dari data login. Entry tidak dapat dilakukan"
+    })
+  }
+  
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
 
   if (path.extname(dokumen.originalname) !== ".pdf") {
     return res.status(400).json({
