@@ -141,7 +141,7 @@ const entryDataIrsController = async (req, res) => {
     });
   }
 
-  if (path.extname(dokumen.originalname) !== ".pdf") {
+  if (path.extname(dokumen.originalname) !== ".pdf") { // Errornya ngga json?
     return res.status(400).json({
       message: "Format dokumen harus pdf",
     });

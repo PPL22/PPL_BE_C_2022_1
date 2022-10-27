@@ -128,7 +128,7 @@ async function addMahasiswa(data) {
 }
 
 const batchAddMahasiswa = async (data) => {
-  let countMhs = 0, addedMhs = 0
+  let addedMhs = 0
   try {
     // JSON.parse(JSON.stringify(d ata.dokumen))
     const generateCharacter = () => {
@@ -137,32 +137,30 @@ const batchAddMahasiswa = async (data) => {
     const fileName = data.dokumen.originalname
     const docInXlsx = xlsx.readFile(`public/documents/data-mhs/${fileName}`)
     const sheetNameList = docInXlsx.SheetNames
-  
-    sheetNameList.forEach(async sheetName => {
-
-      const docInJson = xlsx.utils.sheet_to_json(docInXlsx.Sheets[sheetNameList[0]])
-  
+    
+    const accounts = []
+    const mhsData = []
+    for (sheetName of sheetNameList) { 
+      const docInJson = xlsx.utils.sheet_to_json(docInXlsx.Sheets[sheetName])
       // Check validity
+      if (!docInJson[0]) {
+        throw new Error(`Sheet ${sheetName} kosong`)
+      }
+
       if (!docInJson[0].nim || !docInJson[0].nama || !docInJson[0].jalurMasuk || !docInJson[0].nipWali) {
-        throw new Error("Pastikan format excel anda sesuai format (nim, nama, jalurMasuk, nipWali). Angkatan didapat dari NIM")
+        throw new Error(`Format data ${sheetName} kurang tepat (pastikan baris header memiliki nama dan urutan nim, nama, jalurMasuk, dan nipWali)`)
       }
       
-      // Create username and password
-      console.log(docInJson[0].nipWali)
-  
-      // TODO: kode wali error DONE + ngasih tau format data
-      const accounts = []
-      const mhsData = []
-  
-      // TODO: needs to check if foreach error checking is already correct or not
-      let row = 0
-      docInJson.forEach(async mhs => {
-        try {
-          row++
-          if (!mhs.nim || !mhs.nama || !mhs.jalurMasuk || !mhs.nipWali) {
-            throw new Error(`Pastikan semua data sudah terisi (data ke-${row} tidak lengkap)`)
-          }
-    
+      // TODO: kode wali error // DONE, salah input di excel, perlu handling
+      
+      // TODO: give error message for each mhs data with error
+      let row = 1
+      for (const mhs of docInJson) {
+        row++
+        // Check if data mhs has every field filled
+        if (!mhs.nim || !mhs.nama || !mhs.jalurMasuk || !mhs.nipWali) {
+          throw new Error(`Data tidak lengkap pada baris ${row} sheet ${sheetName}`)
+        } else {
           // TODO: refactor this as a new utilites (?)
           // Find dosen in tb_dosen
           const findDosen = await prisma.tb_dosen.findUnique({
@@ -170,41 +168,41 @@ const batchAddMahasiswa = async (data) => {
               nip: mhs.nipWali
             }
           })
-    
-          if (!findDosen) throw new Error(`Dosen tidak ditemukan pada data ke-${row}`)
-    
-          mhsData.push({
-            nim: mhs.nim,
-            nama: mhs.nama,
-            angkatan: parseInt("20"+mhs.nim.substring(6, 8)),
-            statusAktif: "Aktif",
-            jalurMasuk: mhs.jalurMasuk,
-            kodeWali: mhs.nipWali
-          })
-          accounts.push({
-            username: generateCharacter(),
-            password: generateCharacter(),
-            status: "Aktif",
-            pemilik: mhs.nim
-          })
-        } catch (err) {
-          throw err
+          
+          if (!findDosen) {
+            throw new Error(`Dosen tidak ditemukan pada baris ${row} sheet ${sheetName}`)
+          } else {
+            
+            mhsData.push({
+              nim: mhs.nim,
+              nama: mhs.nama,
+              angkatan: parseInt("20"+mhs.nim.substring(6, 8)),
+              statusAktif: "Aktif",
+              jalurMasuk: mhs.jalurMasuk,
+              kodeWali: mhs.nipWali
+            })
+            accounts.push({
+              username: generateCharacter(),
+              password: generateCharacter(),
+              status: "Aktif",
+              pemilik: mhs.nim
+            })
+          }
         }
-      })
-  
-      const [doneMhs, doneAkun] = await prisma.$transaction([
-        prisma.tb_mhs.createMany({
-          data: mhsData,
-          skipDuplicates: true,
-        }),
-        
-        prisma.tb_akun_mhs.createMany({
-          data: accounts,
-          skipDuplicates: true,
-        })  
-      ]);
-    })
-    return `${addedMhs} mahasiswa dari ${countMhs} berhasil ditambahkan`
+      }
+    }
+    const [doneMhs, doneAkun] = await prisma.$transaction([
+      prisma.tb_mhs.createMany({
+        data: mhsData,
+        skipDuplicates: true,
+      }),
+      
+      prisma.tb_akun_mhs.createMany({
+        data: accounts,
+        skipDuplicates: true,
+      })  
+    ]);
+    return `${doneMhs.count} mahasiswa dan ${doneAkun.count} akun mahasiswa berhasil ditambahkan`
   } catch(err) {
     throw err
   }
