@@ -5,6 +5,7 @@ const ResizeFile = require("../utils/resizeFile");
 const path = require("path");
 const fs = require("fs");
 const { getDataAkademikMhs } = require("./dataMahasiswaServices");
+const countSemester = require("../utils/countSemester");
 
 const getDashboardMahasiswa = async (data) => {
   const result = await getDataAkademikMhs(data);
@@ -122,7 +123,7 @@ const updateDataMahasiswa = async (data) => {
 };
 
 const entryDataIrs = async (data) => {
-  try {    
+  try {
     const fileName = `irs-${data.nim}-${data.semester}.pdf`;
     fs.renameSync(
       `public/documents/${data.dokumen.originalname}`,
@@ -229,6 +230,7 @@ const getProfileMahasiswa = async (data) => {
         nim: data.nim,
       },
       select: {
+        angkatan: true,
         fk_kodeWali: {
           select: {
             nama: true,
@@ -255,6 +257,16 @@ const getProfileMahasiswa = async (data) => {
             status: true,
           },
         },
+        fk_kodeKab: {
+          select: {
+            namaKab: true,
+          },
+        },
+        fk_kodeProv: {
+          select: {
+            namaProv: true,
+          },
+        },
       },
     });
 
@@ -262,17 +274,16 @@ const getProfileMahasiswa = async (data) => {
     const profile = {
       namaDosenWali: result.fk_kodeWali.nama,
       nipDosenWali: result.fk_kodeWali.nip,
-      semester:
-        result.fk_nim_irs.length > 0 ? result.fk_nim_irs[0].semester : "-",
+      semester: countSemester(result.angkatan),
       status: result.fk_nim_irs.length > 0 ? result.fk_nim_irs[0].status : "-",
       ipk: result.fk_nim_khs.length > 0 ? result.fk_nim_khs[0].ipk : "-",
       jumlahSksKumulatif:
         result.fk_nim_khs.length > 0
           ? result.fk_nim_khs[0].jumlahSksKumulatif
           : "-",
+      namaKab: result.fk_kodeKab.namaKab,
+      namaProv: result.fk_kodeProv.namaProv,
     };
-
-    console.log(profile);
 
     return profile;
   } catch (error) {
