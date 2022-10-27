@@ -60,7 +60,7 @@ const updateDataMahasiswaController = async (req, res) => {
 
   // regex username hanya boleh huruf kecil, angka, dan underscore
   const regexUsername = /^[a-z0-9_]+$/;
-  //check username
+  //check username (check duplicate sudah ada di service)
   if (!regexUsername.test(username)) {
     return res.status(400).json({
       message:
@@ -68,7 +68,7 @@ const updateDataMahasiswaController = async (req, res) => {
     });
   }
 
-  // regex email must include undip.ac.id
+  // regex email harus include students.undip.ac.id atau lecturers.undip.ac.id 
   const regexEmail = /students.undip.ac.id|lecturers.undip.ac.id$/;
   //check email
   if (!regexEmail.test(email)) {
@@ -76,12 +76,14 @@ const updateDataMahasiswaController = async (req, res) => {
       message: "Email harus menggunakan email Undip",
     });
   }
+
+  // TODO-VALIDATE: check password
   
-  // Check nomor HP
+  // Check nomor HP (format nomor HP Indonesia)
   const regexPhoneIndo = /(\+62 ((\d{3}([ -]\d{3,})([- ]\d{4,})?)|(\d+)))|(\(\d+\) \d+)|\d{3}( \d+)+|(\d+[ -]\d+)|\d+$/
   if (!regexPhoneIndo.test(noHP)) {
     return res.status(400).json({
-      message: "Nomor HP tidak valid",
+      message: "Nomor HP tidak valid. Gunakan format (+62)",
     });
   }
   
@@ -95,7 +97,7 @@ const updateDataMahasiswaController = async (req, res) => {
       message: "Format foto harus png,jpg,jpeg",
     });
   }
-  
+
   try {
     const data = {
       nim,
@@ -245,43 +247,47 @@ const entryDataKhsController = async (req, res) => {
       });
     }
     
-    // Check nim
-    if (nim != req.id) {
-      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
-      return res.status(403).json({
-        message: "NIM berbeda dari data login. Entry tidak dapat dilakukan"
-      })
-    }
-    
-    // Check jumlah sks
-    if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
-      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
-      return res.status(400).json({
-        message: "Jumlah SKS tidak valid"
-      })
-    }
-    
-    // Check IPS
-    if (parseFloat(ips) < 0 || parseFloat(ips) > 4) {
-      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
-      return res.status(400).json({
-        message: "IPS tidak valid"
-      })
-    }
-    
-    // Check IPK
-    if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
-      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
-      return res.status(400).json({
-        message: "IPK tidak valid"
-      })
-    }
-    
-    // Check dokumen
-    if (path.extname(dokumen.originalname) !== ".pdf") {
-      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
-      return res.status(400).json({
-        message: "Format dokumen harus pdf",
+  // Check nim
+  if (nim != req.id) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(403).json({
+      message: "NIM berbeda dari data login. Entry tidak dapat dilakukan"
+    })
+  }
+  
+  // TODO-VALIDATE: validasi status KHS
+
+  // Check jumlah sks
+  if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(400).json({
+      message: "Jumlah SKS tidak valid"
+    })
+  }
+  
+  // Check IPS
+  if (parseFloat(ips) < 0 || parseFloat(ips) > 4) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(400).json({
+      message: "IPS tidak valid"
+    })
+  }
+
+  // TODO-VALIDATE: validasi jumlah sks kumulatif
+  
+  // Check IPK
+  if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(400).json({
+      message: "IPK tidak valid"
+    })
+  }
+  
+  // Check dokumen
+  if (path.extname(dokumen.originalname) !== ".pdf") {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    return res.status(400).json({
+      message: "Format dokumen harus pdf",
     });
   }
 

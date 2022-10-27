@@ -5,7 +5,6 @@ const ResizeFile = require("../utils/resizeFile");
 const path = require("path");
 const fs = require("fs");
 const { getDataAkademikMhs } = require("./dataMahasiswaServices");
-const countSemester = require("../utils/countSemester");
 const validateSemester = require("../utils/validateSemester");
 
 const getDashboardMahasiswa = async (data) => {

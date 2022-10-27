@@ -89,6 +89,16 @@ async function addMahasiswa(data) {
 
     if (findMhs) throw new Error("Mahasiswa already exists");
     
+    // Check if username exists
+    const findUsername = await prisma.tb_akun_mhs.findUnique({
+      where: {
+        username: data.username
+      }
+    })
+    
+    if (findUsername) throw new Error("Username already exists, please use a different username");
+
+    // Check dosen input
     const findDosen = await prisma.tb_dosen.findUnique({
       where: {
         nip: data.dosenWali
@@ -128,7 +138,6 @@ async function addMahasiswa(data) {
 }
 
 const batchAddMahasiswa = async (data) => {
-  let addedMhs = 0
   try {
     // JSON.parse(JSON.stringify(d ata.dokumen))
     const generateCharacter = () => {
@@ -151,8 +160,6 @@ const batchAddMahasiswa = async (data) => {
         throw new Error(`Format data ${sheetName} kurang tepat (pastikan baris header memiliki nama dan urutan nim, nama, jalurMasuk, dan nipWali)`)
       }
       
-      // TODO: kode wali error // DONE, salah input di excel, perlu handling
-      
       // TODO: give error message for each mhs data with error
       let row = 1
       for (const mhs of docInJson) {
@@ -161,6 +168,25 @@ const batchAddMahasiswa = async (data) => {
         if (!mhs.nim || !mhs.nama || !mhs.jalurMasuk || !mhs.nipWali) {
           throw new Error(`Data tidak lengkap pada baris ${row} sheet ${sheetName}`)
         } else {
+          // ============== Validation ==============
+          // Check nama
+          const regexNama = /^[A-Za-z ,']+$/
+          if (!regexNama.test(mhs.nama)) {
+            throw new Error(`Nama tidak valid pada baris ${row} sheet ${sheetName}. Nama hanya boleh terdiri dari huruf besar/kecil, spasi, koma, atau tanda petik`);
+          }
+          
+          // TODO-VALIDATE: Check NIM (?)
+          
+          // Check angkatan
+          if (angkatan < 1950 || angkatan > new Date().getFullYear() - (new Date().getMonth() > 6 ? 0 : 1)) {
+            throw new Error(`Angkatan tidak valid pada baris ${row} sheet ${sheetName}`);
+          }
+          
+          // Check jalurMasuk,
+          const allJalurMasuk = ["SBMPTN", "SNMPTN", "Mandiri", "Lainnya"] 
+          if (!allJalurMasuk.includes(mhs.jalurMasuk)) {
+            throw new Error(`Jalur masuk tidak valid pada baris ${row} sheet ${sheetName}`);
+          }
           // TODO: refactor this as a new utilites (?)
           // Find dosen in tb_dosen
           const findDosen = await prisma.tb_dosen.findUnique({
@@ -172,7 +198,17 @@ const batchAddMahasiswa = async (data) => {
           if (!findDosen) {
             throw new Error(`Dosen tidak ditemukan pada baris ${row} sheet ${sheetName}`)
           } else {
-            
+            // To prevent duplicate username, use loop to regenerate username if it exists in DB
+            let username = "", findUsername = false
+            do {
+              username = generateCharacter()
+              findUsername = await prisma.tb_akun_mhs.findUnique({
+                where: {
+                  username: username
+                }
+              }) 
+            } while (findUsername)
+
             mhsData.push({
               nim: mhs.nim,
               nama: mhs.nama,
@@ -182,7 +218,7 @@ const batchAddMahasiswa = async (data) => {
               kodeWali: mhs.nipWali
             })
             accounts.push({
-              username: generateCharacter(),
+              username: username,
               password: generateCharacter(),
               status: "Aktif",
               pemilik: mhs.nim
