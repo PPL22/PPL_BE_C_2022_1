@@ -61,7 +61,7 @@ const rekapStatusMahasiswa = async (data) => {
 
     return rekapStatus;
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 };
 
@@ -150,7 +150,7 @@ const daftarStatusMahasiswa = async (data) => {
 
     return result;
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 };
 
@@ -180,7 +180,7 @@ const rekapPklMahasiswa = async (data) => {
           acc[angkatan].belum += 1;
         }
       } else {
-        if (pkl.length > 0) {
+        if (pkl.length > 0 && pkl[0].statusValidasi === true) {
           acc[angkatan] = {
             lulus: 1,
             belum: 0,
@@ -192,7 +192,6 @@ const rekapPklMahasiswa = async (data) => {
           };
         }
       }
-
       return acc;
     }, {});
 
@@ -206,7 +205,7 @@ const rekapPklMahasiswa = async (data) => {
 
     return rekapPkl;
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 };
 
@@ -286,7 +285,7 @@ const daftarPklMahasiswa = async (data) => {
 
     return result;
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 };
 
@@ -315,7 +314,7 @@ const rekapSkripsiMahasiswa = async (data) => {
           acc[angkatan].belum += 1;
         }
       } else {
-        if (skripsi.length > 0) {
+        if (skripsi.length > 0 && skripsi[0].statusValidasi === true) {
           acc[angkatan] = {
             lulus: 1,
             belum: 0,
@@ -341,7 +340,7 @@ const rekapSkripsiMahasiswa = async (data) => {
 
     return rekapSkripsi;
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 };
 
@@ -431,7 +430,7 @@ const daftarSkripsiMahasiswa = async (data) => {
     });
     return result;
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 };
 

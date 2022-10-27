@@ -22,15 +22,18 @@ const {
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
 } = require("../services/rekapServices");
+const validateSemester = require("../utils/validateSemester");
 
 // Dashboard
 const getDashboardDosenController = async (req, res) => {
   const nip = req.id;
-  if (!nip) {
-    return res.status(400).json({
-      message: "ID kosong",
-    });
-  }
+
+  // !! Udah ada checking di JWT (?)
+  // if (!nip) {
+  //   return res.status(400).json({
+  //     message: "ID kosong",
+  //   });
+  // }
 
   try {
     const data = { nip };
@@ -52,11 +55,13 @@ const getStatusValidasiController = async (req, res) => {
   const nip = req.id;
   const path = req.path;
 
-  if (!nip) {
-    return res.status(400).json({
-      message: "ID kosong",
-    });
-  }
+  // !! Udah ada checking di JWT (?)
+  // if (!nip) {
+  //   return res.status(400).json({
+  //     message: "ID kosong",
+  //   });
+  // }
+
   try {
     const data = { nip };
     let result = null;
@@ -95,6 +100,7 @@ const getStatusValidasiController = async (req, res) => {
 // Validasi data
 const validasiDataIrsController = async (req, res) => {
   const { nim, semester, status, jumlahSks, fileName } = req.body;
+  const nip = req.id;
 
   // check null input
   if (!nim || !semester || !status || !jumlahSks || !fileName) {
@@ -103,8 +109,33 @@ const validasiDataIrsController = async (req, res) => {
     });
   }
 
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // Check status
+  const statusIRS = ["Aktif", "Cuti"];
+  if (!statusIRS.includes(status)) {
+    return res.status(400).json({
+      message: "Status IRS tidak valid",
+    });
+  }
+
+  // Check jumlah sks
+  if (jumlahSks < 0 || jumlahSks > 24) {
+    return res.status(400).json({
+      message: "Jumlah SKS tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE(?): check filename
+
   try {
     const data = {
+      nip,
       nim,
       semester,
       status,
@@ -136,6 +167,8 @@ const validasiDataKhsController = async (req, res) => {
     ipk,
     fileName,
   } = req.body;
+  const nip = req.id;
+
   // check null input
   if (
     !nim ||
@@ -152,8 +185,42 @@ const validasiDataKhsController = async (req, res) => {
     });
   }
 
+  // TODO-VALIDATE: Recheck validate semester in KHS (validasi dosen)
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // Check jumlah sks
+  if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
+    return res.status(400).json({
+      message: "Jumlah SKS tidak valid",
+    });
+  }
+
+  // Check IPS
+  if (parseFloat(ips) < 0 || parseFloat(ips) > 4) {
+    return res.status(400).json({
+      message: "IPS tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE: validasi jumlah sks kumulatif
+
+  // Check IPK
+  if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
+    return res.status(400).json({
+      message: "IPK tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE(?): check filename
+
   try {
     const data = {
+      nip,
       nim,
       semester,
       status,
@@ -179,6 +246,7 @@ const validasiDataKhsController = async (req, res) => {
 
 const validasiDataPklController = async (req, res) => {
   const { nim, semester, nilai, fileName } = req.body;
+  const nip = req.id;
 
   // check null input
   if (!nim || !semester || !nilai || !fileName) {
@@ -187,8 +255,20 @@ const validasiDataPklController = async (req, res) => {
     });
   }
 
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE: validasi nilai PKL
+
+  // TODO-VALIDATE(?): check filename
+
   try {
     const data = {
+      nip,
       nim,
       semester,
       nilai,
@@ -212,7 +292,7 @@ const validasiDataSkripsiController = async (req, res) => {
   const { nim, semester, nilai, tanggalLulusSidang, lamaStudi, fileName } =
     req.body;
 
-  console.log(req.body);
+  const nip = req.id;
 
   // check null input
   if (
@@ -227,8 +307,21 @@ const validasiDataSkripsiController = async (req, res) => {
       message: "Data tidak boleh kosong",
     });
   }
+
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
+
+  // TODO-VALIDATE(?): check filename
+
   try {
     const data = {
+      nip,
       nim,
       semester,
       nilai,
@@ -239,7 +332,7 @@ const validasiDataSkripsiController = async (req, res) => {
 
     const result = await validasiDataSkripsi(data);
     return res.status(200).json({
-      message: "validasi data progress PKL berhasil",
+      message: "validasi data progress Skripsi berhasil",
       data: result,
     });
   } catch (err) {
@@ -254,12 +347,13 @@ const rekapMahasiswaDosenController = async (req, res) => {
   const nip = req.id;
   const path = req.path;
 
-  // check null input
-  if (!nip) {
-    return res.status(400).json({
-      message: "NIP tidak boleh kosong",
-    });
-  }
+  // !! Udah ada checking di JWT (?)
+  // // check null input
+  // if (!nip) {
+  //   return res.status(400).json({
+  //     message: "NIP tidak boleh kosong",
+  //   });
+  // }
 
   try {
     let result;
@@ -296,12 +390,13 @@ const daftarMahasiswaDosenController = async (req, res) => {
   const nip = req.id;
   const path = req.path;
 
-  // check null input
-  if (!nip) {
-    return res.status(400).json({
-      message: "NIP tidak boleh kosong",
-    });
-  }
+  // !! Udah ada checking di JWT (?)
+  // // check null input
+  // if (!nip) {
+  //   return res.status(400).json({
+  //     message: "NIP tidak boleh kosong",
+  //   });
+  // }
 
   try {
     let result;

@@ -6,7 +6,7 @@ const {
   getDataAkunMahasiswa,
 } = require("../services/operatorServices");
 
-async function getDataDosenController(req, res) {
+const getDataDosenController = async (req, res) => {
   try {
     const result = await getDataDosen();
     return res.json(result);
@@ -15,7 +15,7 @@ async function getDataDosenController(req, res) {
   }
 }
 
-async function getAkunMahasiswaController(req, res) {
+const getAkunMahasiswaController = async (req, res) => {
   try {
     const result = await getAkunMahasiswa();
     return res.json(result);
@@ -24,7 +24,7 @@ async function getAkunMahasiswaController(req, res) {
   }
 }
 
-async function addMahasiswaController(req, res) {
+const addMahasiswaController = async (req, res) => {
   const {
     username,
     namaLengkap,
@@ -35,6 +35,57 @@ async function addMahasiswaController(req, res) {
     jalurMasuk,
     dosenWali,
   } = req.body;
+
+  // regex username hanya boleh huruf kecil, angka, dan underscore
+  const regexUsername = /^[a-z0-9_]+$/;
+  //check username (check duplicate sudah ada di service)
+  if (!regexUsername.test(username)) {
+    return res.status(400).json({
+      message:
+        "Username hanya boleh terdiri dari huruf kecil, angka, dan underscore",
+    });
+  }
+
+  // Check nama
+  const regexNama = /^[A-Za-z ,']+$/
+  if (!regexNama.test(namaLengkap)) {
+    return res.status(400).json({
+      message:
+        "Nama hanya boleh terdiri dari huruf besar/kecil, spasi, koma, atau tanda petik",
+    });
+  }
+  
+  // TODO-VALIDATE: Check NIM (?)
+  
+  // Check angkatan
+  if (angkatan < 1950 || angkatan > new Date().getFullYear() - (new Date().getMonth() > 6 ? 0 : 1)) {
+    return res.status(400).json({
+      message:
+        "Angkatan tidak valid",
+    });
+  }
+  
+  // TODO-VALIDATE: check password (?)
+  
+  // Check status,
+  const statusMhs = ["Aktif", "Cuti", "Lulus", "Mangkir", "DO", "UndurDiri", "MeninggalDunia"]
+  if (!statusMhs.includes(status)) {
+    return res.status(400).json({
+      message:
+        "Status tidak valid",
+    });
+  }
+  
+  // Check jalurMasuk,
+  const allJalurMasuk = ["SBMPTN", "SNMPTN", "Mandiri", "Lainnya"] 
+  if (!allJalurMasuk.includes(jalurMasuk)) {
+    return res.status(400).json({
+      message:
+        "Jalur masuk tidak valid",
+    });
+  }
+
+  // Doswal already checked in service
 
   try {
     const result = await addMahasiswa({

@@ -60,9 +60,9 @@ router.use(verifyToken);
 router.get("/operator/data-dosen", getDataDosenController);
 router.get("/operator/data-mahasiswa", getDataAkunMahasiswaController);
 router.get("/operator/akun-mahasiswa", getAkunMahasiswaController);
-router.post("/operator/add-mahasiswa", addMahasiswaController);
 router.get("/operator/profile", getProfileDosenController);
 
+router.post("/operator/add-mahasiswa", addMahasiswaController);
 router.post(
   "/operator/batch-add-mahasiswa",
   uploadExcel.single("dokumen"),

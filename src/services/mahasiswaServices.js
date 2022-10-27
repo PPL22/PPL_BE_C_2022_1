@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const { getDataAkademikMhs } = require("./dataMahasiswaServices");
 const countSemester = require("../utils/countSemester");
+const validateSemester = require("../utils/validateSemester");
 
 const getDashboardMahasiswa = async (data) => {
   const result = await getDataAkademikMhs(data);
@@ -55,8 +56,8 @@ const getDataRegisterMahasiswa = async (data) => {
       username: result.fk_pemilik_akun_mhs.username,
       password: result.fk_pemilik_akun_mhs.password,
     };
-  } catch (error) {
-    throw new Error(error);
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -117,8 +118,8 @@ const updateDataMahasiswa = async (data) => {
       foto: fileName,
       username: data.username,
     };
-  } catch (error) {
-    throw new Error(error);
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -130,6 +131,53 @@ const entryDataIrs = async (data) => {
       `public/documents/irs/${fileName}`
     );
 
+    const exist = await prisma.tb_irs.findUnique({
+      where: {
+        nim_semester: {
+          nim: data.nim,
+          semester: data.semester,
+        },
+      },
+    });
+
+    if (exist) {
+      fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`IRS semester ${data.semester} telah diisi`);
+    }
+
+    // Check if semester is valid
+    // let valid = false
+    if (validateSemester(data.nim, data.semester)) {
+      let lastIrs = await prisma.tb_irs.aggregate({
+        where: {
+          nim: data.nim,
+        },
+        _max: {
+          semester: true,
+        },
+      });
+
+      if (parseInt(data.semester) != parseInt(lastIrs._max.semester) + 1) {
+        fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        if (lastIrs._max.semester == null) {
+          throw new Error(`IRS harus diisi urut mulai dari semester 1`);
+        }
+        throw new Error(
+          `IRS harus diisi urut semester (IRS terakhir yang diisi: semester ${lastIrs._max.semester})`
+        );
+      }
+    } else {
+      fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`Semester tidak valid`);
+    }
+
+    // Input IRS
     const result = await prisma.tb_irs.create({
       data: {
         nim: data.nim,
@@ -141,8 +189,8 @@ const entryDataIrs = async (data) => {
     });
 
     return result;
-  } catch (error) {
-    throw new Error(error);
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -154,6 +202,51 @@ const entryDataKhs = async (data) => {
       `public/documents/khs/${fileName}`
     );
 
+    const exist = await prisma.tb_khs.findUnique({
+      where: {
+        nim_semester: {
+          nim: data.nim,
+          semester: data.semester,
+        },
+      },
+    });
+
+    if (exist) {
+      fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`KHS semester ${data.semester} telah diisi`);
+    }
+
+    // Check if semester is valid
+    // let valid = false
+    if (validateSemester(data.nim, data.semester)) {
+      // Check if IRS is already filled
+      const lastIrs = await prisma.tb_irs.findUnique({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.semester,
+          },
+        },
+      });
+
+      if (!lastIrs) {
+        fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        throw new Error(
+          `IRS semester ${data.semester} harus diisi terlebih dahulu`
+        );
+      }
+    } else {
+      fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`Semester tidak valid`);
+    }
+
+    // INPUT
     const result = await prisma.tb_khs.create({
       data: {
         nim: data.nim,
@@ -168,8 +261,8 @@ const entryDataKhs = async (data) => {
     });
 
     return result;
-  } catch (error) {
-    throw new Error(error);
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -191,9 +284,36 @@ const entryDataPkl = async (data) => {
       },
     });
 
+    // let valid = false
+    if (validateSemester(data.nim, data.semester)) {
+      // Check if IRS is already filled
+      const lastIrs = await prisma.tb_irs.findUnique({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.semester,
+          },
+        },
+      });
+
+      if (!lastIrs) {
+        fs.unlink(`public/documents/pkl/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        throw new Error(
+          `IRS semester ${data.semester} harus diisi terlebih dahulu`
+        );
+      }
+    } else {
+      fs.unlink(`public/documents/pkl/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`Semester tidak valid`);
+    }
+
     return result;
-  } catch (error) {
-    throw new Error(error);
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -217,9 +337,36 @@ const entryDataSkripsi = async (data) => {
       },
     });
 
+    // let valid = false
+    if (validateSemester(data.nim, data.semester)) {
+      // Check if IRS is already filled
+      const lastIrs = await prisma.tb_irs.findUnique({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.semester,
+          },
+        },
+      });
+
+      if (!lastIrs) {
+        fs.unlink(`public/documents/skripsi/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        throw new Error(
+          `IRS semester ${data.semester} harus diisi terlebih dahulu`
+        );
+      }
+    } else {
+      fs.unlink(`public/documents/skripsi/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`Semester tidak valid`);
+    }
+
     return result;
-  } catch (error) {
-    throw new Error(error);
+  } catch (err) {
+    throw err;
   }
 };
 
@@ -286,8 +433,8 @@ const getProfileMahasiswa = async (data) => {
     };
 
     return profile;
-  } catch (error) {
-    throw new Error(error);
+  } catch (err) {
+    throw err;
   }
 };
 
