@@ -11,13 +11,20 @@ const validateSemester = require("../utils/validateSemester");
 const getDashboardMahasiswa = async (data) => {
   const result = await getDataAkademikMhs(data);
 
-  const khs = result.dataAkademik[result.semester].filter(
-    (obj) => obj.type === "khs"
-  );
+  // get last khs and statusValidasi == true
+  const khs = await prisma.tb_khs.findFirst({
+    where: {
+      nim: data.nim,
+      statusValidasi: true,
+    },
+    orderBy: {
+      semester: "desc",
+    },
+  });
 
   return {
-    ipkNow: khs[0].ipk,
-    sksNow: khs[0].jumlahSksKumulatif,
+    ipkNow: khs !== null ? khs.ipk : 0,
+    sksNow: khs !== null ? khs.jumlahSksKumulatif : 0,
     ...result,
   };
 };
