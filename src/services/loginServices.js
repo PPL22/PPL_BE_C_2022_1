@@ -3,13 +3,12 @@ const prisma = new PrismaClient();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const login = async (username, password) => {
+const login = async (data) => {
   let dosen = true;
-
   // Find akun in akun_dosen table
   let akun = await prisma.tb_akun_dosen.findFirst({
     where: {
-      username: username,
+      username: data.username,
     },
     include: {
       fk_pemilik: true,
@@ -21,7 +20,7 @@ const login = async (username, password) => {
     dosen = false;
     akun = await prisma.tb_akun_mhs.findUnique({
       where: {
-        username: username,
+        username: data.username,
       },
       include: {
         fk_pemilik: true,
@@ -34,31 +33,31 @@ const login = async (username, password) => {
 
   // Compare akun password
   try {
-    if (await bcrypt.compare(password, akun.password)) {
-      // TODO: check bcrypt compare | Done
+    let firstTime = false;
+    if (!akun.fk_pemilik.email && !dosen) {
+      firstTime = true;
+    }
+    let passwordMatch = false;
+    if (firstTime) {
+      passwordMatch = data.password === akun.password;
+    } else {
+      passwordMatch = await bcrypt.compare(data.password, akun.password);
+    }
 
+    if (passwordMatch) {
       // Find owner
-      let owner,
-        firstTime = false,
-        role = "Mahasiswa",
+      let role = "Mahasiswa",
         nama = "",
         id = "";
+
       if (!dosen) {
         // Mahasiswa has no role
-        owner = akun.fk_pemilik.nim;
-        if (!akun.fk_pemilik.email) {
-          firstTime = true;
-        }
-        nama = akun.fk_pemilik.nama;
         id = akun.fk_pemilik.nim;
       } else {
-        owner = akun.fk_pemilik.nip;
+        id = akun.fk_pemilik.nip;
         jsonRole = await prisma.tb_role_akun_dosen.findMany({
           where: {
             username: akun.username,
-          },
-          select: {
-            role: true,
           },
         });
 
@@ -70,26 +69,28 @@ const login = async (username, password) => {
         jsonRole.forEach((r) => {
           role.push(r.role);
         });
-        nama = akun.fk_pemilik.nama;
-        id = akun.fk_pemilik.nip;
       }
+
+      // Get nama and image
+      nama = akun.fk_pemilik.nama;
+      foto = akun.fk_pemilik.foto;
 
       // Create new token
       const userAccessToken = jwt.sign(
-        { role: role },
+        { id: id, role: role },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "12h" }
       );
       const userRefreshToken = jwt.sign(
-        { role: role },
+        { id: id, role: role },
         process.env.REFRESH_TOKEN_SECRET
       );
 
       return {
-        owner: owner,
+        id: id,
         role: role,
         nama: nama,
-        id: id,
+        image: foto,
         firstTime: firstTime,
         accessToken: userAccessToken,
         refreshToken: userRefreshToken,

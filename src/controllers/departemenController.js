@@ -1,3 +1,4 @@
+const { searchMahasiswa, getCountStatusDataAkademikMhs, getDataAkademikMhs } = require("../services/dataMahasiswaServices");
 const {
   rekapStatusMahasiswa,
   daftarStatusMahasiswa,
@@ -5,18 +6,33 @@ const {
   daftarPklMahasiswa,
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
-} = require('../services/rekapServices')
+} = require("../services/rekapServices");
+
+const getDashboardDepartemenController = async (req, res) => {
+  try {
+    const result = await getCountStatusDataAkademikMhs()
+    
+    return res.status(200).json({
+      message: "Data dashboard berhasil diretrieve",
+      data: result
+    })
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message
+    })
+  }
+}
 
 const rekapMahasiswaDepartemenController = async (req, res) => {
   const path = req.path;
 
   try {
     let result;
-    if (path === "/departemen/rekap-pkl") {
+    if (path === "/departemen/rekap/pkl") {
       result = await rekapPklMahasiswa();
-    } else if (path === "/departemen/rekap-skripsi") {
+    } else if (path === "/departemen/rekap/skripsi") {
       result = await rekapSkripsiMahasiswa();
-    } else if (path === "/departemen/rekap-status") {
+    } else if (path === "/departemen/rekap/status") {
       result = await rekapStatusMahasiswa();
     } else {
       return res.status(404).json({ message: "path tidak ditemukan" });
@@ -53,7 +69,52 @@ const daftarMahasiswaDepartemenController = async (req, res) => {
   }
 };
 
+const searchMahasiswaDepartemenController = async (req, res) => {
+  // Check if keyword is nim / nama
+  const { keyword } = req.query;
+  let type = "Nama";
+
+  if (!isNaN(keyword)) {
+    type = "NIM";
+  }
+
+  try {
+    const result = await searchMahasiswa({ keyword, type });
+
+    return res.status(200).json({
+      message: "search berhasil",
+      data: result,
+    });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+};
+
+const getDataAkademikMhsDepartemenController = async (req, res) => {
+  const {
+    nim
+  } = req.params
+
+  try {
+    const result = await getDataAkademikMhs({
+      nim
+    })
+
+    return res.status(200).json({
+      message: "data mahasiswa berhasil diambil",
+      data: result
+    })
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message
+    })
+  }
+};
+
 module.exports = {
+  getDashboardDepartemenController,
   rekapMahasiswaDepartemenController,
   daftarMahasiswaDepartemenController,
+  searchMahasiswaDepartemenController,
+  getDataAkademikMhsDepartemenController,
 };

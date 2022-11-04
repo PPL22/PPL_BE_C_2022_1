@@ -1,9 +1,18 @@
 const {
+  searchMahasiswa,
+  getDataAkademikMhs,
+  getCountStatusDataAkademikMhs,
+} = require("../services/dataMahasiswaServices");
+const {
   validasiDataIrs,
   validasiDataKhs,
   validasiDataPkl,
   validasiDataSkripsi,
-} = require('../services/dosenServices');
+  getStatusValidasiIRS,
+  getStatusValidasiKHS,
+  getStatusValidasiPKL,
+  getStatusValidasiSkripsi,
+} = require("../services/dosenServices");
 
 const {
   rekapStatusMahasiswa,
@@ -12,24 +21,126 @@ const {
   daftarPklMahasiswa,
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
-} = require('../services/rekapServices')
+} = require("../services/rekapServices");
+const validateSemester = require("../utils/validateSemester");
 
+// Dashboard
+const getDashboardDosenController = async (req, res) => {
+  const nip = req.id;
+
+  // !! Udah ada checking di JWT (?)
+  // if (!nip) {
+  //   return res.status(400).json({
+  //     message: "ID kosong",
+  //   });
+  // }
+
+  try {
+    const data = { nip };
+    const result = await getCountStatusDataAkademikMhs(data);
+
+    return res.status(200).json({
+      message: "Data dashboard berhasil diretrieve",
+      data: result,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+    });
+  }
+};
+
+// Get status validasi
+const getStatusValidasiController = async (req, res) => {
+  const nip = req.id;
+  const path = req.path;
+
+  // !! Udah ada checking di JWT (?)
+  // if (!nip) {
+  //   return res.status(400).json({
+  //     message: "ID kosong",
+  //   });
+  // }
+
+  try {
+    const data = { nip };
+    let result = null;
+    switch (path) {
+      case "/dosen/status-validasi/irs":
+        result = await getStatusValidasiIRS(data);
+        break;
+      case "/dosen/status-validasi/khs":
+        result = await getStatusValidasiKHS(data);
+        break;
+      case "/dosen/status-validasi/pkl":
+        result = await getStatusValidasiPKL(data);
+        break;
+      case "/dosen/status-validasi/skripsi":
+        result = await getStatusValidasiSkripsi(data);
+        break;
+    }
+
+    if (!result)
+      return res.status(400).json({
+        message: "Failed to retrieve list status validasi",
+      });
+
+    return res.status(200).json({
+      data: result,
+      message: "Daftar status validasi berhasil diambil",
+    });
+  } catch (err) {
+    console.log(err.message);
+    return res.status(400).json({
+      message: err.message,
+    });
+  }
+};
+
+// Validasi data
 const validasiDataIrsController = async (req, res) => {
-  const { nim, semester, status, jumlahSks } = req.body;
+  const { nim, semester, status, jumlahSks, fileName } = req.body;
+  const nip = req.id;
 
   // check null input
-  if (!nim || !semester || !status || !jumlahSks) {
+  if (!nim || !semester || !status || !jumlahSks || !fileName) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
   }
 
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // Check status
+  const statusIRS = ["Aktif", "Cuti"];
+  if (!statusIRS.includes(status)) {
+    return res.status(400).json({
+      message: "Status IRS tidak valid",
+    });
+  }
+
+  // Check jumlah sks
+  if (jumlahSks < 0 || jumlahSks > 24) {
+    return res.status(400).json({
+      message: "Jumlah SKS tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE(?): check filename
+
   try {
     const data = {
+      nip,
       nim,
       semester,
       status,
       jumlahSks,
+      fileName,
     };
 
     const result = await validasiDataIrs(data);
@@ -39,7 +150,9 @@ const validasiDataIrsController = async (req, res) => {
     });
   } catch (err) {
     console.log(err.message);
-    return res.status(400).json({ message: err.message });
+    return res.status(400).json({
+      message: err.message,
+    });
   }
 };
 
@@ -50,9 +163,11 @@ const validasiDataKhsController = async (req, res) => {
     status,
     jumlahSksSemester,
     ips,
-    jumlahSKsKumulatif,
+    jumlahSksKumulatif,
     ipk,
+    fileName,
   } = req.body;
+  const nip = req.id;
 
   // check null input
   if (
@@ -61,23 +176,59 @@ const validasiDataKhsController = async (req, res) => {
     !status ||
     !jumlahSksSemester ||
     !ips ||
-    !jumlahSKsKumulatif ||
-    !ipk
+    !jumlahSksKumulatif ||
+    !ipk ||
+    !fileName
   ) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
   }
 
+  // TODO-VALIDATE: Recheck validate semester in KHS (validasi dosen)
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // Check jumlah sks
+  if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
+    return res.status(400).json({
+      message: "Jumlah SKS tidak valid",
+    });
+  }
+
+  // Check IPS
+  if (parseFloat(ips) < 0 || parseFloat(ips) > 4) {
+    return res.status(400).json({
+      message: "IPS tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE: validasi jumlah sks kumulatif
+
+  // Check IPK
+  if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
+    return res.status(400).json({
+      message: "IPK tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE(?): check filename
+
   try {
     const data = {
+      nip,
       nim,
       semester,
       status,
       jumlahSksSemester,
       ips,
-      jumlahSKsKumulatif,
+      jumlahSksKumulatif,
       ipk,
+      fileName,
     };
 
     const result = await validasiDataKhs(data);
@@ -87,27 +238,41 @@ const validasiDataKhsController = async (req, res) => {
     });
   } catch (err) {
     console.log(err.message);
-    return res.status(400).json({ message: err.message });
+    return res.status(400).json({
+      message: err.message,
+    });
   }
 };
 
 const validasiDataPklController = async (req, res) => {
-  const { nim, semester, status, nilai, tanggalLulusSidang } = req.body;
+  const { nim, semester, nilai, fileName } = req.body;
+  const nip = req.id;
 
   // check null input
-  if (!nim || !semester || !status || !nilai || !tanggalLulusSidang) {
+  if (!nim || !semester || !nilai || !fileName) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
   }
 
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE: validasi nilai PKL
+
+  // TODO-VALIDATE(?): check filename
+
   try {
     const data = {
+      nip,
       nim,
       semester,
-      status,
       nilai,
-      tanggalLulusSidang,
+      fileName,
     };
 
     const result = await validasiDataPkl(data);
@@ -117,59 +282,97 @@ const validasiDataPklController = async (req, res) => {
     });
   } catch (err) {
     console.log(err.message);
-    return res.status(400).json({ message: err.message });
+    return res.status(400).json({
+      message: err.message,
+    });
   }
 };
 
 const validasiDataSkripsiController = async (req, res) => {
-  const { nim, semester, status, nilai } = req.body;
+  const { nim, semester, nilai, tanggalLulusSidang, lamaStudi, fileName } =
+    req.body;
+
+  const nip = req.id;
 
   // check null input
-  if (!nim || !semester || !status || !nilai) {
+  if (
+    !nim ||
+    !semester ||
+    !nilai ||
+    !tanggalLulusSidang ||
+    !lamaStudi ||
+    !fileName
+  ) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
   }
+
+  // Check semester
+  if (!validateSemester(nim, semester)) {
+    return res.status(400).json({
+      message: "Semester tidak valid",
+    });
+  }
+
+  // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
+
+  // TODO-VALIDATE(?): check filename
+
   try {
     const data = {
+      nip,
       nim,
       semester,
-      status,
       nilai,
+      tanggalLulusSidang,
+      lamaStudi,
+      fileName,
     };
 
     const result = await validasiDataSkripsi(data);
     return res.status(200).json({
-      message: "validasi data progress PKL berhasil",
+      message: "validasi data progress Skripsi berhasil",
       data: result,
     });
   } catch (err) {
     console.log(err.message);
-    return res.status(400).json({ message: err.message });
+    return res.status(400).json({
+      message: err.message,
+    });
   }
 };
 
 const rekapMahasiswaDosenController = async (req, res) => {
-  const { nip } = req.params;
+  const nip = req.id;
   const path = req.path;
 
-  // check null input
-  if (!nip) {
-    return res.status(400).json({
-      message: "NIP tidak boleh kosong",
-    });
-  }
+  // !! Udah ada checking di JWT (?)
+  // // check null input
+  // if (!nip) {
+  //   return res.status(400).json({
+  //     message: "NIP tidak boleh kosong",
+  //   });
+  // }
 
   try {
     let result;
-    if (path === `/dosen/rekap-pkl/${nip}`) {
-      result = await rekapPklMahasiswa({ nip });
-    } else if (path === `/dosen/rekap-skripsi/${nip}`) {
-      result = await rekapSkripsiMahasiswa({ nip });
-    } else if (path === `/dosen/rekap-status/${nip}`) {
-      result = await rekapStatusMahasiswa({ nip });
+    if (path === `/dosen/rekap/pkl`) {
+      result = await rekapPklMahasiswa({
+        nip,
+      });
+    } else if (path === `/dosen/rekap/skripsi`) {
+      result = await rekapSkripsiMahasiswa({
+        nip,
+      });
+    } else if (path === `/dosen/rekap/status`) {
+      result = await rekapStatusMahasiswa({
+        nip,
+      });
     } else {
-      return res.status(404).json({ message: "path tidak ditemukan" });
+      return res.status(404).json({
+        message: "path tidak ditemukan",
+      });
     }
     return res.status(200).json({
       message: "rekap mahasiswa berhasil diambil",
@@ -177,31 +380,42 @@ const rekapMahasiswaDosenController = async (req, res) => {
     });
   } catch (err) {
     console.log(err.message);
-    return res.status(400).json({ message: err.message });
+    return res.status(400).json({
+      message: err.message,
+    });
   }
 };
 
 const daftarMahasiswaDosenController = async (req, res) => {
-  const { nip } = req.params;
+  const nip = req.id;
   const path = req.path;
 
-  // check null input
-  if (!nip) {
-    return res.status(400).json({
-      message: "NIP tidak boleh kosong",
-    });
-  }
+  // !! Udah ada checking di JWT (?)
+  // // check null input
+  // if (!nip) {
+  //   return res.status(400).json({
+  //     message: "NIP tidak boleh kosong",
+  //   });
+  // }
 
   try {
     let result;
-    if (path === `/dosen/daftar-pkl/${nip}`) {
-      result = await daftarPklMahasiswa({ nip });
-    } else if (path === `/dosen/daftar-skripsi/${nip}`) {
-      result = await daftarSkripsiMahasiswa({ nip });
-    } else if (path === `/dosen/daftar-status/${nip}`) {
-      result = await daftarStatusMahasiswa({ nip });
+    if (path === `/dosen/daftar-pkl`) {
+      result = await daftarPklMahasiswa({
+        nip,
+      });
+    } else if (path === `/dosen/daftar-skripsi`) {
+      result = await daftarSkripsiMahasiswa({
+        nip,
+      });
+    } else if (path === `/dosen/daftar-status`) {
+      result = await daftarStatusMahasiswa({
+        nip,
+      });
     } else {
-      return res.status(404).json({ message: "path tidak ditemukan" });
+      return res.status(404).json({
+        message: "path tidak ditemukan",
+      });
     }
     return res.status(200).json({
       message: "rekap status mahasiswa berhasil diambil",
@@ -209,15 +423,78 @@ const daftarMahasiswaDosenController = async (req, res) => {
     });
   } catch (err) {
     console.log(err.message);
-    return res.status(400).json({ message: err.message });
+    return res.status(400).json({
+      message: err.message,
+    });
+  }
+};
+
+const searchMahasiswaDosenController = async (req, res) => {
+  // Check if keyword is nim / nama
+  const { keyword } = req.query;
+  const nip = req.id;
+
+  if (!nip) {
+    return res.status(400).json({
+      message: "NIP tidak boleh kosong",
+    });
+  }
+
+  try {
+    const result = await searchMahasiswa({
+      nip,
+      keyword,
+    });
+
+    return res.status(200).json({
+      message: "search berhasil",
+      data: result,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+    });
+  }
+};
+
+// <R> Harus cek nip?
+const getDataAkademikMhsDosenController = async (req, res) => {
+  const { nim } = req.params;
+  const nip = req.id;
+  try {
+    const result = await getDataAkademikMhs({
+      nim,
+      nip,
+    });
+    if (result.nipDoswal != nip) {
+      return res.status(403).json({
+        message: "bukan dosen wali, data mahasiswa tidak dapat diambil",
+      });
+    }
+
+    return res.status(200).json({
+      message: "data mahasiswa berhasil diambil",
+      data: result,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+    });
   }
 };
 
 module.exports = {
+  getDashboardDosenController,
+  getStatusValidasiController,
+
   validasiDataIrsController,
   validasiDataKhsController,
   validasiDataPklController,
   validasiDataSkripsiController,
+
   rekapMahasiswaDosenController,
   daftarMahasiswaDosenController,
+
+  searchMahasiswaDosenController,
+  getDataAkademikMhsDosenController,
 };
