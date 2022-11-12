@@ -27,7 +27,7 @@ const validateSemester = require("../utils/validateSemester");
 // Dashboard
 const getDashboardDosenController = async (req, res) => {
   const nip = req.id;
-  
+
   // !! Udah ada checking di JWT (?)
   // if (!nip) {
   //   return res.status(400).json({
@@ -100,8 +100,8 @@ const getStatusValidasiController = async (req, res) => {
 // Validasi data
 const validasiDataIrsController = async (req, res) => {
   const { nim, semester, status, jumlahSks, fileName } = req.body;
-  const nip = req.id
-  
+  const nip = req.id;
+
   // check null input
   if (!nim || !semester || !status || !jumlahSks || !fileName) {
     return res.status(400).json({
@@ -112,23 +112,23 @@ const validasiDataIrsController = async (req, res) => {
   // Check semester
   if (!validateSemester(nim, semester)) {
     return res.status(400).json({
-      message: "Semester tidak valid"
-    })
+      message: "Semester tidak valid",
+    });
   }
 
   // Check status
-  const statusIRS = ["Aktif", "Cuti"]
+  const statusIRS = ["Aktif", "Cuti"];
   if (!statusIRS.includes(status)) {
     return res.status(400).json({
-      message: "Status IRS tidak valid"
-    })
+      message: "Status IRS tidak valid",
+    });
   }
 
   // Check jumlah sks
   if (jumlahSks < 0 || jumlahSks > 24) {
     return res.status(400).json({
-      message: "Jumlah SKS tidak valid"
-    })
+      message: "Jumlah SKS tidak valid",
+    });
   }
 
   try {
@@ -165,7 +165,7 @@ const validasiDataKhsController = async (req, res) => {
     ipk,
     fileName,
   } = req.body;
-  const nip = req.id
+  const nip = req.id;
 
   // check null input
   if (
@@ -187,35 +187,35 @@ const validasiDataKhsController = async (req, res) => {
   // Check semester
   if (!validateSemester(nim, semester)) {
     return res.status(400).json({
-      message: "Semester tidak valid"
-    })
+      message: "Semester tidak valid",
+    });
   }
 
   // Check jumlah sks
   if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
     return res.status(400).json({
-      message: "Jumlah SKS tidak valid"
-    })
+      message: "Jumlah SKS tidak valid",
+    });
   }
-  
+
   // Check IPS
   if (parseFloat(ips) < 0 || parseFloat(ips) > 4) {
     return res.status(400).json({
-      message: "IPS tidak valid"
-    })
+      message: "IPS tidak valid",
+    });
   }
 
   // TODO-VALIDATE: validasi jumlah sks kumulatif
-  
+
   // Check IPK
   if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
     return res.status(400).json({
-      message: "IPK tidak valid"
-    })
+      message: "IPK tidak valid",
+    });
   }
-  
+
   // TODO-VALIDATE(?): check filename
-  
+
   try {
     const data = {
       nip,
@@ -244,7 +244,7 @@ const validasiDataKhsController = async (req, res) => {
 
 const validasiDataPklController = async (req, res) => {
   const { nim, semester, nilai, fileName } = req.body;
-  const nip = req.id
+  const nip = req.id;
 
   // check null input
   if (!nim || !semester || !nilai || !fileName) {
@@ -260,7 +260,7 @@ const validasiDataPklController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE: validasi nilai PKL 
+  // TODO-VALIDATE: validasi nilai PKL
 
   // TODO-VALIDATE(?): check filename
 
@@ -290,7 +290,7 @@ const validasiDataSkripsiController = async (req, res) => {
   const { nim, semester, nilai, tanggalLulusSidang, lamaStudi, fileName } =
     req.body;
 
-  const nip = req.id
+  const nip = req.id;
 
   // check null input
   if (

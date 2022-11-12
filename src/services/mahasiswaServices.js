@@ -5,18 +5,26 @@ const ResizeFile = require("../utils/resizeFile");
 const path = require("path");
 const fs = require("fs");
 const { getDataAkademikMhs } = require("./dataMahasiswaServices");
+const countSemester = require("../utils/countSemester");
 const validateSemester = require("../utils/validateSemester");
 
 const getDashboardMahasiswa = async (data) => {
   const result = await getDataAkademikMhs(data);
 
-  const khs = result.dataAkademik[result.semester].filter(
-    (obj) => obj.type === "khs"
-  );
+  // get last khs and statusValidasi == true
+  const khs = await prisma.tb_khs.findFirst({
+    where: {
+      nim: data.nim,
+      statusValidasi: true,
+    },
+    orderBy: {
+      semester: "desc",
+    },
+  });
 
   return {
-    ipkNow: khs[0].ipk,
-    sksNow: khs[0].jumlahSksKumulatif,
+    ipkNow: khs !== null ? khs.ipk : 0,
+    sksNow: khs !== null ? khs.jumlahSksKumulatif : 0,
     ...result,
   };
 };
@@ -123,7 +131,7 @@ const updateDataMahasiswa = async (data) => {
 };
 
 const entryDataIrs = async (data) => {
-  try {    
+  try {
     const fileName = `irs-${data.nim}-${data.semester}.pdf`;
     fs.renameSync(
       `public/documents/${data.dokumen.originalname}`,
@@ -134,42 +142,46 @@ const entryDataIrs = async (data) => {
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester
-        }
-      }
-    })
+          semester: data.semester,
+        },
+      },
+    });
 
     if (exist) {
-      fs.unlink(`public/documents/irs/${fileName}`, (err) => { if (err) throw err })
-      throw new Error(`IRS semester ${data.semester} telah diisi`)
+      fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`IRS semester ${data.semester} telah diisi`);
     }
 
     // Check if semester is valid
     // let valid = false
     if (validateSemester(data.nim, data.semester)) {
-      const lastIrs = await prisma.tb_irs.aggregate({
+      let lastIrs = await prisma.tb_irs.aggregate({
         where: {
-          nim: data.nim
-        }, 
+          nim: data.nim,
+        },
         _max: {
-          semester: true
-        }
-      })
+          semester: true,
+        },
+      });
 
-      if (lastIrs != null) {
-        if (parseInt(data.semester) != parseInt(lastIrs._max.semester) + 1) {
-          fs.unlink(`public/documents/irs/${fileName}`, (err) => { if (err) throw err })
-          throw new Error(`IRS harus diisi urut semester (IRS terakhir yang diisi: semester ${lastIrs._max.semester})`)
+      if (parseInt(data.semester) != parseInt(lastIrs._max.semester) + 1) {
+        fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        if (lastIrs._max.semester == null) {
+          throw new Error(`IRS harus diisi urut mulai dari semester 1`);
         }
-      } else {
-        if (parseInt(data.semester) != 1) {
-          fs.unlink(`public/documents/irs/${fileName}`, (err) => { if (err) throw err })
-          throw new Error(`IRS harus diisi urut semester)`)
-        }
+        throw new Error(
+          `IRS harus diisi urut semester (IRS terakhir yang diisi: semester ${lastIrs._max.semester})`
+        );
       }
     } else {
-      fs.unlink(`public/documents/irs/${fileName}`, (err) => { if (err) throw err })
-      throw new Error(`Semester tidak valid`)
+      fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`Semester tidak valid`);
     }
 
     // Input IRS
@@ -196,19 +208,21 @@ const entryDataKhs = async (data) => {
       `public/documents/${data.dokumen.originalname}`,
       `public/documents/khs/${fileName}`
     );
-    
+
     const exist = await prisma.tb_khs.findUnique({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester
-        }
-      }
-    })
+          semester: data.semester,
+        },
+      },
+    });
 
     if (exist) {
-      fs.unlink(`public/documents/khs/${fileName}`, (err) => { if (err) throw err })
-      throw new Error(`KHS semester ${data.semester} telah diisi`)
+      fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`KHS semester ${data.semester} telah diisi`);
     }
 
     // Check if semester is valid
@@ -236,8 +250,10 @@ const entryDataKhs = async (data) => {
         }
       }
     } else {
-      fs.unlink(`public/documents/khs/${fileName}`, (err) => { if (err) throw err })
-      throw new Error(`Semester tidak valid`)
+      fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`Semester tidak valid`);
     }
 
     // INPUT
@@ -290,6 +306,33 @@ const entryDataPkl = async (data) => {
       },
     });
 
+    // let valid = false
+    if (validateSemester(data.nim, data.semester)) {
+      // Check if IRS is already filled
+      const lastIrs = await prisma.tb_irs.findUnique({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.semester,
+          },
+        },
+      });
+
+      if (!lastIrs) {
+        fs.unlink(`public/documents/pkl/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        throw new Error(
+          `IRS semester ${data.semester} harus diisi terlebih dahulu`
+        );
+      }
+    } else {
+      fs.unlink(`public/documents/pkl/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`Semester tidak valid`);
+    }
+
     return result;
   } catch (err) {
     throw err;
@@ -327,6 +370,33 @@ const entryDataSkripsi = async (data) => {
       },
     });
 
+    // let valid = false
+    if (validateSemester(data.nim, data.semester)) {
+      // Check if IRS is already filled
+      const lastIrs = await prisma.tb_irs.findUnique({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.semester,
+          },
+        },
+      });
+
+      if (!lastIrs) {
+        fs.unlink(`public/documents/skripsi/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        throw new Error(
+          `IRS semester ${data.semester} harus diisi terlebih dahulu`
+        );
+      }
+    } else {
+      fs.unlink(`public/documents/skripsi/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`Semester tidak valid`);
+    }
+
     return result;
   } catch (err) {
     throw err;
@@ -340,6 +410,7 @@ const getProfileMahasiswa = async (data) => {
         nim: data.nim,
       },
       select: {
+        angkatan: true,
         fk_kodeWali: {
           select: {
             nama: true,
@@ -366,6 +437,16 @@ const getProfileMahasiswa = async (data) => {
             status: true,
           },
         },
+        fk_kodeKab: {
+          select: {
+            namaKab: true,
+          },
+        },
+        fk_kodeProv: {
+          select: {
+            namaProv: true,
+          },
+        },
       },
     });
 
@@ -373,17 +454,16 @@ const getProfileMahasiswa = async (data) => {
     const profile = {
       namaDosenWali: result.fk_kodeWali.nama,
       nipDosenWali: result.fk_kodeWali.nip,
-      semester:
-        result.fk_nim_irs.length > 0 ? result.fk_nim_irs[0].semester : "-",
+      semester: countSemester(result.angkatan),
       status: result.fk_nim_irs.length > 0 ? result.fk_nim_irs[0].status : "-",
       ipk: result.fk_nim_khs.length > 0 ? result.fk_nim_khs[0].ipk : "-",
       jumlahSksKumulatif:
         result.fk_nim_khs.length > 0
           ? result.fk_nim_khs[0].jumlahSksKumulatif
           : "-",
+      namaKab: result.fk_kodeKab.namaKab,
+      namaProv: result.fk_kodeProv.namaProv,
     };
-
-    console.log(profile);
 
     return profile;
   } catch (err) {

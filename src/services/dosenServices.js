@@ -153,11 +153,11 @@ const validasiDataIrs = async (data) => {
     const checkDoswal = await prisma.tb_mhs.findFirst({
       where: {
         nim: data.nim,
-        kodeWali: data.nip
-      }
-    })
+        kodeWali: data.nip,
+      },
+    });
 
-    if (!checkDoswal) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses")
+    if (!checkDoswal) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
 
     // Check semester (WARNING: akan error bila file yang dikirim bukan file yang valid)
     if (data.semester != oldSemester) {
@@ -171,6 +171,28 @@ const validasiDataIrs = async (data) => {
       })
 
       console.log(checkSemester)
+      if (checkSemester) throw new Error("Semester sudah terisi")
+    }
+
+    // Rename document if semester is different
+    if (oldSemester !== data.semester) {
+      fs.renameSync(
+        `public/documents` + data.fileName,
+        `public/documents/irs/${fileName}`
+      );
+    }
+
+    // Check semester (WARNING: akan error bila file yang dikirim bukan file yang valid)
+    if (data.semester != oldSemester) {
+      const checkSemester = await prisma.tb_irs.findUnique({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.semester
+          }
+        }
+      })
+
       if (checkSemester) throw new Error("Semester sudah terisi")
     }
 
@@ -221,9 +243,9 @@ const validasiDataKhs = async (data) => {
     const checkDoswal = await prisma.tb_mhs.findFirst({
       where: {
         nim: data.nim,
-        kodeWali: data.nip
-      }
-    })
+        kodeWali: data.nip,
+      },
+    });
 
     if (!checkDoswal) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses")
     
@@ -291,11 +313,12 @@ const validasiDataPkl = async (data) => {
     const checkDoswal = await prisma.tb_mhs.findFirst({
       where: {
         nim: data.nim,
-        kodeWali: data.nip
-      }
-    })
+        kodeWali: data.nip,
+      },
+    });
 
-    if (!checkDoswal) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses")
+    if (!checkDoswal)
+      throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
 
     // Update
     const result = await prisma.tb_pkl.update({
@@ -311,7 +334,7 @@ const validasiDataPkl = async (data) => {
         filePkl: fileName,
         statusValidasi: true,
       },
-    }); 
+    });
 
     // Rename document if semester is different
     if (oldSemester !== data.semester) {
@@ -342,11 +365,12 @@ const validasiDataSkripsi = async (data) => {
     const checkDoswal = await prisma.tb_mhs.findFirst({
       where: {
         nim: data.nim,
-        kodeWali: data.nip
-      }
-    })
+        kodeWali: data.nip,
+      },
+    });
 
-    if (!checkDoswal) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses")
+    if (!checkDoswal)
+      throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
 
     // Update
     const result = await prisma.tb_skripsi.update({
@@ -364,8 +388,8 @@ const validasiDataSkripsi = async (data) => {
         fileSkripsi: fileName,
         statusValidasi: true,
       },
-    }); 
-    
+    });
+
     // Rename document if semester is different
     if (oldSemester !== data.semester) {
       fs.renameSync(

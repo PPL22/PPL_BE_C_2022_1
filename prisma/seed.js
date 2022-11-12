@@ -83,6 +83,14 @@ async function main() {
     skipDuplicates: true,
   });
 
+  const createRoleAkunDepartemen = await prisma.tb_role_akun_dosen.createMany({
+    data: [
+      { username: "arispuji", role: "Departemen" },
+      { username: "adiwibowo", role: "Departemen" },
+    ],
+    skipDuplicates: true,
+  });
+
   // TODO: ubah status IRS jadi enum
   const createIRS = await prisma.tb_irs.createMany({
     data: [

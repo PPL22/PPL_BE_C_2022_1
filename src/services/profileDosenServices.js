@@ -11,25 +11,33 @@ const getProfileDosen = async (data) => {
       },
       include: {
         fk_kodeKab: true,
-        fk_kodeProv: true
-      }
+        fk_kodeProv: true,
+      },
     });
 
     delete result.nip;
     delete result.nama;
 
-    const namaKab = result.fk_kodeKab.namaKab 
-    const namaProv = result.fk_kodeProv.namaProv 
+    let namaKab = null;
+    let namaProv = null;
 
-    delete result.fk_kodeKab
-    delete result.fk_kodeProv
-    delete result.kodeKab
-    delete result.kodeProv
+    if (result.fk_kodeKab) {
+      namaKab = result.fk_kodeKab.nama;
+    }
+
+    if (result.fk_kodeProv) {
+      namaProv = result.fk_kodeProv.nama;
+    }
+
+    delete result.fk_kodeKab;
+    delete result.fk_kodeProv;
+    delete result.kodeKab;
+    delete result.kodeProv;
 
     return {
       ...result,
-      namaKab: namaKab,       
-      namaProv: namaProv
+      namaKab: namaKab,
+      namaProv: namaProv,
     };
   } catch (err) {
     throw err;
