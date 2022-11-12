@@ -17,3 +17,5 @@ const validateSemester = async (nim, semester) => {
     }
     return false
 }
+
+module.exports = validateSemester
