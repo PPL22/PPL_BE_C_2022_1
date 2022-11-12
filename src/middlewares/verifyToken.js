@@ -5,7 +5,6 @@ const verifyToken = (req, res, next) => {
   if (token) {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) {
-        console.log(err);
         res.status(401).json({ message: "Token is not valid" });
       } else {
         const { id, role } = decoded;

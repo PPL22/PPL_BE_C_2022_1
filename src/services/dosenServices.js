@@ -138,8 +138,16 @@ const getStatusValidasiSkripsi = async (data) => {
 const validasiDataIrs = async (data) => {
   try {
     const fileName = `irs-${data.nim}-${data.semester}.pdf`;
-    let semester = data.fileName.split("-")[2]; // For renaming purpose
-    semester = semester.substring(0, semester.length - 4);
+    let oldSemester = data.fileName.split("-")[2]; // For renaming purpose
+    oldSemester = oldSemester.substring(0, oldSemester.length - 4);
+
+    console.log(data)
+
+    // Check if file exists
+    if (!fs.existsSync(`public/documents` + data.fileName)) throw new Error("File doesn't exist, not valid")
+
+    // Basic checking
+    if (isNaN(oldSemester)) throw new Error ("Filename not valid")
 
     // Check dosen wali
     const checkDoswal = await prisma.tb_mhs.findFirst({
@@ -151,12 +159,35 @@ const validasiDataIrs = async (data) => {
 
     if (!checkDoswal) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses")
 
+    // Check semester (WARNING: akan error bila file yang dikirim bukan file yang valid)
+    if (data.semester != oldSemester) {
+      const checkSemester = await prisma.tb_irs.findUnique({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.semester
+          }
+        }
+      })
+
+      console.log(checkSemester)
+      if (checkSemester) throw new Error("Semester sudah terisi")
+    }
+
+    // Rename document if semester is different
+    if (oldSemester !== data.semester) {
+      fs.renameSync(
+        `public/documents` + data.fileName,
+        `public/documents/irs/${fileName}`
+      );
+    }
+
     // Update
     const result = await prisma.tb_irs.update({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: semester,
+          semester: oldSemester,
         },
       },
       data: {
@@ -168,14 +199,6 @@ const validasiDataIrs = async (data) => {
       },
     });
 
-    // Rename document if semester is different
-    if (semester !== data.semester) {
-      fs.renameSync(
-        `public/documents` + data.fileName,
-        `public/documents/irs/${fileName}`
-      );
-    }
-
     return result;
   } catch (err) {
     throw err;
@@ -185,9 +208,15 @@ const validasiDataIrs = async (data) => {
 const validasiDataKhs = async (data) => {
   try {
     const fileName = `khs-${data.nim}-${data.semester}.pdf`;
-    let semester = data.fileName.split("-")[2];
-    semester = semester.substring(0, semester.length - 4);
-    
+    let oldSemester = data.fileName.split("-")[2]; // For renaming purpose
+    oldSemester = oldSemester.substring(0, oldSemester.length - 4);
+
+    // Check if file exists
+    if (!fs.existsSync(`public/documents` + data.fileName)) throw new Error("File doesn't exist, not valid")
+
+    // Basic checking
+    if (isNaN(oldSemester)) throw new Error ("Filename not valid")
+
     // Check dosen wali
     const checkDoswal = await prisma.tb_mhs.findFirst({
       where: {
@@ -197,13 +226,27 @@ const validasiDataKhs = async (data) => {
     })
 
     if (!checkDoswal) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses")
+    
+    // Check semester
+    if (data.semester != oldSemester) {
+      const checkSemester = await prisma.tb_khs.findUnique({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.semester
+          }
+        }
+      })
+
+      if (checkSemester) throw new Error("Semester sudah terisi")
+    }
 
     // Update
     const result = await prisma.tb_khs.update({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: semester,
+          semester: oldSemester,
         },
       },
       data: {
@@ -219,12 +262,13 @@ const validasiDataKhs = async (data) => {
     });
 
     // Rename document if semester is different
-    if (semester !== data.semester) {
+    if (oldSemester !== data.semester) {
       fs.renameSync(
         `public/documents` + data.fileName,
-        `public/documents/khs/${fileName}`
+        `public/documents/irs/${fileName}`
       );
     }
+
     return result;
   } catch (err) {
     throw err;
@@ -234,9 +278,15 @@ const validasiDataKhs = async (data) => {
 const validasiDataPkl = async (data) => {
   try {
     const fileName = `pkl-${data.nim}-${data.semester}.pdf`;
-    let semester = data.fileName.split("-")[2];
-    semester = semester.substring(0, semester.length - 4);
-    
+    let oldSemester = data.fileName.split("-")[2]; // For renaming purpose
+    oldSemester = oldSemester.substring(0, oldSemester.length - 4);
+
+    // Check if file exists
+    if (!fs.existsSync(`public/documents` + data.fileName)) throw new Error("File doesn't exist, not valid")
+
+    // Basic checking
+    if (isNaN(oldSemester)) throw new Error ("Filename not valid")
+
     // Check dosen wali
     const checkDoswal = await prisma.tb_mhs.findFirst({
       where: {
@@ -252,11 +302,11 @@ const validasiDataPkl = async (data) => {
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: semester,
+          semester: data.semester,
         },
       },
       data: {
-        semester: data.semester,
+        semester: oldSemester,
         nilai: data.nilai,
         filePkl: fileName,
         statusValidasi: true,
@@ -264,7 +314,7 @@ const validasiDataPkl = async (data) => {
     }); 
 
     // Rename document if semester is different
-    if (semester !== data.semester) {
+    if (oldSemester !== data.semester) {
       fs.renameSync(
         `public/documents` + data.fileName,
         `public/documents/pkl/${fileName}`
@@ -279,9 +329,15 @@ const validasiDataPkl = async (data) => {
 const validasiDataSkripsi = async (data) => {
   try {
     const fileName = `skripsi-${data.nim}-${data.semester}.pdf`;
-    let semester = data.fileName.split("-")[2];
-    semester = semester.substring(0, semester.length - 4);
-    
+    let oldSemester = data.fileName.split("-")[2]; // For renaming purpose
+    oldSemester = oldSemester.substring(0, oldSemester.length - 4);
+
+    // Check if file exists
+    if (!fs.existsSync(`public/documents` + data.fileName)) throw new Error("File doesn't exist, not valid")
+
+    // Basic checking
+    if (isNaN(oldSemester)) throw new Error ("Filename not valid")
+
     // Check dosen wali
     const checkDoswal = await prisma.tb_mhs.findFirst({
       where: {
@@ -297,7 +353,7 @@ const validasiDataSkripsi = async (data) => {
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: semester,
+          semester: oldSemester,
         },
       },
       data: {
@@ -311,7 +367,7 @@ const validasiDataSkripsi = async (data) => {
     }); 
     
     // Rename document if semester is different
-    if (semester !== data.semester) {
+    if (oldSemester !== data.semester) {
       fs.renameSync(
         `public/documents` + data.fileName,
         `public/documents/skripsi/${fileName}`

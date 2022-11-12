@@ -1,9 +1,10 @@
-const { PrismaClient } = require('@prisma/client')
+const { PrismaClient } = require('@prisma/client');
+const countSemester = require('./countSemester');
 
 const prisma = new PrismaClient()
 
 const validateSemester = async (nim, semester) => {
-    if (data.semester > 0 && data.semester <= 14) {
+    if (semester > 0 && semester <= 14) {
         const angkatanMhs = await prisma.tb_mhs.findUnique({
         where: {
             nim: nim,

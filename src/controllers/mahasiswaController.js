@@ -74,7 +74,7 @@ const updateDataMahasiswaController = async (req, res) => {
   if (!regexEmail.test(email)) {
     return res.status(400).json({
       message: "Email harus menggunakan email Undip",
-    });
+   });
   }
 
   // TODO-VALIDATE: check password

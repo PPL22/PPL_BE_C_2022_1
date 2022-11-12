@@ -131,8 +131,6 @@ const validasiDataIrsController = async (req, res) => {
     })
   }
 
-  // TODO-VALIDATE(?): check filename
-  
   try {
     const data = {
       nip,
