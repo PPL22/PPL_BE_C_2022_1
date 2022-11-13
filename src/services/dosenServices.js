@@ -57,21 +57,20 @@ const getStatusValidasiIRS = async (data) => {
       },
       include: {
         fk_nim: true,
-      },
-      // take: data.qty,
-      // skip: data.qty * (data.page-1)
+      }
       // orderBy: {
         //   // ...order
         // }
-    });
+      });
       
+    let filledRecord = {}
+    
     const allMhs = await prisma.tb_mhs.findMany({
       where: {
         kodeWali: data.nip
       }
     })
-        
-    let filledRecord = {}
+
     allMhs.forEach(mhs => {
       filledRecord[mhs.nim] = {
         filled: [],
@@ -82,7 +81,7 @@ const getStatusValidasiIRS = async (data) => {
         }
       }
     })
-    
+
     // Reshape data
     const filledIrs = result.map((d) => {
       const dataMhs = {
@@ -128,7 +127,9 @@ const getStatusValidasiIRS = async (data) => {
       return r
     }, [])
 
-    return [...filledIrs, ...noIrs];
+    const finalIrs = [...filledIrs, ...noIrs]
+
+    return finalIrs.slice((data.page-1)*data.qty, (data.page-1)*data.qty + data.qty);
   } catch (err) {
     throw new Error(err);
   }

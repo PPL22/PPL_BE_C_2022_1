@@ -56,13 +56,12 @@ const getStatusValidasiController = async (req, res) => {
   let {page, qty, keyword, sort} = req.query
   const path = req.path;
 
-  // console.log(page, qty)
   // Check page and qty
-  // if (!page) page = 1;
-  // if (!qty) qty = 10;
+  if (!page) page = 1;
+  if (!qty) qty = 10;
   
-  // page = parseInt(page);
-  // qty = parseInt(qty)
+  page = parseInt(page);
+  qty = parseInt(qty)
 
 
   // !! Udah ada checking di JWT (?)
