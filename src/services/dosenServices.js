@@ -61,17 +61,17 @@ const getStatusValidasiIRS = async (data) => {
       // take: data.qty,
       // skip: data.qty * (data.page-1)
       // orderBy: {
-      //   // ...order
-      // }
+        //   // ...order
+        // }
     });
-    
+      
     const allMhs = await prisma.tb_mhs.findMany({
       where: {
         kodeWali: data.nip
       }
     })
-
-    
+        
+    let filledRecord = {}
     allMhs.forEach(mhs => {
       filledRecord[mhs.nim] = {
         filled: [],
@@ -84,7 +84,6 @@ const getStatusValidasiIRS = async (data) => {
     })
     
     // Reshape data
-    let filledRecord = {}
     const filledIrs = result.map((d) => {
       const dataMhs = {
         nim: d["fk_nim"].nim,
