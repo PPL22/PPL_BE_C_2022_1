@@ -7,7 +7,6 @@ const searchMahasiswa = async (data) => {
     // Can't use prisma query because wildcards (%) are not supported
     // https://github.com/prisma/prisma/discussions/3159
     let result;
-    let keyword = `%${data.keyword}%`;
     let filterWali = data.nip
       ? {
           kodeWali: data.nip,
@@ -30,12 +29,12 @@ const searchMahasiswa = async (data) => {
           OR: [
             {
               nama: {
-                contains: keyword,
+                contains: data.keyword,
               },
             },
             {
               nim: {
-                contains: keyword,
+                contains: data.keyword,
               },
             },
           ],

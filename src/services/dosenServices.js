@@ -1,4 +1,4 @@
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient, Prisma } = require("@prisma/client");
 const countSemester = require("../utils/countSemester");
 const prisma = new PrismaClient();
 const fs = require("fs");
@@ -8,31 +8,128 @@ const fs = require("fs");
 // Get status validasi
 const getStatusValidasiIRS = async (data) => {
   try {
+    // NEEDS: add search feature in frontend
+    const filterKeyword = (data.keyword ? 
+      {OR: [
+          {
+            nama: {
+              contains: data.keyword,
+            },
+          },
+          {
+            nim: {
+              contains: data.keyword,
+            },
+          },
+        ],
+      } : {} 
+    )
+
+    // NEEDS
+    // let order = {}
+    // switch (data.order) {
+    //   case "nama":
+    //     order = {fk_nim: {nama: "asc"}}
+    //     break;
+    //   case "angkatan":
+    //     order = {fk_nim: {angkatan: "asc"}}
+    //     break;
+    //   case "semester":
+    //     order = {semester: "asc"}
+    //     break;
+    //   case "sksSemester":
+    //     order = {jumlahSks: "asc"}
+    //     break;
+    //   case "status":
+    //     order = {status: "asc"}
+    //     break;
+    //   default:
+    //     order = {nim: "asc"}
+    //     break;
+    // }
+
     let result = await prisma.tb_irs.findMany({
       where: {
         fk_nim: {
-          fk_kodeWali: {
-            nip: data.nip,
-          },
+          kodeWali: data.nip,
+          ...filterKeyword
         },
       },
       include: {
         fk_nim: true,
       },
+      // take: data.qty,
+      // skip: data.qty * (data.page-1)
+      // orderBy: {
+      //   // ...order
+      // }
     });
+    
+    const allMhs = await prisma.tb_mhs.findMany({
+      where: {
+        kodeWali: data.nip
+      }
+    })
 
-    const newRes = result.map((d) => {
-      const dataMhs = d.fk_nim;
+    
+    allMhs.forEach(mhs => {
+      filledRecord[mhs.nim] = {
+        filled: [],
+        data: {
+          nim: mhs.nim,
+          nama: mhs.nama,
+          angkatan: mhs.angkatan
+        }
+      }
+    })
+    
+    // Reshape data
+    let filledRecord = {}
+    const filledIrs = result.map((d) => {
+      const dataMhs = {
+        nim: d["fk_nim"].nim,
+        nama: d["fk_nim"].nama,
+        angkatan: d["fk_nim"].angkatan
+      };
       delete d["fk_nim"];
+
+      // Record every filled irs in an array of object
+      filledRecord[dataMhs.nim].filled.push(d["semester"])
+      
       return {
         ...d,
-        nama: dataMhs.nama,
-        nim: dataMhs.nim,
-        angkatan: dataMhs.angkatan,
+        ...dataMhs,
       };
     });
 
-    return newRes;
+    // Fill empty IRS data with "Belum Entry"
+    // NEEDS: handling belum entry
+    const noIrs = Object.keys(filledRecord).reduce((r, nim) => {
+      const mhs = filledRecord[nim]
+      const currentSmt = countSemester(mhs.data.angkatan)
+      let emptySmt = []
+
+      for (let i = 1; i <= currentSmt; i++) {
+        if (!mhs.filled.includes(i.toString())) {
+          emptySmt.push(i.toString())
+        }
+      }
+
+      emptySmt.forEach(smt => {
+        r.push({
+          nim: nim,
+          semester: smt,
+          status: '',
+          jumlahSks: '',
+          fileIrs: '',
+          nama: mhs.data.nama,
+          angkatan: mhs.data.angkatan
+        })
+      })
+      return r
+    }, [])
+
+    return [...filledIrs, ...noIrs];
   } catch (err) {
     throw new Error(err);
   }
@@ -52,14 +149,14 @@ const getStatusValidasiKHS = async (data) => {
         fk_nim: true,
       },
     });
-
+    
+    // Reshape data
     const newRes = result.map((d) => {
       const dataMhs = d.fk_nim;
       delete d["fk_nim"];
       return {
         ...d,
         nama: dataMhs.nama,
-        nim: dataMhs.nim,
         angkatan: dataMhs.angkatan,
       };
     });
@@ -84,7 +181,8 @@ const getStatusValidasiPKL = async (data) => {
         fk_nim: true,
       },
     });
-
+    
+    // Reshape data
     const newRes = result.map((d) => {
       const dataMhs = d.fk_nim;
       delete d["fk_nim"];
@@ -116,7 +214,8 @@ const getStatusValidasiSkripsi = async (data) => {
         fk_nim: true,
       },
     });
-
+    
+    // Reshape data
     const newRes = result.map((d) => {
       const dataMhs = d.fk_nim;
       delete d["fk_nim"];
