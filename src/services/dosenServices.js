@@ -25,29 +25,7 @@ const getStatusValidasiIRS = async (data) => {
       } : {} 
     )
 
-    // NEEDS
-    // let order = {}
-    // switch (data.order) {
-    //   case "nama":
-    //     order = {fk_nim: {nama: "asc"}}
-    //     break;
-    //   case "angkatan":
-    //     order = {fk_nim: {angkatan: "asc"}}
-    //     break;
-    //   case "semester":
-    //     order = {semester: "asc"}
-    //     break;
-    //   case "sksSemester":
-    //     order = {jumlahSks: "asc"}
-    //     break;
-    //   case "status":
-    //     order = {status: "asc"}
-    //     break;
-    //   default:
-    //     order = {nim: "asc"}
-    //     break;
-    // }
-
+    // Get all data irs
     let result = await prisma.tb_irs.findMany({
       where: {
         fk_nim: {
@@ -57,17 +35,19 @@ const getStatusValidasiIRS = async (data) => {
       },
       include: {
         fk_nim: true,
+      },
+      orderBy: {
+        statusValidasi: "asc"
       }
-      // orderBy: {
-        //   // ...order
-        // }
-      });
+    });
       
+    // Get data of all mahasiswa and record every filled document
     let filledRecord = {}
     
     const allMhs = await prisma.tb_mhs.findMany({
       where: {
-        kodeWali: data.nip
+        kodeWali: data.nip,
+        ...filterKeyword
       }
     })
 
@@ -91,7 +71,7 @@ const getStatusValidasiIRS = async (data) => {
       };
       delete d["fk_nim"];
 
-      // Record every filled irs in an array of object
+      // Record every filled document in an array of object
       filledRecord[dataMhs.nim].filled.push(d["semester"])
       
       return {
@@ -127,7 +107,13 @@ const getStatusValidasiIRS = async (data) => {
       return r
     }, [])
 
-    const finalIrs = [...filledIrs, ...noIrs]
+    let finalIrs = [...filledIrs, ...noIrs]
+
+    if (data.order != "statusValidasi") {
+      finalIrs.sort((a,b) => (a[data.order] > b[data.order]) ? 1 : ((b[data.order] > a[data.order]) ? -1 : 0));
+    }
+
+    if (data.desc === "true") finalIrs.reverse()
 
     return finalIrs.slice((data.page-1)*data.qty, (data.page-1)*data.qty + data.qty);
   } catch (err) {

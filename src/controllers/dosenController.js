@@ -53,7 +53,7 @@ const getDashboardDosenController = async (req, res) => {
 // Get status validasi
 const getStatusValidasiController = async (req, res) => {
   const nip = req.id;
-  let {page, qty, keyword, sort} = req.query
+  let {page, qty, keyword, order, desc} = req.query
   const path = req.path;
 
   // Check page and qty
@@ -72,7 +72,7 @@ const getStatusValidasiController = async (req, res) => {
   // }
 
   try {
-    const data = { nip, page, qty, keyword, sort };
+    const data = { nip, page, qty, keyword, order, desc };
     let result = null;
     switch (path) {
       case "/dosen/status-validasi/irs":
