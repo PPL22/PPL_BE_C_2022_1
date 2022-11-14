@@ -6,7 +6,12 @@ const verifyToken = (req, res, next) => {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) {
         console.log(err);
-        res.status(401).json({ message: "Token is not valid" });
+        if (err.name === "TokenExpiredError") {
+          return res.status(401).json({
+            message: "Token expired",
+          });
+        }
+        return res.status(401).json({ message: "Token is not valid" });
       } else {
         const { id, role } = decoded;
         // console.log(decoded);
@@ -16,28 +21,28 @@ const verifyToken = (req, res, next) => {
         // Check multiple role
         if (Array.isArray(role)) {
           // console.log(role);
-          let roleExists = false
+          let roleExists = false;
           role.forEach((item) => {
             // console.log(item);
             // console.log(req.originalUrl);
             // If url consists of the role, (/dosen/search), continue
             if (req.originalUrl.includes(item.toLowerCase())) {
-              roleExists = true
+              roleExists = true;
               next();
             }
           });
 
           if (!roleExists) {
-            res.status(403).json({
+            return res.status(403).json({
               message: "You are not authorized to access this resource",
             });
           }
-        // One role, check url immediately
+          // One role, check url immediately
         } else if (req.originalUrl.includes(role.toLowerCase())) {
           next();
           // User don't have the valid role to access the route
         } else {
-          res.status(403).json({
+          return res.status(403).json({
             message: "You are not authorized to access this resource",
           });
         }
