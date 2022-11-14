@@ -1,7 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-// <R> JOIN WITH KOTA / KABUPATEN TABLE
 const getProfileDosen = async (data) => {
   const nip = data.nip;
 
