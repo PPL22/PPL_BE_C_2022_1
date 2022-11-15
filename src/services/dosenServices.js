@@ -9,6 +9,7 @@ const fs = require("fs");
 const getStatusValidasiIRS = async (data) => {
   try {
     // NEEDS: add search feature in frontend
+    // Filter for search by keyword
     const filterKeyword = (data.keyword ? 
       {OR: [
           {
@@ -25,8 +26,8 @@ const getStatusValidasiIRS = async (data) => {
       } : {} 
     )
 
-    // Get all data irs
-    let result = await prisma.tb_irs.findMany({
+    // Create query
+    const query = {
       where: {
         fk_nim: {
           kodeWali: data.nip,
@@ -36,86 +37,44 @@ const getStatusValidasiIRS = async (data) => {
       include: {
         fk_nim: true,
       },
-      orderBy: {
-        statusValidasi: "asc"
-      }
-    });
-      
-    // Get data of all mahasiswa and record every filled document
-    let filledRecord = {}
+      orderBy: {},
+      take: data.qty,
+      skip: (data.page-1) * data.qty
+    } 
+  
+    // Add order
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
+    const orderIrs = ["semester", "jumlahSks", "statusValidasi"]
+  
+    if (orderIrs.includes(data.sortBy)) {
+      query.orderBy[data.sortBy] = data.order
+    } else if (orderMhs.includes(data.sortBy)) {
+      query.orderBy["fk_nim"][data.sortBy] = data.order
+    } else {
+      throw new Error("Order not valid")
+    }
     
-    const allMhs = await prisma.tb_mhs.findMany({
-      where: {
-        kodeWali: data.nip,
-        ...filterKeyword
-      }
-    })
-
-    allMhs.forEach(mhs => {
-      filledRecord[mhs.nim] = {
-        filled: [],
-        data: {
-          nim: mhs.nim,
-          nama: mhs.nama,
-          angkatan: mhs.angkatan
-        }
-      }
-    })
-
+    // Get all data irs
+    let result = await prisma.tb_irs.findMany(query);
+      
     // Reshape data
     const filledIrs = result.map((d) => {
       const dataMhs = {
         nim: d["fk_nim"].nim,
         nama: d["fk_nim"].nama,
-        angkatan: d["fk_nim"].angkatan
+        angkatan: d["fk_nim"].angkatan,
+        statusAktif: d["fk_nim"].statusAktif
       };
       delete d["fk_nim"];
 
-      // Record every filled document in an array of object
-      filledRecord[dataMhs.nim].filled.push(d["semester"])
-      
       return {
         ...d,
         ...dataMhs,
       };
     });
 
-    // Fill empty IRS data with "Belum Entry"
-    // NEEDS: handling belum entry
-    const noIrs = Object.keys(filledRecord).reduce((r, nim) => {
-      const mhs = filledRecord[nim]
-      const currentSmt = countSemester(mhs.data.angkatan)
-      let emptySmt = []
+    return filledIrs;
 
-      for (let i = 1; i <= currentSmt; i++) {
-        if (!mhs.filled.includes(i.toString())) {
-          emptySmt.push(i.toString())
-        }
-      }
-
-      emptySmt.forEach(smt => {
-        r.push({
-          nim: nim,
-          semester: smt,
-          status: '',
-          jumlahSks: '',
-          fileIrs: '',
-          nama: mhs.data.nama,
-          angkatan: mhs.data.angkatan
-        })
-      })
-      return r
-    }, [])
-
-    let finalIrs = [...filledIrs, ...noIrs]
-
-    if (data.order != "statusValidasi") {
-      finalIrs.sort((a,b) => (a[data.order] > b[data.order]) ? 1 : ((b[data.order] > a[data.order]) ? -1 : 0));
-    }
-
-    if (data.desc === "true") finalIrs.reverse()
-
-    return finalIrs.slice((data.page-1)*data.qty, (data.page-1)*data.qty + data.qty);
   } catch (err) {
     throw new Error(err);
   }
