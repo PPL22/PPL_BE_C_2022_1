@@ -64,7 +64,8 @@ const getStatusValidasiIRS = async (data) => {
     if (orderIrs.includes(data.sortBy)) {
       query.orderBy[data.sortBy] = data.order
     } else if (orderMhs.includes(data.sortBy)) {
-      query.orderBy["fk_nim"][data.sortBy] = data.order
+      query.orderBy["fk_nim"] = {}
+      query.orderBy.fk_nim[data.sortBy] = data.order
     } else {
       throw new Error("Order not valid")
     }
