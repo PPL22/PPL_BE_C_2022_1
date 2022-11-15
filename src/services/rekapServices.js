@@ -67,9 +67,21 @@ const daftarStatusMahasiswa = async (data) => {
           kodeWali: data.nip,
         }
       : {};
+    
+    // Get total amount of data
+    let maxPage = await prisma.tb_mhs.count({
+      where: {
+        ...filterWali
+      },
+    })
+    maxPage = Math.ceil(maxPage / data.qty)
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+
     const result = await prisma.tb_mhs.findMany({
       where: {
-        kodeWali: data.nip,
+        ...filterWali,
       },
       select: {
         nim: true,
@@ -120,7 +132,11 @@ const daftarStatusMahasiswa = async (data) => {
       return 0;
     });
 
-    return result;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: result
+    };
   } catch (error) {
     throw error;
   }
@@ -189,6 +205,17 @@ const daftarPklMahasiswa = async (data) => {
           kodeWali: data.nip,
         }
       : {};
+    
+      // Get total amount of data
+    let maxPage = await prisma.tb_mhs.count({
+      where: {
+        ...filterWali
+      },
+    })
+    maxPage = Math.ceil(maxPage / data.qty)
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
 
     const result = await prisma.tb_mhs.findMany({
       where: {
@@ -238,7 +265,11 @@ const daftarPklMahasiswa = async (data) => {
       return 0;
     });
 
-    return result;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: result
+    };
   } catch (error) {
     throw error;
   }
@@ -308,6 +339,17 @@ const daftarSkripsiMahasiswa = async (data) => {
         }
       : {};
 
+    // Get total amount of data
+    let maxPage = await prisma.tb_mhs.count({
+      where: {
+        ...filterWali
+      },
+    })
+    maxPage = Math.ceil(maxPage / data.qty)
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+  
     const result = await prisma.tb_mhs.findMany({
       where: {
         ...filterWali
@@ -363,7 +405,11 @@ const daftarSkripsiMahasiswa = async (data) => {
       if (b.nilai === "-") return -1;
       return 0;
     });
-    return result;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: result
+    };
   } catch (error) {
     throw error;
   }

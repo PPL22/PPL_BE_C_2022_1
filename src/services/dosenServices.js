@@ -37,6 +37,7 @@ const getStatusValidasiIRS = async (data) => {
     })
     maxPage = Math.ceil(maxPage / data.qty)
 
+    // Revalidate current page
     if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
 
     // Create query
@@ -63,7 +64,8 @@ const getStatusValidasiIRS = async (data) => {
     if (orderIrs.includes(data.sortBy)) {
       query.orderBy[data.sortBy] = data.order
     } else if (orderMhs.includes(data.sortBy)) {
-      query.orderBy["fk_nim"][data.sortBy] = data.order
+      query.orderBy["fk_nim"] = {}
+      query.orderBy.fk_nim[data.sortBy] = data.order
     } else {
       throw new Error("Order not valid")
     }

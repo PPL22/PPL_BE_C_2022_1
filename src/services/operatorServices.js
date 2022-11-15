@@ -39,6 +39,13 @@ async function getDataDosen() {
 
 async function getAkunMahasiswa(data) {
   try {
+    // Get total amount of data
+    let maxPage = await prisma.tb_mhs.count()
+    maxPage = Math.ceil(maxPage / data.qty)
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+
     const result = await prisma.tb_mhs.findMany({
       select: {
         nim: true,
@@ -74,7 +81,11 @@ async function getAkunMahasiswa(data) {
       };
     });
 
-    return mahasiswa;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: mahasiswa
+    };
   } catch (err) {
     throw new Error(err);
   }
