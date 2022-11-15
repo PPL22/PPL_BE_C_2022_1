@@ -91,7 +91,7 @@ const getStatusValidasiIRS = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      ...filledIrs
+      irs: filledIrs
     };
 
   } catch (err) {
