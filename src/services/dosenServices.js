@@ -59,9 +59,9 @@ const getStatusValidasiIRS = async (data) => {
   
     // Add order
     const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
-    const orderIrs = ["semester", "jumlahSks", "statusValidasi"]
+    const orderKhs = ["semester", "jumlahSks", "statusValidasi"]
   
-    if (orderIrs.includes(data.sortBy)) {
+    if (orderKhs.includes(data.sortBy)) {
       query.orderBy[data.sortBy] = data.order
     } else if (orderMhs.includes(data.sortBy)) {
       query.orderBy["fk_nim"] = {}
@@ -103,31 +103,92 @@ const getStatusValidasiIRS = async (data) => {
 
 const getStatusValidasiKHS = async (data) => {
   try {
-    const result = await prisma.tb_khs.findMany({
+    // NEEDS: add search feature in frontend
+    // Filter for search by keyword
+    const filterKeyword = (data.keyword ? 
+      {OR: [
+          {
+            nama: {
+              contains: data.keyword,
+            },
+          },
+          {
+            nim: {
+              contains: data.keyword,
+            },
+          },
+        ],
+      } : {} 
+    )
+
+    // Get total amount of data
+    let maxPage = await prisma.tb_khs.count({
       where: {
         fk_nim: {
-          fk_kodeWali: {
-            nip: data.nip,
-          },
+          kodeWali: data.nip,
+          ...filterKeyword
+        },
+      },
+    })
+    maxPage = Math.ceil(maxPage / data.qty)
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+
+    // Create query
+    const query = {
+      where: {
+        fk_nim: {
+          kodeWali: data.nip,
+          ...filterKeyword
         },
       },
       include: {
         fk_nim: true,
       },
-    });
+      orderBy: {},
+
+      take: data.qty,
+      skip: (data.page-1) * data.qty
+    } 
+  
+    // Add order
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
+    const orderKhs = ["semester", "jumlahSksSemester", "ips", "jumlahSksKumulatif", "ipk", "statusValidasi"]
+  
+    if (orderKhs.includes(data.sortBy)) {
+      query.orderBy[data.sortBy] = data.order
+    } else if (orderMhs.includes(data.sortBy)) {
+      query.orderBy["fk_nim"] = {}
+      query.orderBy.fk_nim[data.sortBy] = data.order
+    } else {
+      throw new Error("Order not valid")
+    }
     
+    // Get all data irs according to query
+    const result = await prisma.tb_khs.findMany(query);
+
     // Reshape data
-    const newRes = result.map((d) => {
-      const dataMhs = d.fk_nim;
+    const filledKhs = result.map((d) => {
+      const dataMhs = {
+        nim: d["fk_nim"].nim,
+        nama: d["fk_nim"].nama,
+        angkatan: d["fk_nim"].angkatan,
+        statusAktif: d["fk_nim"].statusAktif
+      };
       delete d["fk_nim"];
+
       return {
         ...d,
-        nama: dataMhs.nama,
-        angkatan: dataMhs.angkatan,
+        ...dataMhs,
       };
     });
 
-    return newRes;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      khs: filledKhs
+    };
   } catch (err) {
     throw new Error(err);
   }
@@ -135,32 +196,92 @@ const getStatusValidasiKHS = async (data) => {
 
 const getStatusValidasiPKL = async (data) => {
   try {
-    const result = await prisma.tb_pkl.findMany({
+    // NEEDS: add search feature in frontend
+    // Filter for search by keyword
+    const filterKeyword = (data.keyword ? 
+      {OR: [
+          {
+            nama: {
+              contains: data.keyword,
+            },
+          },
+          {
+            nim: {
+              contains: data.keyword,
+            },
+          },
+        ],
+      } : {} 
+    )
+
+    // Get total amount of data
+    let maxPage = await prisma.tb_pkl.count({
       where: {
         fk_nim: {
-          fk_kodeWali: {
-            nip: data.nip,
-          },
+          kodeWali: data.nip,
+          ...filterKeyword
+        },
+      },
+    })
+    maxPage = Math.ceil(maxPage / data.qty)
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+
+    // Create query
+    const query = {
+      where: {
+        fk_nim: {
+          kodeWali: data.nip,
+          ...filterKeyword
         },
       },
       include: {
         fk_nim: true,
       },
-    });
+      orderBy: {},
+
+      take: data.qty,
+      skip: (data.page-1) * data.qty
+    } 
+  
+    // Add order
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
+    const orderPkl = ["semester", "nilai", "statusValidasi"]
+  
+    if (orderPkl.includes(data.sortBy)) {
+      query.orderBy[data.sortBy] = data.order
+    } else if (orderMhs.includes(data.sortBy)) {
+      query.orderBy["fk_nim"] = {}
+      query.orderBy.fk_nim[data.sortBy] = data.order
+    } else {
+      throw new Error("Order not valid")
+    }
     
+    // Get all data irs according to query
+    const result = await prisma.tb_pkl.findMany(query);
+
     // Reshape data
-    const newRes = result.map((d) => {
-      const dataMhs = d.fk_nim;
+    const filledPkl = result.map((d) => {
+      const dataMhs = {
+        nim: d["fk_nim"].nim,
+        nama: d["fk_nim"].nama,
+        angkatan: d["fk_nim"].angkatan,
+        statusAktif: d["fk_nim"].statusAktif
+      };
       delete d["fk_nim"];
+
       return {
         ...d,
-        nama: dataMhs.nama,
-        nim: dataMhs.nim,
-        angkatan: dataMhs.angkatan,
+        ...dataMhs,
       };
     });
 
-    return newRes;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      pkl: filledPkl
+    };
   } catch (err) {
     throw new Error(err);
   }
@@ -168,32 +289,92 @@ const getStatusValidasiPKL = async (data) => {
 
 const getStatusValidasiSkripsi = async (data) => {
   try {
-    const result = await prisma.tb_skripsi.findMany({
+    // NEEDS: add search feature in frontend
+    // Filter for search by keyword
+    const filterKeyword = (data.keyword ? 
+      {OR: [
+          {
+            nama: {
+              contains: data.keyword,
+            },
+          },
+          {
+            nim: {
+              contains: data.keyword,
+            },
+          },
+        ],
+      } : {} 
+    )
+
+    // Get total amount of data
+    let maxPage = await prisma.tb_skripsi.count({
       where: {
         fk_nim: {
-          fk_kodeWali: {
-            nip: data.nip,
-          },
+          kodeWali: data.nip,
+          ...filterKeyword
+        },
+      },
+    })
+    maxPage = Math.ceil(maxPage / data.qty)
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+
+    // Create query
+    const query = {
+      where: {
+        fk_nim: {
+          kodeWali: data.nip,
+          ...filterKeyword
         },
       },
       include: {
         fk_nim: true,
       },
-    });
+      orderBy: {},
+
+      take: data.qty,
+      skip: (data.page-1) * data.qty
+    } 
+  
+    // Add order
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
+    const orderSkripsi = ["semester", "nilai", "tanggalLulusSidang", "lamaStudi", "statusValidasi"]
+  
+    if (orderSkripsi.includes(data.sortBy)) {
+      query.orderBy[data.sortBy] = data.order
+    } else if (orderMhs.includes(data.sortBy)) {
+      query.orderBy["fk_nim"] = {}
+      query.orderBy.fk_nim[data.sortBy] = data.order
+    } else {
+      throw new Error("Order not valid")
+    }
     
+    // Get all data irs according to query
+    const result = await prisma.tb_skripsi.findMany(query);
+
     // Reshape data
-    const newRes = result.map((d) => {
-      const dataMhs = d.fk_nim;
+    const filledSkripsi = result.map((d) => {
+      const dataMhs = {
+        nim: d["fk_nim"].nim,
+        nama: d["fk_nim"].nama,
+        angkatan: d["fk_nim"].angkatan,
+        statusAktif: d["fk_nim"].statusAktif
+      };
       delete d["fk_nim"];
+
       return {
         ...d,
-        nama: dataMhs.nama,
-        nim: dataMhs.nim,
-        angkatan: dataMhs.angkatan,
+        ...dataMhs,
       };
     });
 
-    return newRes;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      skripsi: filledSkripsi
+    };
   } catch (err) {
     throw new Error(err);
   }
