@@ -26,6 +26,19 @@ const getStatusValidasiIRS = async (data) => {
       } : {} 
     )
 
+    // Get total amount of data
+    let maxPage = await prisma.tb_irs.count({
+      where: {
+        fk_nim: {
+          kodeWali: data.nip,
+          ...filterKeyword
+        },
+      },
+    })
+    maxPage = Math.ceil(maxPage / data.qty)
+
+    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+
     // Create query
     const query = {
       where: {
@@ -58,15 +71,6 @@ const getStatusValidasiIRS = async (data) => {
     // Get all data irs according to query
     const result = await prisma.tb_irs.findMany(query);
 
-    // Get max page
-    const maxPage = await prisma.tb_irs.count({
-      where: {
-        fk_nim: {
-          kodeWali: data.nip,
-          ...filterKeyword
-        },
-      },
-    })
       
     // Reshape data
     const filledIrs = result.map((d) => {
