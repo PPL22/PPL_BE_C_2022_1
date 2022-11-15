@@ -56,6 +56,7 @@ router.post("/login", loginController);
 
 router.use(verifyToken);
 
+//=======================================================
 // Operator
 router.get("/operator/data-dosen", getDataDosenController);
 router.get("/operator/data-mahasiswa", getDataAkunMahasiswaController);

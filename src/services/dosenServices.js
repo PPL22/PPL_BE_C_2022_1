@@ -37,6 +37,7 @@ const getStatusValidasiIRS = async (data) => {
     })
     maxPage = Math.ceil(maxPage / data.qty)
 
+    // Revalidate current page
     if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
 
     // Create query
