@@ -4,26 +4,21 @@ const prisma = new PrismaClient();
 
 const rekapStatusMahasiswa = async (data) => {
   try {
-    let result;
-    if (data) {
-      result = await prisma.tb_mhs.groupBy({
-        by: ["angkatan", "statusAktif"],
-        where: {
+    const filterWali = data
+      ? {
           kodeWali: data.nip,
-        },
-        _count: {
-          nim: true,
-        },
-      });
-    } else {
-      result = await prisma.tb_mhs.groupBy({
-        by: ["angkatan", "statusAktif"],
-        _count: {
-          nim: true,
-        },
-      });
-    }
-
+        }
+      : {};
+    const result = await prisma.tb_mhs.groupBy({
+      by: ["angkatan", "statusAktif"],
+      where: {
+        ...filterWali,
+      },
+      _count: {
+        nim: true,
+      },
+    });
+  
     const filterByAngkatan = result.reduce((acc, cur) => {
       const { angkatan, statusAktif, _count } = cur;
       const { nim } = _count;
@@ -67,66 +62,43 @@ const rekapStatusMahasiswa = async (data) => {
 
 const daftarStatusMahasiswa = async (data) => {
   try {
-    let result;
-    if (data) {
-      result = await prisma.tb_mhs.findMany({
-        where: {
+    const filterWali = data.nip
+      ? {
           kodeWali: data.nip,
-        },
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          statusAktif: true,
-          fk_nim_khs: {
-            orderBy: {
-              semester: "desc",
-            },
-            take: 1,
-            select: {
-              jumlahSksKumulatif: true,
-              ipk: true,
-            },
+        }
+      : {};
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        kodeWali: data.nip,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        statusAktif: true,
+        fk_nim_khs: {
+          orderBy: {
+            semester: "desc",
+          },
+          take: 1,
+          select: {
+            jumlahSksKumulatif: true,
+            ipk: true,
           },
         },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
-    } else {
-      result = await prisma.tb_mhs.findMany({
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          statusAktif: true,
-          fk_nim_khs: {
-            orderBy: {
-              semester: "desc",
-            },
-            take: 1,
-            select: {
-              jumlahSksKumulatif: true,
-              ipk: true,
-            },
-          },
+      },
+      orderBy: [
+        {
+          angkatan: "asc",
         },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
-    }
-
+        {
+          nim: "asc",
+        },
+      ],
+      take: data.qty,
+      skip: (data.page-1) * data.qty
+    });
+    
     // spread fk_nim_khs
     result.map((item) => {
       const { fk_nim_khs } = item;
@@ -155,6 +127,7 @@ const daftarStatusMahasiswa = async (data) => {
 };
 
 const rekapPklMahasiswa = async (data) => {
+  // !!! FILTER WALI ??
   try {
     const result = await prisma.tb_mhs.findMany({
       select: {
@@ -211,57 +184,39 @@ const rekapPklMahasiswa = async (data) => {
 
 const daftarPklMahasiswa = async (data) => {
   try {
-    let result;
-    if (data) {
-      result = await prisma.tb_mhs.findMany({
-        where: {
+    const filterWali = data.nip
+      ? {
           kodeWali: data.nip,
-        },
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          fk_nim_pkl: {
-            select: {
-              nilai: true,
-              semester: true,
-              statusValidasi: true,
-            },
+        }
+      : {};
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        fk_nim_pkl: {
+          select: {
+            nilai: true,
+            semester: true,
+            statusValidasi: true,
           },
         },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
-    } else {
-      result = await prisma.tb_mhs.findMany({
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          fk_nim_pkl: {
-            select: {
-              nilai: true,
-              semester: true,
-              statusValidasi: true,
-            },
-          },
+      },
+      orderBy: [
+        {
+          angkatan: "asc",
         },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
-    }
+        {
+          nim: "asc",
+        },
+      ],
+      take: data.qty,
+      skip: (data.page-1) * data.qty
+    });
 
     // change status pkl
     result.map((item) => {
@@ -290,6 +245,7 @@ const daftarPklMahasiswa = async (data) => {
 };
 
 const rekapSkripsiMahasiswa = async (data) => {
+  // !!! FILTER WALI ??
   try {
     const result = await prisma.tb_mhs.findMany({
       select: {
@@ -346,62 +302,41 @@ const rekapSkripsiMahasiswa = async (data) => {
 
 const daftarSkripsiMahasiswa = async (data) => {
   try {
-    let result;
-
-    if (data) {
-      result = await prisma.tb_mhs.findMany({
-        where: {
+    const filterWali = data.nip
+      ? {
           kodeWali: data.nip,
-        },
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          fk_nim_skripsi: {
-            select: {
-              nilai: true,
-              statusValidasi: true,
-              tanggalLulusSidang: true,
-              lamaStudi: true,
-              semester: true,
-            },
+        }
+      : {};
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        fk_nim_skripsi: {
+          select: {
+            nilai: true,
+            statusValidasi: true,
+            tanggalLulusSidang: true,
+            lamaStudi: true,
+            semester: true,
           },
         },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
-    } else {
-      result = await prisma.tb_mhs.findMany({
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          fk_nim_skripsi: {
-            select: {
-              nilai: true,
-              statusValidasi: true,
-              tanggalLulusSidang: true,
-              lamaStudi: true,
-              semester: true,
-            },
-          },
+      },
+      orderBy: [
+        {
+          angkatan: "asc",
         },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
-    }
+        {
+          nim: "asc",
+        },
+      ],
+      take: data.qty,
+      skip: (data.page-1) * data.qty
+    });
 
     // change status skripsi
     result.map((item) => {

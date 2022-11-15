@@ -226,8 +226,6 @@ const validasiDataKhsController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE(?): check filename
-
   try {
     const data = {
       nip,
@@ -273,8 +271,6 @@ const validasiDataPklController = async (req, res) => {
   }
 
   // TODO-VALIDATE: validasi nilai PKL
-
-  // TODO-VALIDATE(?): check filename
 
   try {
     const data = {
@@ -326,8 +322,6 @@ const validasiDataSkripsiController = async (req, res) => {
   }
 
   // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
-
-  // TODO-VALIDATE(?): check filename
 
   try {
     const data = {
@@ -399,6 +393,15 @@ const rekapMahasiswaDosenController = async (req, res) => {
 const daftarMahasiswaDosenController = async (req, res) => {
   const nip = req.id;
   const path = req.path;
+  let {page, qty} = req.query;
+  
+  if (!page) page = 1;
+  if (!qty) qty = 10;
+  
+  // Check params
+  if (isNaN(page) || isNaN(qty)) return res.status(400).json({message: "Bad request. Params not valid"})
+  page = parseInt(page);
+  qty = parseInt(qty)
 
   // !! Udah ada checking di JWT (?)
   // // check null input
@@ -409,19 +412,14 @@ const daftarMahasiswaDosenController = async (req, res) => {
   // }
 
   try {
+    const data = {nip, page, qty}
     let result;
     if (path === `/dosen/daftar-pkl`) {
-      result = await daftarPklMahasiswa({
-        nip,
-      });
+      result = await daftarPklMahasiswa(data);
     } else if (path === `/dosen/daftar-skripsi`) {
-      result = await daftarSkripsiMahasiswa({
-        nip,
-      });
+      result = await daftarSkripsiMahasiswa(data);
     } else if (path === `/dosen/daftar-status`) {
-      result = await daftarStatusMahasiswa({
-        nip,
-      });
+      result = await daftarStatusMahasiswa(data);
     } else {
       return res.status(404).json({
         message: "path tidak ditemukan",
