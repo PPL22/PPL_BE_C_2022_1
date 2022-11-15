@@ -53,17 +53,19 @@ const getDashboardDosenController = async (req, res) => {
 // Get status validasi
 const getStatusValidasiController = async (req, res) => {
   const nip = req.id;
-  let {page, qty, keyword, sort} = req.query
+  let {page, qty, keyword, sortBy, order} = req.query
   const path = req.path;
 
-  // console.log(page, qty)
-  // Check page and qty
-  // if (!page) page = 1;
-  // if (!qty) qty = 10;
-  
-  // page = parseInt(page);
-  // qty = parseInt(qty)
+  // Insert default value
+  if (!page) page = 1;
+  if (!qty) qty = 10;
+  if (!sortBy) sortBy = "statusValidasi"
+  if (!order) order = "asc" 
 
+  // Check params
+  if (isNaN(page) || isNaN(qty) || !["asc", "desc"].includes(order)) return res.status(400).json({message: "Bad request. Params not valid"})
+  page = parseInt(page);
+  qty = parseInt(qty)
 
   // !! Udah ada checking di JWT (?)
   // if (!nip) {
@@ -73,7 +75,7 @@ const getStatusValidasiController = async (req, res) => {
   // }
 
   try {
-    const data = { nip, page, qty, keyword, sort };
+    const data = { nip, page, qty, keyword, sortBy, order };
     let result = null;
     switch (path) {
       case "/dosen/status-validasi/irs":

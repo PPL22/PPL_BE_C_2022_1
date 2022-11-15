@@ -9,6 +9,7 @@ const fs = require("fs");
 const getStatusValidasiIRS = async (data) => {
   try {
     // NEEDS: add search feature in frontend
+    // Filter for search by keyword
     const filterKeyword = (data.keyword ? 
       {OR: [
           {
@@ -25,30 +26,8 @@ const getStatusValidasiIRS = async (data) => {
       } : {} 
     )
 
-    // NEEDS
-    // let order = {}
-    // switch (data.order) {
-    //   case "nama":
-    //     order = {fk_nim: {nama: "asc"}}
-    //     break;
-    //   case "angkatan":
-    //     order = {fk_nim: {angkatan: "asc"}}
-    //     break;
-    //   case "semester":
-    //     order = {semester: "asc"}
-    //     break;
-    //   case "sksSemester":
-    //     order = {jumlahSks: "asc"}
-    //     break;
-    //   case "status":
-    //     order = {status: "asc"}
-    //     break;
-    //   default:
-    //     order = {nim: "asc"}
-    //     break;
-    // }
-
-    let result = await prisma.tb_irs.findMany({
+    // Create query
+    const query = {
       where: {
         fk_nim: {
           kodeWali: data.nip,
@@ -58,77 +37,44 @@ const getStatusValidasiIRS = async (data) => {
       include: {
         fk_nim: true,
       },
-      // take: data.qty,
-      // skip: data.qty * (data.page-1)
-      // orderBy: {
-        //   // ...order
-        // }
-    });
-      
-    const allMhs = await prisma.tb_mhs.findMany({
-      where: {
-        kodeWali: data.nip
-      }
-    })
-        
-    let filledRecord = {}
-    allMhs.forEach(mhs => {
-      filledRecord[mhs.nim] = {
-        filled: [],
-        data: {
-          nim: mhs.nim,
-          nama: mhs.nama,
-          angkatan: mhs.angkatan
-        }
-      }
-    })
+      orderBy: {},
+      take: data.qty,
+      skip: (data.page-1) * data.qty
+    } 
+  
+    // Add order
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
+    const orderIrs = ["semester", "jumlahSks", "statusValidasi"]
+  
+    if (orderIrs.includes(data.sortBy)) {
+      query.orderBy[data.sortBy] = data.order
+    } else if (orderMhs.includes(data.sortBy)) {
+      query.orderBy["fk_nim"][data.sortBy] = data.order
+    } else {
+      throw new Error("Order not valid")
+    }
     
+    // Get all data irs
+    let result = await prisma.tb_irs.findMany(query);
+      
     // Reshape data
     const filledIrs = result.map((d) => {
       const dataMhs = {
         nim: d["fk_nim"].nim,
         nama: d["fk_nim"].nama,
-        angkatan: d["fk_nim"].angkatan
+        angkatan: d["fk_nim"].angkatan,
+        statusAktif: d["fk_nim"].statusAktif
       };
       delete d["fk_nim"];
 
-      // Record every filled irs in an array of object
-      filledRecord[dataMhs.nim].filled.push(d["semester"])
-      
       return {
         ...d,
         ...dataMhs,
       };
     });
 
-    // Fill empty IRS data with "Belum Entry"
-    // NEEDS: handling belum entry
-    const noIrs = Object.keys(filledRecord).reduce((r, nim) => {
-      const mhs = filledRecord[nim]
-      const currentSmt = countSemester(mhs.data.angkatan)
-      let emptySmt = []
+    return filledIrs;
 
-      for (let i = 1; i <= currentSmt; i++) {
-        if (!mhs.filled.includes(i.toString())) {
-          emptySmt.push(i.toString())
-        }
-      }
-
-      emptySmt.forEach(smt => {
-        r.push({
-          nim: nim,
-          semester: smt,
-          status: '',
-          jumlahSks: '',
-          fileIrs: '',
-          nama: mhs.data.nama,
-          angkatan: mhs.data.angkatan
-        })
-      })
-      return r
-    }, [])
-
-    return [...filledIrs, ...noIrs];
   } catch (err) {
     throw new Error(err);
   }
