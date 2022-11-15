@@ -37,7 +37,7 @@ async function getDataDosen() {
   }
 }
 
-async function getAkunMahasiswa() {
+async function getAkunMahasiswa(data) {
   try {
     const result = await prisma.tb_mhs.findMany({
       select: {
@@ -52,6 +52,8 @@ async function getAkunMahasiswa() {
       orderBy: {
         angkatan: "desc",
       },
+      take: data.qty,
+      skip: (data.page-1) * data.qty
     });
 
     const mahasiswa = result.map((mahasiswa) => {

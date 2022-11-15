@@ -7,7 +7,7 @@ const searchMahasiswa = async (data) => {
     // Can't use prisma query because wildcards (%) are not supported
     // https://github.com/prisma/prisma/discussions/3159
     let result;
-    let filterWali = data.nip
+    const filterWali = data.nip
       ? {
           kodeWali: data.nip,
         }
@@ -190,6 +190,7 @@ const getDataAkademikMhs = async (data) => {
 // Count status, for dashboard
 const getCountStatusDataAkademikMhs = async (data) => {
   try {
+    // TODO: Get status by angkatan
     const filterWali = data ? { kodeWali: data.nip } : {};
 
     // Count mahasiswa and amount of irs and khs entry required
@@ -319,6 +320,7 @@ const getCountStatusDataAkademikMhs = async (data) => {
     result.skripsi.lulus = countSkripsi - result.skripsi.notValidated;
     result.skripsi.blmLulus = countMhs - result.skripsi.lulus;
 
+    console.log(result)
     return result;
   } catch (err) {
     throw err;

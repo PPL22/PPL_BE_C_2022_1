@@ -16,8 +16,20 @@ const getDataDosenController = async (req, res) => {
 }
 
 const getAkunMahasiswaController = async (req, res) => {
+  const path = req.path;
+  let {page, qty} = req.query
+
+  if (!page) page = 1;
+  if (!qty) qty = 10;
+  
+  // Check params
+  if (isNaN(page) || isNaN(qty)) return res.status(400).json({message: "Bad request. Params not valid"})
+  page = parseInt(page);
+  qty = parseInt(qty)
+
   try {
-    const result = await getAkunMahasiswa();
+    const data = {page, qty}
+    const result = await getAkunMahasiswa(data);
     return res.json(result);
   } catch (err) {
     return res.status(403).json({ message: err.message });

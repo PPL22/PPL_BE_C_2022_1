@@ -48,15 +48,25 @@ const rekapMahasiswaDepartemenController = async (req, res) => {
 
 const daftarMahasiswaDepartemenController = async (req, res) => {
   const path = req.path;
+  let {page, qty} = req.query
+
+  if (!page) page = 1;
+  if (!qty) qty = 10;
+  
+  // Check params
+  if (isNaN(page) || isNaN(qty)) return res.status(400).json({message: "Bad request. Params not valid"})
+  page = parseInt(page);
+  qty = parseInt(qty)
 
   try {
+    const data = {page, qty}
     let result;
     if (path === "/departemen/daftar-pkl") {
-      result = await daftarPklMahasiswa();
+      result = await daftarPklMahasiswa(data);
     } else if (path === "/departemen/daftar-skripsi") {
-      result = await daftarSkripsiMahasiswa();
+      result = await daftarSkripsiMahasiswa(data);
     } else if (path === "/departemen/daftar-status") {
-      result = await daftarStatusMahasiswa();
+      result = await daftarStatusMahasiswa(data);
     } else {
       return res.status(404).json({ message: "path tidak ditemukan" });
     }

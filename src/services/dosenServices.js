@@ -38,6 +38,7 @@ const getStatusValidasiIRS = async (data) => {
         fk_nim: true,
       },
       orderBy: {},
+
       take: data.qty,
       skip: (data.page-1) * data.qty
     } 
@@ -54,8 +55,18 @@ const getStatusValidasiIRS = async (data) => {
       throw new Error("Order not valid")
     }
     
-    // Get all data irs
-    let result = await prisma.tb_irs.findMany(query);
+    // Get all data irs according to query
+    const result = await prisma.tb_irs.findMany(query);
+
+    // Get max page
+    const maxPage = await prisma.tb_irs.count({
+      where: {
+        fk_nim: {
+          kodeWali: data.nip,
+          ...filterKeyword
+        },
+      },
+    })
       
     // Reshape data
     const filledIrs = result.map((d) => {
@@ -73,7 +84,11 @@ const getStatusValidasiIRS = async (data) => {
       };
     });
 
-    return filledIrs;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      ...filledIrs
+    };
 
   } catch (err) {
     throw new Error(err);
