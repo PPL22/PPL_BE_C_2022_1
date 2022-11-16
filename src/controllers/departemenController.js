@@ -9,8 +9,11 @@ const {
 } = require("../services/rekapServices");
 
 const getDashboardDepartemenController = async (req, res) => {
+  const { angkatan } = req.query
+  
   try {
-    const result = await getCountStatusDataAkademikMhs()
+    const data = {angkatan}
+    const result = await getCountStatusDataAkademikMhs(data)
     
     return res.status(200).json({
       message: "Data dashboard berhasil diretrieve",
@@ -48,18 +51,19 @@ const rekapMahasiswaDepartemenController = async (req, res) => {
 
 const daftarMahasiswaDepartemenController = async (req, res) => {
   const path = req.path;
-  let {page, qty} = req.query
-
+  let {page, qty, sortBy, order} = req.query;
+  
   if (!page) page = 1;
   if (!qty) qty = 10;
+  if (!order) order = "asc" 
   
   // Check params
-  if (isNaN(page) || isNaN(qty)) return res.status(400).json({message: "Bad request. Params not valid"})
+  if (isNaN(page) || isNaN(qty) || !["asc", "desc"].includes(order)) return res.status(400).json({message: "Bad request. Params not valid"})
   page = parseInt(page);
   qty = parseInt(qty)
 
   try {
-    const data = {page, qty}
+    const data = {page, qty, sortBy, order}
     let result;
     if (path === "/departemen/daftar-pkl") {
       result = await daftarPklMahasiswa(data);

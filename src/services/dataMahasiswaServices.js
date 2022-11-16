@@ -191,26 +191,38 @@ const getDataAkademikMhs = async (data) => {
 const getCountStatusDataAkademikMhs = async (data) => {
   try {
     // TODO: Get status by angkatan
-    const filterWali = data ? { kodeWali: data.nip } : {};
+    const filterWali = (data.nip ? { kodeWali: data.nip } : {})
+    const filterAngkatan = (data.angkatan ? { angkatan: parseInt(data.angkatan) } : {})
 
     // Count mahasiswa and amount of irs and khs entry required
-    const allMhs = await prisma.tb_mhs.groupBy({
-      by: ["angkatan"],
-      where: {
-        ...filterWali,
-      },
-      _count: {
-        nim: true,
-      },
-    });
+    let countMhs = 0, countRequiredData;
+    if (data.angkatan) {
+      countMhs = await prisma.tb_mhs.count({
+        where: {
+          ...filterWali,
+          ...filterAngkatan
+        }
+      })
+      countRequiredData = countMhs * countSemester(data.angkatan)
+    } else {
+      const allMhs = await prisma.tb_mhs.groupBy({
+        by: ["angkatan"],
+        where: {
+          ...filterWali
+        },
+        _count: {
+          nim: true,
+        },
+      });
+      // Amount of required data calculated from semester mhs
+      countRequiredData = allMhs.reduce((count, mhs) => {
+        const { _count, angkatan } = mhs;
+        
+        countMhs += _count.nim;
+        return count + _count.nim * countSemester(angkatan);
+      }, 0);
+    }
 
-    // Amount of required data calculated from semester mhs
-    let countMhs = 0;
-    const countRequiredData = allMhs.reduce((count, mhs) => {
-      const { _count, angkatan } = mhs;
-      countMhs += _count.nim;
-      return count + _count.nim * countSemester(angkatan);
-    }, 0);
 
     let result = {};
 
@@ -218,7 +230,7 @@ const getCountStatusDataAkademikMhs = async (data) => {
     const irs = await prisma.tb_irs.groupBy({
       by: ["statusValidasi"],
       where: {
-        fk_nim: filterWali,
+        fk_nim: {...filterWali, ...filterAngkatan},
       },
       _count: {
         nim: true,
@@ -243,7 +255,7 @@ const getCountStatusDataAkademikMhs = async (data) => {
     const khs = await prisma.tb_khs.groupBy({
       by: ["statusValidasi"],
       where: {
-        fk_nim: filterWali,
+        fk_nim: {...filterWali, ...filterAngkatan},
       },
       _count: {
         nim: true,
@@ -268,7 +280,7 @@ const getCountStatusDataAkademikMhs = async (data) => {
     const pkl = await prisma.tb_pkl.groupBy({
       by: ["statusValidasi"],
       where: {
-        fk_nim: filterWali,
+        fk_nim: {...filterWali, ...filterAngkatan},
       },
       _count: {
         nim: true,
@@ -296,7 +308,7 @@ const getCountStatusDataAkademikMhs = async (data) => {
     const skripsi = await prisma.tb_skripsi.groupBy({
       by: ["statusValidasi"],
       where: {
-        fk_nim: filterWali,
+        fk_nim: {...filterWali, ...filterAngkatan},
       },
       _count: {
         nim: true,
@@ -320,7 +332,6 @@ const getCountStatusDataAkademikMhs = async (data) => {
     result.skripsi.lulus = countSkripsi - result.skripsi.notValidated;
     result.skripsi.blmLulus = countMhs - result.skripsi.lulus;
 
-    console.log(result)
     return result;
   } catch (err) {
     throw err;
