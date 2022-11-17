@@ -1,5 +1,5 @@
 const express = require("express");
-const { uploadImage, uploadPDF, uploadExcel } = require("../middlewares/fileUpload");
+const { uploadImage, uploadPDF, uploadExcel, uploadDokumen, uploadExcelMhs, uploadFotoProfil } = require("../middlewares/fileUpload");
 const multer = require("multer");
 
 const { loginController } = require("../controllers/loginController");
@@ -66,7 +66,7 @@ router.get("/operator/profile", getProfileDosenController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
 router.post(
   "/operator/batch-add-mahasiswa",
-  uploadExcel.single("dokumen"),
+  uploadExcelMhs,
   batchAddMahasiswaController
 );
 
@@ -81,29 +81,30 @@ router.get("/mahasiswa/dashboard", getDashboardMahasiswaController);
 
 router.post(
   "/mahasiswa/update-data",
-  uploadImage.single("foto"),
+  uploadFotoProfil,
   updateDataMahasiswaController
 );
+
 
 // Entry data
 router.post(
   "/mahasiswa/entry-irs",
-  uploadPDF.single("dokumen"),
+  uploadDokumen,
   entryDataIrsController
 );
 router.post(
   "/mahasiswa/entry-khs",
-  uploadPDF.single("dokumen"),
+  uploadDokumen,
   entryDataKhsController
 );
 router.post(
   "/mahasiswa/entry-pkl",
-  uploadPDF.single("dokumen"),
+  uploadDokumen,
   entryDataPklController
 );
 router.post(
   "/mahasiswa/entry-skripsi",
-  uploadPDF.single("dokumen"),
+  uploadDokumen,
   entryDataSkripsiController
 );
 

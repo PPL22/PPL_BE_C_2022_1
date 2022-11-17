@@ -156,7 +156,9 @@ const entryDataIrsController = async (req, res) => {
 
   // check null input
   if (!nim || !semester || !status || !jumlahSks || !dokumen) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    }
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
