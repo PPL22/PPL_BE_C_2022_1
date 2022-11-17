@@ -246,13 +246,14 @@ const getCountStatusDataAkademikMhs = async (data) => {
         return res;
       }, {});
 
+      // No entry calculated from how many required data - how many IRS available
+      if (!result.irs.validated) result.irs.validate = 0;
+      if (!result.irs.notValidated) result.irs.notValidated = 0;
+      result.irs.noEntry = countRequiredData - countIRS;
+      
       if (data.dokumen === "IRS") return result
     }
     
-    // No entry calculated from how many required data - how many IRS available
-    if (!result.irs.validated) result.irs.validate = 0;
-    if (!result.irs.notValidated) result.irs.notValidated = 0;
-    result.irs.noEntry = countRequiredData - countIRS;
     
     // ============== KHS ==============
     if (data.dokumen === "KHS" || data.dokumen === "ALL") {
