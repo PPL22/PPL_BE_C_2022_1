@@ -316,6 +316,7 @@ const entryDataPkl = async (data) => {
       where: {
         nim_semester: {
           nim: data.nim,
+          semester: data.semester
         }
       }
     })
@@ -377,7 +378,8 @@ const entryDataSkripsi = async (data) => {
     const findSkripsi = await prisma.tb_skripsi.findUnique({
       where: {
         nim_semester: {
-          nim: data.nim
+          nim: data.nim,
+          semester: data.semester
         }
       }
     })
