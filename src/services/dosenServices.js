@@ -93,7 +93,7 @@ const getStatusValidasiIRS = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      irs: filledIrs
+      list: filledIrs
     };
 
   } catch (err) {
@@ -187,7 +187,7 @@ const getStatusValidasiKHS = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      khs: filledKhs
+      list: filledKhs
     };
   } catch (err) {
     throw new Error(err);
@@ -280,7 +280,7 @@ const getStatusValidasiPKL = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      pkl: filledPkl
+      list: filledPkl
     };
   } catch (err) {
     throw new Error(err);
@@ -373,7 +373,7 @@ const getStatusValidasiSkripsi = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      skripsi: filledSkripsi
+      list: filledSkripsi
     };
   } catch (err) {
     throw new Error(err);

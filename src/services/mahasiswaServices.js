@@ -155,7 +155,7 @@ const entryDataIrs = async (data) => {
     }
 
     // Check if semester is valid
-    // let valid = false
+    // TODO: Validate semester masih error
     if (validateSemester(data.nim, data.semester)) {
       let lastIrs = await prisma.tb_irs.aggregate({
         where: {
@@ -165,7 +165,6 @@ const entryDataIrs = async (data) => {
           semester: true,
         },
       });
-
       if (lastIrs._max.semester == null) {
         if (data.semester != 1) {
           fs.unlink(`public/documents/irs/${fileName}`, (err) => {
