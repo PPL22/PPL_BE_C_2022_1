@@ -166,13 +166,15 @@ const entryDataIrs = async (data) => {
         },
       });
 
-      if (parseInt(data.semester) != parseInt(lastIrs._max.semester) + 1) {
+      if (lastIrs._max.semester == null && data.semester != 1) {
         fs.unlink(`public/documents/irs/${fileName}`, (err) => {
           if (err) throw err;
         });
-        if (lastIrs._max.semester == null) {
-          throw new Error(`IRS harus diisi urut mulai dari semester 1`);
-        }
+        throw new Error(`IRS harus diisi urut mulai dari semester 1`);
+      } else if (parseInt(data.semester) != parseInt(lastIrs._max.semester) + 1) {
+        fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+          if (err) throw err;
+        });
         throw new Error(
           `IRS harus diisi urut semester (IRS terakhir yang diisi: semester ${lastIrs._max.semester})`
         );
@@ -238,16 +240,18 @@ const entryDataKhs = async (data) => {
         }
       })
 
-      if (lastKhs._max.semester != null) {
-        if (parseInt(data.semester) != parseInt(lastKhs._max.semester) + 1) {
-          fs.unlink(`public/documents/khs/${fileName}`, (err) => { if (err) throw err })
-          throw new Error(`KHS harus diisi urut semester (KHS terakhir yang diisi: semester ${lastKhs._max.semester})`)
-        }
-      } else {
-        if (parseInt(data.semester) != 1) {
-          fs.unlink(`public/documents/khs/${fileName}`, (err) => { if (err) throw err })
-          throw new Error(`KHS harus diisi urut semester`)
-        }
+      if (lastKhs._max.semester == null && data.semester != 1) {
+        fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        throw new Error(`KHS harus diisi urut mulai dari semester 1`);
+      } else if (parseInt(data.semester) != parseInt(lastKhs._max.semester) + 1) {
+        fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        throw new Error(
+          `KHS harus diisi urut semester (KHS terakhir yang diisi: semester ${lastKhs._max.semester})`
+        );
       }
     } else {
       fs.unlink(`public/documents/khs/${fileName}`, (err) => {
