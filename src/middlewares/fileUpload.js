@@ -28,7 +28,7 @@ const uploadDokumen = (req, res, next) => {
   const upload = uploadPDF.single("dokumen");
   upload(req, res, function(err) {
     if (err) {
-      res.status(400).json({message: err.message})
+      return res.status(400).json({message: err.message})
     }
     next()
   })
@@ -61,7 +61,7 @@ const uploadExcelMhs = (req, res, next) => {
   const upload = uploadExcel.single("dokumen");
   upload(req, res, function(err) {
     if (err) {
-      res.status(400).json({message: err.message})
+      return res.status(400).json({message: err.message})
     }
     next()
   })
@@ -77,7 +77,7 @@ const uploadFotoProfil = (req, res, next) => {
   const upload = uploadImage.single("foto");
   upload(req, res, function(err) {
     if (err) {
-      res.status(400).json({message: err.message})
+      return res.status(400).json({message: err.message})
     }
     next()
   })
