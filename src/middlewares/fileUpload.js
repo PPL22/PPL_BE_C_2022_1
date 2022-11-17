@@ -24,10 +24,13 @@ const uploadPDF = multer({
   },
 });
 
-const uploadDokumen = (req, res) => {
+const uploadDokumen = (req, res, next) => {
   const upload = uploadPDF.single("dokumen");
   upload(req, res, function(err) {
-    res.status(400).json({message: err.message})
+    if (err) {
+      res.status(400).json({message: err.message})
+    }
+    next()
   })
 }
 
@@ -54,10 +57,13 @@ const uploadExcel = multer({
   },
 });
 
-const uploadExcelMhs = (req, res) => {
+const uploadExcelMhs = (req, res, next) => {
   const upload = uploadExcel.single("dokumen");
   upload(req, res, function(err) {
-    res.status(400).json({message: err.message})
+    if (err) {
+      res.status(400).json({message: err.message})
+    }
+    next()
   })
 }
 
@@ -67,10 +73,13 @@ const uploadImage = multer({
   },
 });
 
-const uploadFotoProfil = (req, res) => {
+const uploadFotoProfil = (req, res, next) => {
   const upload = uploadImage.single("foto");
   upload(req, res, function(err) {
-    res.status(400).json({message: err.message})
+    if (err) {
+      res.status(400).json({message: err.message})
+    }
+    next()
   })
 }
 

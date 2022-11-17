@@ -243,7 +243,9 @@ const entryDataKhsController = async (req, res) => {
     !ipk ||
     !dokumen
     ) {
-      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+      if (dokumen) {
+        fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+      }
       return res.status(400).json({
         message: "Data tidak boleh kosong",
       });
@@ -322,7 +324,9 @@ const entryDataPklController = async (req, res) => {
 
   // check null input
   if (!nim || !semester || !nilai || !dokumen) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    }
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -384,6 +388,9 @@ const entryDataSkripsiController = async (req, res) => {
     !lamaStudi ||
     !dokumen
   ) {
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => { if (err) throw err })
+    }
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
