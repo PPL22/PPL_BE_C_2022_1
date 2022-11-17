@@ -68,9 +68,9 @@ const daftarStatusMahasiswa = async (data) => {
         }
       : {};
 
-    let sortFilter = {};
-
+      
     // Sort by mahasiswa data
+    let sortFilter = {};
     const orderMhs = ["nama", "nim", "angkatan"]
     const orderKhs = ["ipk", "jumlahSksKumulatif"]
     if (!data.sortBy) {
@@ -223,10 +223,12 @@ const daftarPklMahasiswa = async (data) => {
           kodeWali: data.nip,
         }
       : {};
+
       
     // Sort by mahasiswa data
+    let sortFilter = {};
     const orderMhs = ["nama", "nim", "angkatan"]
-    const orderKhs = ["ipk", "jumlahSksKumulatif"]
+    const orderPkl = ["nilai"]
     if (!data.sortBy) {
       sortFilter = [
         {
@@ -238,7 +240,7 @@ const daftarPklMahasiswa = async (data) => {
       ]  
     } else if (orderMhs.includes(data.sortBy)) {
       sortFilter[data.sortBy] = data.order
-    } else if (!orderKhs.includes(data.sortBy)) {
+    } else if (!orderPkl.includes(data.sortBy)) {
       throw new Error ("Bad Request: Sort params not valid")
     }
 
@@ -269,16 +271,9 @@ const daftarPklMahasiswa = async (data) => {
           },
         },
       },
-      orderBy: [
-        {
-          angkatan: "asc",
-        },
-        {
-          nim: "asc",
-        },
-      ],
       take: data.qty,
-      skip: (data.page-1) * data.qty
+      skip: (data.page-1) * data.qty,
+      orderBy: sortFilter,
     });
 
     // change status pkl
@@ -294,12 +289,16 @@ const daftarPklMahasiswa = async (data) => {
       delete item.fk_nim_pkl;
     });
 
-    // sort result by statusValidasi
-    result.sort((a, b) => {
-      if (a.nilai === "-") return 1;
-      if (b.nilai === "-") return -1;
-      return 0;
-    });
+    // Sort by pkl data (nilaiPkl)
+    if (orderPkl.includes(data.sortBy)) {
+      result.sort((a, b) => {
+        if (data.order === "asc") {
+          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy])
+        } else {
+          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy])
+        }
+      });
+    }
 
     return {
       currentPage: data.page,
@@ -375,6 +374,26 @@ const daftarSkripsiMahasiswa = async (data) => {
         }
       : {};
 
+      
+    // Sort by mahasiswa data
+    let sortFilter = {};
+      const orderMhs = ["nama", "nim", "angkatan"]
+      const orderSkripsi = ["nilai", "tanggalLulusSidang", "lamaStudi"]
+      if (!data.sortBy) {
+        sortFilter = [
+          {
+            angkatan: "asc",
+          },
+          {
+            nim: "asc",
+          },
+        ]  
+      } else if (orderMhs.includes(data.sortBy)) {
+        sortFilter[data.sortBy] = data.order
+      } else if (!orderSkripsi.includes(data.sortBy)) {
+        throw new Error ("Bad Request: Sort params not valid")
+      }
+    
     // Get total amount of data
     let maxPage = await prisma.tb_mhs.count({
       where: {
@@ -404,16 +423,9 @@ const daftarSkripsiMahasiswa = async (data) => {
           },
         },
       },
-      orderBy: [
-        {
-          angkatan: "asc",
-        },
-        {
-          nim: "asc",
-        },
-      ],
       take: data.qty,
-      skip: (data.page-1) * data.qty
+      skip: (data.page-1) * data.qty,
+      orderBy: sortFilter,
     });
 
     // change status skripsi
@@ -436,11 +448,17 @@ const daftarSkripsiMahasiswa = async (data) => {
       delete item.fk_nim_skripsi;
     });
 
-    result.sort((a, b) => {
-      if (a.nilai === "-") return 1;
-      if (b.nilai === "-") return -1;
-      return 0;
-    });
+    // Sort by khs data (ipk or sksk)
+    if (orderSkripsi.includes(data.sortBy)) {
+      result.sort((a, b) => {
+        if (data.order === "asc") {
+          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy])
+        } else {
+          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy])
+        }
+      });
+    }
+
     return {
       currentPage: data.page,
       maxPage: maxPage,
