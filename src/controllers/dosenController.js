@@ -27,7 +27,7 @@ const validateSemester = require("../utils/validateSemester");
 // Dashboard
 const getDashboardDosenController = async (req, res) => {
   const nip = req.id;
-  const { angkatan } = req.query
+  const { angkatan, dokumen } = req.query
 
   // !! Udah ada checking di JWT (?)
   // if (!nip) {
@@ -35,6 +35,8 @@ const getDashboardDosenController = async (req, res) => {
   //     message: "ID kosong",
   //   });
   // }
+
+  if (!["ALL", "IRS", "KHS", "PKL", "SKRIPSI"].includes(dokumen)) return res.status(400).json("Dokumen param not valid")
 
   try {
     const data = { nip, angkatan };
