@@ -166,13 +166,17 @@ const entryDataIrs = async (data) => {
         },
       });
 
-      if (parseInt(data.semester) != parseInt(lastIrs._max.semester) + 1) {
+      if (lastIrs._max.semester == null) {
+        if (data.semester != 1) {
+          fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+            if (err) throw err;
+          });
+          throw new Error(`IRS harus diisi urut mulai dari semester 1`);
+        }
+      } else if (parseInt(data.semester) != parseInt(lastIrs._max.semester) + 1) {
         fs.unlink(`public/documents/irs/${fileName}`, (err) => {
           if (err) throw err;
         });
-        if (lastIrs._max.semester == null) {
-          throw new Error(`IRS harus diisi urut mulai dari semester 1`);
-        }
         throw new Error(
           `IRS harus diisi urut semester (IRS terakhir yang diisi: semester ${lastIrs._max.semester})`
         );
@@ -209,6 +213,24 @@ const entryDataKhs = async (data) => {
       `public/documents/khs/${fileName}`
     );
 
+    // Check IRS
+    const irsExist = await prisma.tb_irs.findUnique({
+      where: {
+        nim_semester: {
+          nim: data.nim,
+          semester: data.semester
+        }
+      }
+    })
+
+    if (!irsExist) {
+      fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`IRS semester ${data.semester} harus diisi terlebih dahulu`);
+    }
+
+    // Check if KHS already exists
     const exist = await prisma.tb_khs.findUnique({
       where: {
         nim_semester: {
@@ -238,16 +260,20 @@ const entryDataKhs = async (data) => {
         }
       })
 
-      if (lastKhs._max.semester != null) {
-        if (parseInt(data.semester) != parseInt(lastKhs._max.semester) + 1) {
-          fs.unlink(`public/documents/khs/${fileName}`, (err) => { if (err) throw err })
-          throw new Error(`KHS harus diisi urut semester (KHS terakhir yang diisi: semester ${lastKhs._max.semester})`)
+      if (lastKhs._max.semester == null) {
+        if (data.semester != 1) {
+          fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+            if (err) throw err;
+          });
+          throw new Error(`KHS harus diisi urut mulai dari semester 1`);
         }
-      } else {
-        if (parseInt(data.semester) != 1) {
-          fs.unlink(`public/documents/khs/${fileName}`, (err) => { if (err) throw err })
-          throw new Error(`KHS harus diisi urut semester`)
-        }
+      } else if (parseInt(data.semester) != parseInt(lastKhs._max.semester) + 1) {
+        fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+        throw new Error(
+          `KHS harus diisi urut semester (KHS terakhir yang diisi: semester ${lastKhs._max.semester})`
+        );
       }
     } else {
       fs.unlink(`public/documents/khs/${fileName}`, (err) => {
@@ -290,6 +316,7 @@ const entryDataPkl = async (data) => {
       where: {
         nim_semester: {
           nim: data.nim,
+          semester: data.semester
         }
       }
     })
@@ -351,7 +378,8 @@ const entryDataSkripsi = async (data) => {
     const findSkripsi = await prisma.tb_skripsi.findUnique({
       where: {
         nim_semester: {
-          nim: data.nim
+          nim: data.nim,
+          semester: data.semester
         }
       }
     })

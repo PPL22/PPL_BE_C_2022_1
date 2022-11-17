@@ -14,13 +14,25 @@ const uploadPDF = multer({
     fileSize: 4 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
-    if (path.extname(file.originalname) == ".pdf") {
+    if (!file) {
+      return cb(new Error("Tidak ada dokumen yang terkirim"), false)
+    } else if (path.extname(file.originalname) == ".pdf") {
       return cb(null, true);
     } else {
-      return cb("Format dokumen harus PDF");
+      return cb(new Error("Format dokumen harus PDF"), false);
     }
   },
 });
+
+const uploadDokumen = (req, res, next) => {
+  const upload = uploadPDF.single("dokumen");
+  upload(req, res, function(err) {
+    if (err) {
+      return res.status(400).json({message: err.message})
+    }
+    next()
+  })
+}
 
 const uploadExcel = multer({
   storage: multer.diskStorage({
@@ -35,13 +47,25 @@ const uploadExcel = multer({
     fileSize: 4 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
-    if (path.extname(file.originalname) == ".csv" || path.extname(file.originalname) == ".xlsx") {
+    if (!file) {
+      return cb(new Error("Tidak ada dokumen yang terkirim"), false)
+    } else if (path.extname(file.originalname) == ".csv" || path.extname(file.originalname) == ".xlsx") {
       return cb(null, true);
     } else {
-      return cb("Format dokumen harus CSV / XLSX");
+      return cb(new Error("Format dokumen harus CSV / XLSX"), false);
     }
   },
 });
+
+const uploadExcelMhs = (req, res, next) => {
+  const upload = uploadExcel.single("dokumen");
+  upload(req, res, function(err) {
+    if (err) {
+      return res.status(400).json({message: err.message})
+    }
+    next()
+  })
+}
 
 const uploadImage = multer({
   limits: {
@@ -49,4 +73,14 @@ const uploadImage = multer({
   },
 });
 
-module.exports = { uploadImage, uploadPDF, uploadExcel };
+const uploadFotoProfil = (req, res, next) => {
+  const upload = uploadImage.single("foto");
+  upload(req, res, function(err) {
+    if (err) {
+      return res.status(400).json({message: err.message})
+    }
+    next()
+  })
+}
+
+module.exports = { uploadImage, uploadPDF, uploadExcel, uploadDokumen, uploadExcelMhs, uploadFotoProfil };

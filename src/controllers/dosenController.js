@@ -27,6 +27,7 @@ const validateSemester = require("../utils/validateSemester");
 // Dashboard
 const getDashboardDosenController = async (req, res) => {
   const nip = req.id;
+  const { angkatan } = req.query
 
   // !! Udah ada checking di JWT (?)
   // if (!nip) {
@@ -36,7 +37,7 @@ const getDashboardDosenController = async (req, res) => {
   // }
 
   try {
-    const data = { nip };
+    const data = { nip, angkatan };
     const result = await getCountStatusDataAkademikMhs(data);
 
     return res.status(200).json({
@@ -393,13 +394,14 @@ const rekapMahasiswaDosenController = async (req, res) => {
 const daftarMahasiswaDosenController = async (req, res) => {
   const nip = req.id;
   const path = req.path;
-  let {page, qty} = req.query;
+  let {page, qty, sortBy, order} = req.query;
   
   if (!page) page = 1;
   if (!qty) qty = 10;
+  if (!order) order = "asc" 
   
   // Check params
-  if (isNaN(page) || isNaN(qty)) return res.status(400).json({message: "Bad request. Params not valid"})
+  if (isNaN(page) || isNaN(qty) || !["asc", "desc"].includes(order)) return res.status(400).json({message: "Bad request. Params not valid"})
   page = parseInt(page);
   qty = parseInt(qty)
 
@@ -412,7 +414,7 @@ const daftarMahasiswaDosenController = async (req, res) => {
   // }
 
   try {
-    const data = {nip, page, qty}
+    const data = {nip, page, qty, sortBy, order}
     let result;
     if (path === `/dosen/daftar-pkl`) {
       result = await daftarPklMahasiswa(data);

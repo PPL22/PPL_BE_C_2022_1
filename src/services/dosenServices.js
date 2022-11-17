@@ -38,7 +38,7 @@ const getStatusValidasiIRS = async (data) => {
     maxPage = Math.ceil(maxPage / data.qty)
 
     // Revalidate current page
-    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+    if (maxPage != 0 && (data.page < 1 || data.page > maxPage)) throw new Error("Bad request. Page param not valid")
 
     // Create query
     const query = {
@@ -133,7 +133,7 @@ const getStatusValidasiKHS = async (data) => {
     maxPage = Math.ceil(maxPage / data.qty)
 
     // Revalidate current page
-    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+    if (maxPage != 0 && (data.page < 1 || data.page > maxPage)) throw new Error("Bad request. Page param not valid")
 
     // Create query
     const query = {
@@ -226,7 +226,7 @@ const getStatusValidasiPKL = async (data) => {
     maxPage = Math.ceil(maxPage / data.qty)
 
     // Revalidate current page
-    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+    if (maxPage != 0 && (data.page < 1 || data.page > maxPage)) throw new Error("Bad request. Page param not valid")
 
     // Create query
     const query = {
@@ -319,7 +319,7 @@ const getStatusValidasiSkripsi = async (data) => {
     maxPage = Math.ceil(maxPage / data.qty)
 
     // Revalidate current page
-    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+    if (maxPage != 0 && (data.page < 1 || data.page > maxPage)) throw new Error("Bad request. Page param not valid")
 
     // Create query
     const query = {
@@ -416,7 +416,6 @@ const validasiDataIrs = async (data) => {
         }
       })
 
-      console.log(checkSemester)
       if (checkSemester) throw new Error("Semester sudah terisi")
     }
 
