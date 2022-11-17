@@ -166,11 +166,13 @@ const entryDataIrs = async (data) => {
         },
       });
 
-      if (lastIrs._max.semester == null && data.semester != 1) {
-        fs.unlink(`public/documents/irs/${fileName}`, (err) => {
-          if (err) throw err;
-        });
-        throw new Error(`IRS harus diisi urut mulai dari semester 1`);
+      if (lastIrs._max.semester == null) {
+        if (data.semester != 1) {
+          fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+            if (err) throw err;
+          });
+          throw new Error(`IRS harus diisi urut mulai dari semester 1`);
+        }
       } else if (parseInt(data.semester) != parseInt(lastIrs._max.semester) + 1) {
         fs.unlink(`public/documents/irs/${fileName}`, (err) => {
           if (err) throw err;
@@ -211,6 +213,24 @@ const entryDataKhs = async (data) => {
       `public/documents/khs/${fileName}`
     );
 
+    // Check IRS
+    const irsExist = await prisma.tb_irs.findUnique({
+      where: {
+        nim_semester: {
+          nim: data.nim,
+          semester: data.semester
+        }
+      }
+    })
+
+    if (!irsExist) {
+      fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+        if (err) throw err;
+      });
+      throw new Error(`IRS semester ${data.semester} harus diisi terlebih dahulu`);
+    }
+
+    // Check if KHS already exists
     const exist = await prisma.tb_khs.findUnique({
       where: {
         nim_semester: {
@@ -240,11 +260,13 @@ const entryDataKhs = async (data) => {
         }
       })
 
-      if (lastKhs._max.semester == null && data.semester != 1) {
-        fs.unlink(`public/documents/khs/${fileName}`, (err) => {
-          if (err) throw err;
-        });
-        throw new Error(`KHS harus diisi urut mulai dari semester 1`);
+      if (lastKhs._max.semester == null) {
+        if (data.semester != 1) {
+          fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+            if (err) throw err;
+          });
+          throw new Error(`KHS harus diisi urut mulai dari semester 1`);
+        }
       } else if (parseInt(data.semester) != parseInt(lastKhs._max.semester) + 1) {
         fs.unlink(`public/documents/khs/${fileName}`, (err) => {
           if (err) throw err;
