@@ -150,7 +150,6 @@ const daftarStatusMahasiswa = async (data) => {
       });
     }
 
-
     return {
       currentPage: data.page,
       maxPage: maxPage,
@@ -224,7 +223,25 @@ const daftarPklMahasiswa = async (data) => {
           kodeWali: data.nip,
         }
       : {};
-    
+      
+    // Sort by mahasiswa data
+    const orderMhs = ["nama", "nim", "angkatan"]
+    const orderKhs = ["ipk", "jumlahSksKumulatif"]
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          angkatan: "asc",
+        },
+        {
+          nim: "asc",
+        },
+      ]  
+    } else if (orderMhs.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order
+    } else if (!orderKhs.includes(data.sortBy)) {
+      throw new Error ("Bad Request: Sort params not valid")
+    }
+
     // Get total amount of data
     let maxPage = await prisma.tb_mhs.count({
       where: {

@@ -9,10 +9,12 @@ const {
 } = require("../services/rekapServices");
 
 const getDashboardDepartemenController = async (req, res) => {
-  const { angkatan } = req.query
+  const { angkatan, dokumen } = req.query
   
+  if (!["ALL", "IRS", "KHS", "PKL", "SKRIPSI"].includes(dokumen)) return res.status(400).json("Dokumen param not valid")
+
   try {
-    const data = {angkatan}
+    const data = {angkatan, dokumen}
     const result = await getCountStatusDataAkademikMhs(data)
     
     return res.status(200).json({
