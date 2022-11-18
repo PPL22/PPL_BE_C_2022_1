@@ -228,7 +228,7 @@ const daftarPklMahasiswa = async (data) => {
     // Sort by mahasiswa data
     let sortFilter = {};
     const orderMhs = ["nama", "nim", "angkatan"]
-    const orderPkl = ["nilai"]
+    const orderPkl = ["semester", "nilai"]
     if (!data.sortBy) {
       sortFilter = [
         {
