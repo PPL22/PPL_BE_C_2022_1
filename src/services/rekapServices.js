@@ -377,22 +377,22 @@ const daftarSkripsiMahasiswa = async (data) => {
       
     // Sort by mahasiswa data
     let sortFilter = {};
-      const orderMhs = ["nama", "nim", "angkatan"]
-      const orderSkripsi = ["nilai", "tanggalLulusSidang", "lamaStudi"]
-      if (!data.sortBy) {
-        sortFilter = [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ]  
-      } else if (orderMhs.includes(data.sortBy)) {
-        sortFilter[data.sortBy] = data.order
-      } else if (!orderSkripsi.includes(data.sortBy)) {
-        throw new Error ("Bad Request: Sort params not valid")
-      }
+    const orderMhs = ["nama", "nim", "angkatan"]
+    const orderSkripsi = ["nilai", "tanggalLulusSidang", "lamaStudi"]
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          angkatan: "asc",
+        },
+        {
+          nim: "asc",
+        },
+      ]  
+    } else if (orderMhs.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order
+    } else if (!orderSkripsi.includes(data.sortBy)) {
+      throw new Error ("Bad Request: Sort params not valid")
+    }
     
     // Get total amount of data
     let maxPage = await prisma.tb_mhs.count({

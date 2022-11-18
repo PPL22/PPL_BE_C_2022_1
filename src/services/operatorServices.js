@@ -46,6 +46,29 @@ async function getAkunMahasiswa(data) {
     // Revalidate current page
     if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
 
+    // Create sorting argument for query
+    let sortFilter = {};
+    const orderMhs = ["nama", "nim", "angkatan", "jalurMasuk", "statusAktif"]
+
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          angkatan: "asc",
+        },
+        {
+          nim: "asc",
+        },
+      ]  
+    } else if (orderMhs.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order
+    } else if (data.sortBy === "doswal") {
+      sortFilter.fk_kodeWali = {
+        "nip": data.order
+      }
+    } else {
+      throw new Error ("Bad Request: Sort params not valid")
+    }
+
     const result = await prisma.tb_mhs.findMany({
       select: {
         nim: true,
@@ -56,9 +79,7 @@ async function getAkunMahasiswa(data) {
         fk_kodeWali: true,
         fk_pemilik_akun_mhs: true,
       },
-      orderBy: {
-        angkatan: "desc",
-      },
+      orderBy: sortFilter,
       take: data.qty,
       skip: (data.page-1) * data.qty
     });
