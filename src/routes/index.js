@@ -1,5 +1,12 @@
 const express = require("express");
-const { uploadImage, uploadPDF, uploadExcel, uploadDokumen, uploadExcelMhs, uploadFotoProfil } = require("../middlewares/fileUpload");
+const {
+  uploadImage,
+  uploadPDF,
+  uploadExcel,
+  uploadDokumen,
+  uploadExcelMhs,
+  uploadFotoProfil,
+} = require("../middlewares/fileUpload");
 const multer = require("multer");
 
 const { loginController } = require("../controllers/loginController");
@@ -11,6 +18,9 @@ const {
   batchAddMahasiswaController,
   getJumlahAkunMahasiswaController,
   cetakDaftarAkunMahasiswaController,
+  getDataAkunDosenController,
+  getAkunDosenController,
+  addDosenController,
 } = require("../controllers/operatorController");
 
 const {
@@ -35,6 +45,8 @@ const {
   getDataAkademikMhsDosenController,
   getStatusValidasiController,
   getDashboardDosenController,
+  getDataRegisterDosenController,
+  updateDataDosenController,
   cetakDaftarMhsDosenController,
 } = require("../controllers/dosenController");
 
@@ -56,17 +68,24 @@ const router = express.Router();
 
 // Login
 router.post("/login", loginController);
+router.get("/kota", getKotaController);
 
 router.use(verifyToken);
 
 //=======================================================
 // Operator
-router.get("/operator/data-dosen", getDataDosenController);
+router.get("/operator/daftar-dosen", getDataDosenController);
 router.get("/operator/jumlah-akun-mahasiswa", getJumlahAkunMahasiswaController);
+router.get("/operator/data-dosen", getDataAkunDosenController);
+
 router.get("/operator/akun-mahasiswa", getAkunMahasiswaController);
+router.get("/operator/akun-dosen", getAkunDosenController);
+
 router.get("/operator/profile", getProfileDosenController);
 
 router.post("/operator/add-mahasiswa", addMahasiswaController);
+router.post("/operator/add-dosen", addDosenController);
+
 router.post(
   "/operator/batch-add-mahasiswa",
   uploadExcelMhs,
@@ -79,7 +98,6 @@ router.get("/operator/akun-mahasiswa/cetak", cetakDaftarAkunMahasiswaController)
 // Mahasiswa Controller
 router.get("/mahasiswa/register", getDataRegisterMahasiswaController);
 router.get("/mahasiswa/profile", getProfileMahasiswaController);
-router.get("/mahasiswa/kota", getKotaController);
 
 // Dashboard
 router.get("/mahasiswa/dashboard", getDashboardMahasiswaController);
@@ -90,23 +108,10 @@ router.post(
   updateDataMahasiswaController
 );
 
-
 // Entry data
-router.post(
-  "/mahasiswa/entry-irs",
-  uploadDokumen,
-  entryDataIrsController
-);
-router.post(
-  "/mahasiswa/entry-khs",
-  uploadDokumen,
-  entryDataKhsController
-);
-router.post(
-  "/mahasiswa/entry-pkl",
-  uploadDokumen,
-  entryDataPklController
-);
+router.post("/mahasiswa/entry-irs", uploadDokumen, entryDataIrsController);
+router.post("/mahasiswa/entry-khs", uploadDokumen, entryDataKhsController);
+router.post("/mahasiswa/entry-pkl", uploadDokumen, entryDataPklController);
 router.post(
   "/mahasiswa/entry-skripsi",
   uploadDokumen,
@@ -115,6 +120,9 @@ router.post(
 
 //=======================================================
 // Dosen Controller
+router.get("/dosen/register", getDataRegisterDosenController);
+router.post("/dosen/update-data", uploadFotoProfil, updateDataDosenController);
+
 // Dashboard and profile
 // TODO: refactor profile route, controller, and service
 router.get("/dosen/dashboard", getDashboardDosenController);
@@ -163,9 +171,15 @@ router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
 
-router.get("/departemen/daftar-status/cetak", cetakDaftarMhsDepartemenController);
+router.get(
+  "/departemen/daftar-status/cetak",
+  cetakDaftarMhsDepartemenController
+);
 router.get("/departemen/daftar-pkl/cetak", cetakDaftarMhsDepartemenController);
-router.get("/departemen/daftar-skripsi/cetak", cetakDaftarMhsDepartemenController);
+router.get(
+  "/departemen/daftar-skripsi/cetak",
+  cetakDaftarMhsDepartemenController
+);
 
 // Search mahasiswa
 router.get("/departemen/search-mhs/", searchMahasiswaDepartemenController);

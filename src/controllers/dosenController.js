@@ -5,6 +5,7 @@ const {
   getCountStatusDataAkademikMhs,
 } = require("../services/dataMahasiswaServices");
 const {
+  getDataRegisterDosen,
   validasiDataIrs,
   validasiDataKhs,
   validasiDataPkl,
@@ -13,6 +14,7 @@ const {
   getStatusValidasiKHS,
   getStatusValidasiPKL,
   getStatusValidasiSkripsi,
+  updateDataDosen,
 } = require("../services/dosenServices");
 
 const {
@@ -27,6 +29,129 @@ const {
   cetakDaftarSkripsiMahasiswa,
 } = require("../services/rekapServices");
 const validateSemester = require("../utils/validateSemester");
+const path = require("path");
+
+// Register
+const getDataRegisterDosenController = async (req, res) => {
+  const nip = req.id;
+  try {
+    const result = await getDataRegisterDosen({ nip });
+    res.status(200).json({
+      status: "success",
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+const updateDataDosenController = async (req, res) => {
+  const { nip, oldUsername, username, email, password, alamat, kodeKab, noHP } =
+    req.body;
+  const foto = req.file;
+
+  // check null input
+  if (
+    !nip ||
+    !username ||
+    !oldUsername ||
+    !email ||
+    !password ||
+    !alamat ||
+    !kodeKab ||
+    !noHP
+  ) {
+    return res.status(400).json({
+      message: "Data tidak boleh kosong",
+    });
+  }
+
+  // Check nim
+  if (nip != req.id) {
+    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+      if (err) throw err;
+    });
+    return res.status(403).json({
+      message: "NIP berbeda dari data login. Entry tidak dapat dilakukan",
+    });
+  }
+
+  // regex username hanya boleh huruf kecil, angka, dan underscore
+  const regexUsername = /^[a-z0-9_]+$/;
+  //check username (check duplicate sudah ada di service)
+  if (!regexUsername.test(username)) {
+    return res.status(400).json({
+      message:
+        "Username hanya boleh terdiri dari huruf kecil, angka, dan underscore",
+    });
+  }
+
+  // regex email harus include students.undip.ac.id atau lecturers.undip.ac.id
+  const regexEmail = /lecturer.undip.ac.id$/;
+  //check email
+  if (!regexEmail.test(email)) {
+    return res.status(400).json({
+      message: "Email harus menggunakan email Undip",
+    });
+  }
+
+  // TODO-VALIDATE: check password
+
+  // Check nomor HP (format nomor HP Indonesia)
+  const regexNoHP = /^(628)\d{8,13}$/;
+  if (!regexNoHP.test(noHP)) {
+    if (noHP.length < 10 || noHP.length > 13) {
+      return res.status(400).json({
+        message: "Nomor HP tidak valid, minimal 9 digit dan maksimal 13 digit",
+      });
+    }
+    return res.status(400).json({
+      message: "Nomor HP tidak valid. Gunakan format (62)",
+    });
+  }
+
+  // Check format foto
+  if (foto) {
+    if (
+      path.extname(foto.originalname) !== ".png" &&
+      path.extname(foto.originalname) !== ".jpg" &&
+      path.extname(foto.originalname) !== ".jpeg"
+    ) {
+      return res.status(400).json({
+        message: "Format foto harus png,jpg,jpeg",
+      });
+    }
+  }
+
+  try {
+    const data = {
+      nip,
+      username,
+      oldUsername,
+      email,
+      password,
+      alamat,
+      kodeKab,
+      noHP,
+    };
+
+    if (foto) {
+      data.foto = foto;
+    }
+
+    const result = await updateDataDosen(data);
+    return res.status(200).json({
+      message: "Data berhasil diubah",
+      data: result,
+    });
+  } catch (err) {
+    console.log(err.message);
+    return res.status(400).json({ message: err.message });
+  }
+};
 
 // Dashboard
 const getDashboardDosenController = async (req, res) => {
@@ -523,24 +648,27 @@ const cetakDaftarMhsDosenController = async (req, res) => {
 
     return res.download(result, (err) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         // res.status(400).json({
         //   message: err.message
         // })
       }
-      fs.unlinkSync(result)
+      fs.unlinkSync(result);
       // return res.status(200).json({
       //   message: "File berhasil di download"
       // })
-    })
+    });
   } catch (err) {
     return res.status(400).json({
       message: err.message,
     });
   }
-}
+};
 
 module.exports = {
+  getDataRegisterDosenController,
+  updateDataDosenController,
+
   getDashboardDosenController,
   getStatusValidasiController,
 

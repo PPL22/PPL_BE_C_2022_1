@@ -191,24 +191,27 @@ const getDataAkademikMhs = async (data) => {
 const getCountStatusDataAkademikMhs = async (data) => {
   try {
     // TODO: Get status by angkatan
-    const filterWali = (data.nip ? { kodeWali: data.nip } : {})
-    const filterAngkatan = (data.angkatan ? { angkatan: parseInt(data.angkatan) } : {})
+    const filterWali = data.nip ? { kodeWali: data.nip } : {};
+    const filterAngkatan = data.angkatan
+      ? { angkatan: parseInt(data.angkatan) }
+      : {};
 
     // Count mahasiswa and amount of irs and khs entry required
-    let countMhs = 0, countRequiredData;
+    let countMhs = 0,
+      countRequiredData;
     if (data.angkatan) {
       countMhs = await prisma.tb_mhs.count({
         where: {
           ...filterWali,
-          ...filterAngkatan
-        }
-      })
-      countRequiredData = countMhs * countSemester(data.angkatan)
+          ...filterAngkatan,
+        },
+      });
+      countRequiredData = countMhs * countSemester(data.angkatan);
     } else {
       const allMhs = await prisma.tb_mhs.groupBy({
         by: ["angkatan"],
         where: {
-          ...filterWali
+          ...filterWali,
         },
         _count: {
           nim: true,
@@ -217,7 +220,7 @@ const getCountStatusDataAkademikMhs = async (data) => {
       // Amount of required data calculated from semester mhs
       countRequiredData = allMhs.reduce((count, mhs) => {
         const { _count, angkatan } = mhs;
-        
+
         countMhs += _count.nim;
         return count + _count.nim * countSemester(angkatan);
       }, 0);
@@ -230,13 +233,13 @@ const getCountStatusDataAkademikMhs = async (data) => {
       const irs = await prisma.tb_irs.groupBy({
         by: ["statusValidasi"],
         where: {
-          fk_nim: {...filterWali, ...filterAngkatan},
+          fk_nim: { ...filterWali, ...filterAngkatan },
         },
         _count: {
           nim: true,
         },
       });
-  
+
       // Count validated and not validated
       let countIRS = 0;
       result.irs = irs.reduce((res, obj) => {
@@ -250,23 +253,22 @@ const getCountStatusDataAkademikMhs = async (data) => {
       if (!result.irs.validated) result.irs.validate = 0;
       if (!result.irs.notValidated) result.irs.notValidated = 0;
       result.irs.noEntry = countRequiredData - countIRS;
-      
-      if (data.dokumen === "IRS") return result
+
+      if (data.dokumen === "IRS") return result;
     }
-    
-    
+
     // ============== KHS ==============
     if (data.dokumen === "KHS" || data.dokumen === "ALL") {
       const khs = await prisma.tb_khs.groupBy({
         by: ["statusValidasi"],
         where: {
-          fk_nim: {...filterWali, ...filterAngkatan},
+          fk_nim: { ...filterWali, ...filterAngkatan },
         },
         _count: {
           nim: true,
         },
       });
-      
+
       // Count validated and not validated
       let countKHS = 0;
       result.khs = khs.reduce((res, obj) => {
@@ -280,23 +282,22 @@ const getCountStatusDataAkademikMhs = async (data) => {
       if (!result.khs.validated) result.khs.validated = 0;
       if (!result.khs.notValidated) result.khs.notValidated = 0;
       result.khs.noEntry = countRequiredData - countKHS;
-      
-      if (data.dokumen === "KHS") return result
+
+      if (data.dokumen === "KHS") return result;
     }
-    
-    
+
     // ============== PKL ==============
     if (data.dokumen === "PKL" || data.dokumen === "ALL") {
       const pkl = await prisma.tb_pkl.groupBy({
         by: ["statusValidasi"],
         where: {
-          fk_nim: {...filterWali, ...filterAngkatan},
+          fk_nim: { ...filterWali, ...filterAngkatan },
         },
         _count: {
           nim: true,
         },
       });
-      
+
       // Only count not validated one
       let countPKL = 0;
       result.pkl = pkl.reduce((res, obj) => {
@@ -307,28 +308,28 @@ const getCountStatusDataAkademikMhs = async (data) => {
         countPKL += _count.nim;
         return res;
       }, {});
-      
+
       // Lulus --> PKL mhs that has been validated
       // Tidak lulus --> PKL mhs that hasn't been validated + no entry
       if (!result.pkl.notValidated) result.pkl.notValidated = 0;
       result.pkl.lulus = countPKL - result.pkl.notValidated;
       result.pkl.blmLulus = countMhs - result.pkl.lulus;
-      
-      if (data.dokumen === "PKL") return result
+
+      if (data.dokumen === "PKL") return result;
     }
-    
+
     // ============== SKRIPSI ==============
     if (data.dokumen === "SKRIPSI" || data.dokumen === "ALL") {
       const skripsi = await prisma.tb_skripsi.groupBy({
         by: ["statusValidasi"],
         where: {
-          fk_nim: {...filterWali, ...filterAngkatan},
+          fk_nim: { ...filterWali, ...filterAngkatan },
         },
         _count: {
           nim: true,
         },
       });
-      
+
       // Only count not validated one
       let countSkripsi = 0;
       result.skripsi = skripsi.reduce((res, obj) => {
@@ -339,14 +340,14 @@ const getCountStatusDataAkademikMhs = async (data) => {
         countSkripsi += _count.nim;
         return res;
       }, {});
-      
+
       // Lulus --> Skripsi mhs that has been validated
       // Tidak lulus --> Skripsi mhs that hasn't been validated + no entry
       if (!result.skripsi.notValidated) result.skripsi.notValidated = 0;
       result.skripsi.lulus = countSkripsi - result.skripsi.notValidated;
       result.skripsi.blmLulus = countMhs - result.skripsi.lulus;
-      
-      if (data.dokumen === "SKRIPSI") return result
+
+      if (data.dokumen === "SKRIPSI") return result;
     }
     return result;
   } catch (err) {
