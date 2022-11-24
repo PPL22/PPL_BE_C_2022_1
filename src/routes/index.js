@@ -34,6 +34,7 @@ const {
   getDataAkademikMhsDosenController,
   getStatusValidasiController,
   getDashboardDosenController,
+  cetakDaftarMhsDosenController,
 } = require("../controllers/dosenController");
 
 const {
@@ -42,6 +43,7 @@ const {
   searchMahasiswaDepartemenController,
   getDashboardDepartemenController,
   getDataAkademikMhsDepartemenController,
+  cetakDaftarMhsDepartemenController,
 } = require("../controllers/departemenController");
 
 const { getKotaController } = require("../controllers/locationController");
@@ -131,9 +133,14 @@ router.put("/dosen/validasi/skripsi", validasiDataSkripsiController);
 router.get("/dosen/rekap/status", rekapMahasiswaDosenController);
 router.get("/dosen/rekap/pkl", rekapMahasiswaDosenController);
 router.get("/dosen/rekap/skripsi", rekapMahasiswaDosenController);
+
 router.get("/dosen/daftar-status", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-pkl", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-skripsi", daftarMahasiswaDosenController);
+
+router.get("/dosen/daftar-status/cetak", cetakDaftarMhsDosenController);
+router.get("/dosen/daftar-pkl/cetak", cetakDaftarMhsDosenController);
+router.get("/dosen/daftar-skripsi/cetak", cetakDaftarMhsDosenController);
 
 // Search mahasiswa
 router.get("/dosen/search-mhs", searchMahasiswaDosenController);
@@ -152,6 +159,10 @@ router.get("/departemen/rekap/skripsi", rekapMahasiswaDepartemenController);
 router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
+
+router.get("/departemen/daftar-status/cetak", cetakDaftarMhsDepartemenController);
+router.get("/departemen/daftar-pkl/cetak", cetakDaftarMhsDepartemenController);
+router.get("/departemen/daftar-skripsi/cetak", cetakDaftarMhsDepartemenController);
 
 // Search mahasiswa
 router.get("/departemen/search-mhs/", searchMahasiswaDepartemenController);

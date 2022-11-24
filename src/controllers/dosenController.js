@@ -1,3 +1,4 @@
+const fs = require("fs");
 const {
   searchMahasiswa,
   getDataAkademikMhs,
@@ -21,6 +22,9 @@ const {
   daftarPklMahasiswa,
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
+  cetakDaftarStatusMahasiswa,
+  cetakDaftarPklMahasiswa,
+  cetakDaftarSkripsiMahasiswa,
 } = require("../services/rekapServices");
 const validateSemester = require("../utils/validateSemester");
 
@@ -498,6 +502,44 @@ const getDataAkademikMhsDosenController = async (req, res) => {
   }
 };
 
+const cetakDaftarMhsDosenController = async (req, res) => {
+  const nip = req.id;
+  const path = req.path;
+
+  try {
+    const data = { nip };
+    let result;
+    if (path === `/dosen/daftar-pkl/cetak`) {
+      result = await cetakDaftarPklMahasiswa(data);
+    } else if (path === `/dosen/daftar-skripsi/cetak`) {
+      result = await cetakDaftarSkripsiMahasiswa(data);
+    } else if (path === `/dosen/daftar-status/cetak`) {
+      result = await cetakDaftarStatusMahasiswa(data);
+    } else {
+      return res.status(404).json({
+        message: "path tidak ditemukan",
+      });
+    }
+
+    return res.download(result, (err) => {
+      if (err) {
+        console.log(err)
+        // res.status(400).json({
+        //   message: err.message
+        // })
+      }
+      fs.unlinkSync(result)
+      // return res.status(200).json({
+      //   message: "File berhasil di download"
+      // })
+    })
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+    });
+  }
+}
+
 module.exports = {
   getDashboardDosenController,
   getStatusValidasiController,
@@ -512,4 +554,6 @@ module.exports = {
 
   searchMahasiswaDosenController,
   getDataAkademikMhsDosenController,
+
+  cetakDaftarMhsDosenController,
 };

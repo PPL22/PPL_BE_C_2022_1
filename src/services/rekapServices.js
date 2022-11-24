@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const e = require("express");
+const xlsx = require("xlsx");
 const prisma = new PrismaClient();
 
 const rekapStatusMahasiswa = async (data) => {
@@ -469,6 +470,215 @@ const daftarSkripsiMahasiswa = async (data) => {
   }
 };
 
+const cetakDaftarStatusMahasiswa = async (data) => {
+  try {
+    const filterWali = data.nip
+      ? {
+          kodeWali: data.nip,
+        }
+      : {};
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        statusAktif: true,
+        fk_nim_khs: {
+          orderBy: {
+            semester: "desc",
+          },
+          take: 1,
+          select: {
+            jumlahSksKumulatif: true,
+            ipk: true,
+          },
+        },
+      }
+    });
+    
+    // Spread fk_nim_khs and group by angkatan
+    const groupByAngkatan = result.reduce((r, item) => {
+      // Spread fk_nim_khs
+      const { fk_nim_khs } = item;
+      const khs = fk_nim_khs;
+      if (khs.length > 0) {
+        const { jumlahSksKumulatif, ipk } = khs[0];
+        item.jumlahSksKumulatif = jumlahSksKumulatif;
+        item.ipk = ipk;
+      } else {
+        item.jumlahSksKumulatif = 0;
+        item.ipk = 0;
+      }
+      delete item.fk_nim_khs;
+
+      // Group by angkatan
+      if (r[item.angkatan]) {
+        r[item.angkatan].push(item)
+      } else {
+        r[item.angkatan] = [item]
+      }
+
+      return r
+    }, {})
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new()
+    const filename = `public/documents/daftar-status-${data.nip ?? "all"}.xlsx`
+
+    Object.keys(groupByAngkatan).forEach(angkatan => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan])
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan)
+    });
+
+    xlsx.writeFile(workbook, filename)
+    return filename
+  } catch (error) {
+    throw error;
+  }
+}
+
+const cetakDaftarPklMahasiswa = async (data) => {
+  try {
+    const filterWali = data.nip
+      ? {
+          kodeWali: data.nip,
+        }
+      : {};
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        fk_nim_pkl: {
+          select: {
+            nilai: true,
+            semester: true,
+            statusValidasi: true,
+          },
+        },
+      }
+    });
+
+    // Change status pkl and group by angkatan
+    const groupByAngkatan = result.reduce((r, item) => {
+      // Change status pkl
+      const { fk_nim_pkl } = item;
+      if (fk_nim_pkl.length > 0 && fk_nim_pkl[0].statusValidasi === true) {
+        item.nilai = fk_nim_pkl[0].nilai;
+        item.semester = fk_nim_pkl[0].semester;
+      } else {
+        item.nilai = "-";
+        item.semester = "-";
+      }
+      delete item.fk_nim_pkl;
+      
+      // Group by angkatan
+      if (r[item.angkatan]) {
+        r[item.angkatan].push(item)
+      } else {
+        r[item.angkatan] = [item]
+      }
+
+      return r
+    }, {});
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new()
+    const filename = `public/documents/daftar-pkl-${data.nip ?? "all"}.xlsx`
+
+    Object.keys(groupByAngkatan).forEach(angkatan => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan])
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan)
+    });
+
+    xlsx.writeFile(workbook, filename)
+    return filename
+  } catch (error) {
+    throw error;
+  }
+}
+
+const cetakDaftarSkripsiMahasiswa = async (data) => {
+  try {
+    const filterWali = data.nip
+      ? {
+          kodeWali: data.nip,
+        }
+      : {};
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        fk_nim_skripsi: {
+          select: {
+            nilai: true,
+            statusValidasi: true,
+            tanggalLulusSidang: true,
+            lamaStudi: true,
+            semester: true,
+          },
+        },
+      },
+    });
+
+    // Change status skripsi and group by angkatan
+    const groupByAngkatan = result.reduce((r, item) => {
+      const { fk_nim_skripsi } = item;
+      if (
+        fk_nim_skripsi.length > 0 &&
+        fk_nim_skripsi[0].statusValidasi === true
+      ) {
+        item.nilai = fk_nim_skripsi[0].nilai;
+        item.tanggalLulusSidang = fk_nim_skripsi[0].tanggalLulusSidang;
+        item.lamaStudi = fk_nim_skripsi[0].lamaStudi;
+        item.semester = fk_nim_skripsi[0].semester;
+      } else {
+        item.nilai = "-";
+        item.tanggalLulusSidang = "-";
+        item.lamaStudi = "-";
+        item.semester = "-";
+      }
+      delete item.fk_nim_skripsi;
+
+      // Group by angkatan
+      if (r[item.angkatan]) {
+        r[item.angkatan].push(item)
+      } else {
+        r[item.angkatan] = [item]
+      }
+
+      return r;
+    }, {});
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new()
+    const filename = `public/documents/daftar-status-${data.nip ?? "all"}.xlsx`
+
+    Object.keys(groupByAngkatan).forEach(angkatan => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan])
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan)
+    });
+
+    xlsx.writeFile(workbook, filename)
+    return filename
+  } catch (error) {
+    throw error;
+  }
+}
+
 module.exports = {
   rekapStatusMahasiswa,
   daftarStatusMahasiswa,
@@ -476,4 +686,7 @@ module.exports = {
   daftarPklMahasiswa,
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
+  cetakDaftarStatusMahasiswa,
+  cetakDaftarPklMahasiswa,
+  cetakDaftarSkripsiMahasiswa,
 };
