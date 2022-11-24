@@ -3,12 +3,13 @@ const {
   getDataDosen,
   getAkunMahasiswa,
   addMahasiswa,
-  batchAddMahasiswa, 
+  batchAddMahasiswa,
   getJumlahAkunMahasiswa,
   cetakDaftarAkunMahasiswa,
   getDataAkunDosen,
   getAkunDosen,
   addDosen,
+  cetakDaftarAkunDosen,
 } = require("../services/operatorServices");
 
 const getDataDosenController = async (req, res) => {
@@ -211,29 +212,53 @@ const getJumlahAkunMahasiswaController = async (req, res) => {
 const cetakDaftarAkunMahasiswaController = async (req, res) => {
   try {
     const data = {};
-    
-    const result = await cetakDaftarAkunMahasiswa(data)
 
+    const result = await cetakDaftarAkunMahasiswa(data);
     return res.status(200).download(result, (err) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         // res.status(400).json({
         //   message: err.message
         // })
       }
-      fs.unlinkSync(result)
+      fs.unlinkSync(result);
       // return res.status(200).json({
       //   message: "File berhasil di download"
       // })
-    })
+    });
   } catch (err) {
     return res.status(400).json({
       message: err.message,
     });
   }
-} 
+};
 
-const getDataAkunDosenController = async (req, res) => {
+const cetakDaftarAkunDosenController = async (req, res) => {
+  try {
+    const data = {};
+
+    const result = await cetakDaftarAkunDosen(data);
+
+    return res.status(200).download(result, (err) => {
+      if (err) {
+        console.log(err);
+        // res.status(400).json({
+        //   message: err.message
+        // })
+      }
+      fs.unlinkSync(result);
+      // return res.status(200).json({
+      //   message: "File berhasil di download"
+      // })
+    });
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+    });
+  }
+};
+
+const getJumlahAkunDosenController = async (req, res) => {
   try {
     const result = await getDataAkunDosen();
     return res.json(result);
@@ -252,5 +277,6 @@ module.exports = {
 
   getAkunDosenController,
   addDosenController,
-  getDataAkunDosenController,
+  getJumlahAkunDosenController,
+  cetakDaftarAkunDosenController,
 };

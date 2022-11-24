@@ -46,7 +46,7 @@ async function getAkunMahasiswa(data) {
 
     // Create sorting argument for query
     let sortFilter = {};
-    const orderMhs = ["nama", "nim", "angkatan", "jalurMasuk", "statusAktif"]
+    const orderMhs = ["nama", "nim", "angkatan", "jalurMasuk", "statusAktif"];
 
     if (!data.sortBy) {
       sortFilter = [
@@ -56,15 +56,15 @@ async function getAkunMahasiswa(data) {
         {
           nim: "asc",
         },
-      ]  
+      ];
     } else if (orderMhs.includes(data.sortBy)) {
-      sortFilter[data.sortBy] = data.order
+      sortFilter[data.sortBy] = data.order;
     } else if (data.sortBy === "doswal") {
       sortFilter.fk_kodeWali = {
-        "nip": data.order
-      }
+        nip: data.order,
+      };
     } else {
-      throw new Error ("Bad Request: Sort params not valid")
+      throw new Error("Bad Request: Sort params not valid");
     }
 
     const result = await prisma.tb_mhs.findMany({
@@ -440,7 +440,7 @@ const cetakDaftarAkunMahasiswa = async (data) => {
         statusAktif: true,
         fk_kodeWali: true,
         fk_pemilik_akun_mhs: true,
-      }
+      },
     });
 
     // Restructure data and group by angkatan
@@ -464,29 +464,66 @@ const cetakDaftarAkunMahasiswa = async (data) => {
 
       // Group by angkatan
       if (r[data.angkatan]) {
-        r[data.angkatan].push(data)
+        r[data.angkatan].push(data);
       } else {
-        r[data.angkatan] = [data]
+        r[data.angkatan] = [data];
       }
 
       return r;
-    }, {}); 
+    }, {});
 
     // Create xlsx from json data
-    const workbook = xlsx.utils.book_new()
-    const filename = `public/documents/daftar-akun.xlsx`
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-akun.xlsx`;
 
-    Object.keys(groupByAngkatan).forEach(angkatan => {
-      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan])
-      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan)
+    Object.keys(groupByAngkatan).forEach((angkatan) => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan]);
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan);
     });
 
-    xlsx.writeFile(workbook, filename)
-    return filename
+    xlsx.writeFile(workbook, filename);
+    return filename;
   } catch (err) {
     throw new Error(err);
   }
-}
+};
+
+const cetakDaftarAkunDosen = async (data) => {
+  try {
+    const result = await prisma.tb_dosen.findMany({
+      select: {
+        nip: true,
+        nama: true,
+        fk_pemilik_akun_dosen: true,
+      },
+    });
+
+    // Restructure data and group by angkatan
+    result.map((dosen) => {
+      let username = null;
+      let password = null;
+      if (dosen.fk_pemilik_akun_dosen) {
+        username = dosen.fk_pemilik_akun_dosen.username;
+        password = dosen.fk_pemilik_akun_dosen.password;
+      }
+      delete dosen.fk_pemilik_akun_dosen;
+      dosen.username = username;
+      dosen.password = password;
+      return dosen;
+    });
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-akun.xlsx`;
+
+    const dataSheet = xlsx.utils.json_to_sheet(result);
+    xlsx.utils.book_append_sheet(workbook, dataSheet, "Daftar dosen");
+    xlsx.writeFile(workbook, filename);
+    return filename;
+  } catch (err) {
+    throw new Error(err);
+  }
+};
 
 module.exports = {
   getDataDosen,
@@ -496,6 +533,7 @@ module.exports = {
   getAkunMahasiswa,
   cetakDaftarAkunMahasiswa,
   getDataAkunDosen,
+  cetakDaftarAkunDosen,
   getAkunDosen,
   addDosen,
 };

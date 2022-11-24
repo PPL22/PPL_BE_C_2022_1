@@ -19,7 +19,7 @@ const rekapStatusMahasiswa = async (data) => {
         nim: true,
       },
     });
-  
+
     const filterByAngkatan = result.reduce((acc, cur) => {
       const { angkatan, statusAktif, _count } = cur;
       const { nim } = _count;
@@ -69,11 +69,10 @@ const daftarStatusMahasiswa = async (data) => {
         }
       : {};
 
-      
     // Sort by mahasiswa data
     let sortFilter = {};
-    const orderMhs = ["nama", "nim", "angkatan"]
-    const orderKhs = ["ipk", "jumlahSksKumulatif"]
+    const orderMhs = ["nama", "nim", "angkatan"];
+    const orderKhs = ["ipk", "jumlahSksKumulatif"];
     if (!data.sortBy) {
       sortFilter = [
         {
@@ -82,23 +81,24 @@ const daftarStatusMahasiswa = async (data) => {
         {
           nim: "asc",
         },
-      ]  
+      ];
     } else if (orderMhs.includes(data.sortBy)) {
-      sortFilter[data.sortBy] = data.order
+      sortFilter[data.sortBy] = data.order;
     } else if (!orderKhs.includes(data.sortBy)) {
-      throw new Error ("Bad Request: Sort params not valid")
+      throw new Error("Bad Request: Sort params not valid");
     }
 
     // Get total amount of data
     let maxPage = await prisma.tb_mhs.count({
       where: {
-        ...filterWali
+        ...filterWali,
       },
-    })
-    maxPage = Math.ceil(maxPage / data.qty)
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
 
     // Revalidate current page
-    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
 
     const result = await prisma.tb_mhs.findMany({
       where: {
@@ -121,10 +121,10 @@ const daftarStatusMahasiswa = async (data) => {
         },
       },
       take: data.qty,
-      skip: (data.page-1) * data.qty,
+      skip: (data.page - 1) * data.qty,
       orderBy: sortFilter,
     });
-    
+
     // spread fk_nim_khs
     result.map((item) => {
       const { fk_nim_khs } = item;
@@ -144,9 +144,9 @@ const daftarStatusMahasiswa = async (data) => {
     if (orderKhs.includes(data.sortBy)) {
       result.sort((a, b) => {
         if (data.order === "asc") {
-          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy])
+          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy]);
         } else {
-          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy])
+          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy]);
         }
       });
     }
@@ -154,7 +154,7 @@ const daftarStatusMahasiswa = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      list: result
+      list: result,
     };
   } catch (error) {
     throw error;
@@ -225,11 +225,10 @@ const daftarPklMahasiswa = async (data) => {
         }
       : {};
 
-      
     // Sort by mahasiswa data
     let sortFilter = {};
-    const orderMhs = ["nama", "nim", "angkatan"]
-    const orderPkl = ["semester", "nilai"]
+    const orderMhs = ["nama", "nim", "angkatan"];
+    const orderPkl = ["semester", "nilai"];
     if (!data.sortBy) {
       sortFilter = [
         {
@@ -238,23 +237,24 @@ const daftarPklMahasiswa = async (data) => {
         {
           nim: "asc",
         },
-      ]  
+      ];
     } else if (orderMhs.includes(data.sortBy)) {
-      sortFilter[data.sortBy] = data.order
+      sortFilter[data.sortBy] = data.order;
     } else if (!orderPkl.includes(data.sortBy)) {
-      throw new Error ("Bad Request: Sort params not valid")
+      throw new Error("Bad Request: Sort params not valid");
     }
 
     // Get total amount of data
     let maxPage = await prisma.tb_mhs.count({
       where: {
-        ...filterWali
+        ...filterWali,
       },
-    })
-    maxPage = Math.ceil(maxPage / data.qty)
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
 
     // Revalidate current page
-    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
 
     const result = await prisma.tb_mhs.findMany({
       where: {
@@ -273,7 +273,7 @@ const daftarPklMahasiswa = async (data) => {
         },
       },
       take: data.qty,
-      skip: (data.page-1) * data.qty,
+      skip: (data.page - 1) * data.qty,
       orderBy: sortFilter,
     });
 
@@ -294,9 +294,9 @@ const daftarPklMahasiswa = async (data) => {
     if (orderPkl.includes(data.sortBy)) {
       result.sort((a, b) => {
         if (data.order === "asc") {
-          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy])
+          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy]);
         } else {
-          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy])
+          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy]);
         }
       });
     }
@@ -304,7 +304,7 @@ const daftarPklMahasiswa = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      list: result
+      list: result,
     };
   } catch (error) {
     throw error;
@@ -375,11 +375,10 @@ const daftarSkripsiMahasiswa = async (data) => {
         }
       : {};
 
-      
     // Sort by mahasiswa data
     let sortFilter = {};
-    const orderMhs = ["nama", "nim", "angkatan"]
-    const orderSkripsi = ["nilai", "tanggalLulusSidang", "lamaStudi"]
+    const orderMhs = ["nama", "nim", "angkatan"];
+    const orderSkripsi = ["nilai", "tanggalLulusSidang", "lamaStudi"];
     if (!data.sortBy) {
       sortFilter = [
         {
@@ -388,27 +387,28 @@ const daftarSkripsiMahasiswa = async (data) => {
         {
           nim: "asc",
         },
-      ]  
+      ];
     } else if (orderMhs.includes(data.sortBy)) {
-      sortFilter[data.sortBy] = data.order
+      sortFilter[data.sortBy] = data.order;
     } else if (!orderSkripsi.includes(data.sortBy)) {
-      throw new Error ("Bad Request: Sort params not valid")
+      throw new Error("Bad Request: Sort params not valid");
     }
-    
+
     // Get total amount of data
     let maxPage = await prisma.tb_mhs.count({
       where: {
-        ...filterWali
+        ...filterWali,
       },
-    })
-    maxPage = Math.ceil(maxPage / data.qty)
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
 
     // Revalidate current page
-    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
-  
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
+
     const result = await prisma.tb_mhs.findMany({
       where: {
-        ...filterWali
+        ...filterWali,
       },
       select: {
         nim: true,
@@ -425,7 +425,7 @@ const daftarSkripsiMahasiswa = async (data) => {
         },
       },
       take: data.qty,
-      skip: (data.page-1) * data.qty,
+      skip: (data.page - 1) * data.qty,
       orderBy: sortFilter,
     });
 
@@ -453,9 +453,9 @@ const daftarSkripsiMahasiswa = async (data) => {
     if (orderSkripsi.includes(data.sortBy)) {
       result.sort((a, b) => {
         if (data.order === "asc") {
-          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy])
+          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy]);
         } else {
-          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy])
+          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy]);
         }
       });
     }
@@ -463,7 +463,7 @@ const daftarSkripsiMahasiswa = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      list: result
+      list: result,
     };
   } catch (error) {
     throw error;
@@ -497,9 +497,9 @@ const cetakDaftarStatusMahasiswa = async (data) => {
             ipk: true,
           },
         },
-      }
+      },
     });
-    
+
     // Spread fk_nim_khs and group by angkatan
     const groupByAngkatan = result.reduce((r, item) => {
       // Spread fk_nim_khs
@@ -517,29 +517,29 @@ const cetakDaftarStatusMahasiswa = async (data) => {
 
       // Group by angkatan
       if (r[item.angkatan]) {
-        r[item.angkatan].push(item)
+        r[item.angkatan].push(item);
       } else {
-        r[item.angkatan] = [item]
+        r[item.angkatan] = [item];
       }
 
-      return r
-    }, {})
+      return r;
+    }, {});
 
     // Create xlsx from json data
-    const workbook = xlsx.utils.book_new()
-    const filename = `public/documents/daftar-status-${data.nip ?? "all"}.xlsx`
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-status-${data.nip ?? "all"}.xlsx`;
 
-    Object.keys(groupByAngkatan).forEach(angkatan => {
-      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan])
-      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan)
+    Object.keys(groupByAngkatan).forEach((angkatan) => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan]);
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan);
     });
 
-    xlsx.writeFile(workbook, filename)
-    return filename
+    xlsx.writeFile(workbook, filename);
+    return filename;
   } catch (error) {
     throw error;
   }
-}
+};
 
 const cetakDaftarPklMahasiswa = async (data) => {
   try {
@@ -564,7 +564,7 @@ const cetakDaftarPklMahasiswa = async (data) => {
             statusValidasi: true,
           },
         },
-      }
+      },
     });
 
     // Change status pkl and group by angkatan
@@ -579,32 +579,32 @@ const cetakDaftarPklMahasiswa = async (data) => {
         item.semester = "-";
       }
       delete item.fk_nim_pkl;
-      
+
       // Group by angkatan
       if (r[item.angkatan]) {
-        r[item.angkatan].push(item)
+        r[item.angkatan].push(item);
       } else {
-        r[item.angkatan] = [item]
+        r[item.angkatan] = [item];
       }
 
-      return r
+      return r;
     }, {});
 
     // Create xlsx from json data
-    const workbook = xlsx.utils.book_new()
-    const filename = `public/documents/daftar-pkl-${data.nip ?? "all"}.xlsx`
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-pkl-${data.nip ?? "all"}.xlsx`;
 
-    Object.keys(groupByAngkatan).forEach(angkatan => {
-      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan])
-      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan)
+    Object.keys(groupByAngkatan).forEach((angkatan) => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan]);
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan);
     });
 
-    xlsx.writeFile(workbook, filename)
-    return filename
+    xlsx.writeFile(workbook, filename);
+    return filename;
   } catch (error) {
     throw error;
   }
-}
+};
 
 const cetakDaftarSkripsiMahasiswa = async (data) => {
   try {
@@ -616,7 +616,7 @@ const cetakDaftarSkripsiMahasiswa = async (data) => {
 
     const result = await prisma.tb_mhs.findMany({
       where: {
-        ...filterWali
+        ...filterWali,
       },
       select: {
         nim: true,
@@ -655,29 +655,29 @@ const cetakDaftarSkripsiMahasiswa = async (data) => {
 
       // Group by angkatan
       if (r[item.angkatan]) {
-        r[item.angkatan].push(item)
+        r[item.angkatan].push(item);
       } else {
-        r[item.angkatan] = [item]
+        r[item.angkatan] = [item];
       }
 
       return r;
     }, {});
 
     // Create xlsx from json data
-    const workbook = xlsx.utils.book_new()
-    const filename = `public/documents/daftar-status-${data.nip ?? "all"}.xlsx`
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-status-${data.nip ?? "all"}.xlsx`;
 
-    Object.keys(groupByAngkatan).forEach(angkatan => {
-      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan])
-      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan)
+    Object.keys(groupByAngkatan).forEach((angkatan) => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan]);
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan);
     });
 
-    xlsx.writeFile(workbook, filename)
-    return filename
+    xlsx.writeFile(workbook, filename);
+    return filename;
   } catch (error) {
     throw error;
   }
-}
+};
 
 module.exports = {
   rekapStatusMahasiswa,
