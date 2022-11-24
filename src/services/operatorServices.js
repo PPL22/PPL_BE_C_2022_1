@@ -403,6 +403,7 @@ const batchAddMahasiswa = async (data) => {
 };
 
 const getJumlahAkunMahasiswa = async () => {
+  //reference = https://pddikti.kemdikbud.go.id/data_prodi/NjE1N0JBQTEtODE4Ny00Mjg4LUFERkYtMkREOTk1QTdDRkIw
   const jumlahMahasiswa = 773;
   const jumlahAkunMahasiswa = await prisma.tb_akun_mhs.count();
   console.log(jumlahMahasiswa);
@@ -418,7 +419,8 @@ const getJumlahAkunMahasiswa = async () => {
 };
 
 const getDataAkunDosen = async () => {
-  const jumlahDosen = 26;
+  //reference = https://if.fsm.undip.ac.id/id/struktur-organisasi
+  const jumlahDosen = 30;
   const jumlahAkunDosen = await prisma.tb_akun_dosen.count();
   const result = {
     sudahMemilikiAkun: jumlahAkunDosen,
