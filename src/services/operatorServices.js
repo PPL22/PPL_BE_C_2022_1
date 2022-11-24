@@ -29,8 +29,6 @@ async function getDataDosen() {
       delete user.role;
     });
 
-    console.log(doswalAccounts);
-
     return doswalAccounts;
   } catch (err) {
     throw new Error(err);
@@ -309,7 +307,7 @@ const batchAddMahasiswa = async (data) => {
   }
 };
 
-const getDataAkunMahasiswa = async () => {
+const getJumlahAkunMahasiswa = async () => {
   const jumlahMahasiswa = 773;
   const jumlahAkunMahasiswa = await prisma.tb_akun_mhs.count();
   console.log(jumlahMahasiswa);
@@ -321,10 +319,70 @@ const getDataAkunMahasiswa = async () => {
   return result;
 };
 
+const cetakDaftarAkunMahasiswa = async (data) => {
+  try {
+    const result = await prisma.tb_mhs.findMany({
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        jalurMasuk: true,
+        statusAktif: true,
+        fk_kodeWali: true,
+        fk_pemilik_akun_mhs: true,
+      }
+    });
+
+    // Restructure data and group by angkatan
+    const groupByAngkatan = result.reduce((r, mahasiswa) => {
+      // Restructure data
+      const namaDoswal = mahasiswa.fk_kodeWali.nama;
+      let username = null;
+      let password = null;
+      if (mahasiswa.fk_pemilik_akun_mhs) {
+        username = mahasiswa.fk_pemilik_akun_mhs.username;
+        password = mahasiswa.fk_pemilik_akun_mhs.password;
+      }
+      delete mahasiswa.fk_kodeWali;
+      delete mahasiswa.fk_pemilik_akun_mhs;
+      const data = {
+        ...mahasiswa,
+        namaDoswal,
+        username,
+        password,
+      };
+
+      // Group by angkatan
+      if (r[data.angkatan]) {
+        r[data.angkatan].push(data)
+      } else {
+        r[data.angkatan] = [data]
+      }
+
+      return r;
+    }, {}); 
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new()
+    const filename = `public/documents/daftar-akun.xlsx`
+
+    Object.keys(groupByAngkatan).forEach(angkatan => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan])
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan)
+    });
+
+    xlsx.writeFile(workbook, filename)
+    return filename
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
 module.exports = {
   getDataDosen,
   addMahasiswa,
   batchAddMahasiswa,
-  getDataAkunMahasiswa,
+  getJumlahAkunMahasiswa,
   getAkunMahasiswa,
+  cetakDaftarAkunMahasiswa
 };

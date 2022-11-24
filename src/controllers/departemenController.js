@@ -149,7 +149,7 @@ const cetakDaftarMhsDepartemenController = async (req, res) => {
       });
     }
 
-    return res.download(result, (err) => {
+    return res.status(200).download(result, (err) => {
       if (err) {
         console.log(err)
         // res.status(400).json({

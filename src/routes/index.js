@@ -8,8 +8,9 @@ const {
   getDataDosenController,
   getAkunMahasiswaController,
   addMahasiswaController,
-  getDataAkunMahasiswaController,
   batchAddMahasiswaController,
+  getJumlahAkunMahasiswaController,
+  cetakDaftarAkunMahasiswaController,
 } = require("../controllers/operatorController");
 
 const {
@@ -61,7 +62,7 @@ router.use(verifyToken);
 //=======================================================
 // Operator
 router.get("/operator/data-dosen", getDataDosenController);
-router.get("/operator/data-mahasiswa", getDataAkunMahasiswaController);
+router.get("/operator/jumlah-akun-mahasiswa", getJumlahAkunMahasiswaController);
 router.get("/operator/akun-mahasiswa", getAkunMahasiswaController);
 router.get("/operator/profile", getProfileDosenController);
 
@@ -71,6 +72,8 @@ router.post(
   uploadExcelMhs,
   batchAddMahasiswaController
 );
+
+router.get("/operator/akun-mahasiswa/cetak", cetakDaftarAkunMahasiswaController)
 
 //=======================================================
 // Mahasiswa Controller

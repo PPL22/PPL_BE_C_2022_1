@@ -1,9 +1,11 @@
+const fs = require("fs");
 const {
   getDataDosen,
   getAkunMahasiswa,
   addMahasiswa,
   batchAddMahasiswa, 
-  getDataAkunMahasiswa,
+  getJumlahAkunMahasiswa,
+  cetakDaftarAkunMahasiswa,
 } = require("../services/operatorServices");
 
 const getDataDosenController = async (req, res) => {
@@ -128,19 +130,45 @@ const batchAddMahasiswaController = async (req, res) => {
   } 
 }
 
-const getDataAkunMahasiswaController = async (req, res) => {
+const getJumlahAkunMahasiswaController = async (req, res) => {
   try {
-    const result = await getDataAkunMahasiswa();
+    const result = await getJumlahAkunMahasiswa();
     return res.json(result);
   } catch (err) {
     return res.status(403).json({ message: err.message });
   }
 };
 
+const cetakDaftarAkunMahasiswaController = async (req, res) => {
+  try {
+    const data = {};
+    
+    const result = await cetakDaftarAkunMahasiswa(data)
+
+    return res.status(200).download(result, (err) => {
+      if (err) {
+        console.log(err)
+        // res.status(400).json({
+        //   message: err.message
+        // })
+      }
+      fs.unlinkSync(result)
+      // return res.status(200).json({
+      //   message: "File berhasil di download"
+      // })
+    })
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+    });
+  }
+} 
+
 module.exports = {
   getDataDosenController,
   getAkunMahasiswaController,
   addMahasiswaController,
   batchAddMahasiswaController,
-  getDataAkunMahasiswaController,
+  getJumlahAkunMahasiswaController,
+  cetakDaftarAkunMahasiswaController,
 };
