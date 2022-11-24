@@ -68,7 +68,7 @@ async function main() {
   const createAkunDosen = await prisma.tb_akun_dosen.createMany({
     data: dosen.map((dosen) => ({
       username: convertUsername(dosen.nama),
-      password: hashPassword(dosen.nama),
+      password: convertUsername(dosen.nama),
       status: "Aktif",
       pemilik: dosen.nip,
     })),

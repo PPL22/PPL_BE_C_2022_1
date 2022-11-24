@@ -2,6 +2,103 @@ const { PrismaClient, Prisma } = require("@prisma/client");
 const countSemester = require("../utils/countSemester");
 const prisma = new PrismaClient();
 const fs = require("fs");
+const bcrypt = require("bcrypt");
+const ResizeFile = require("../utils/resizeFile");
+const path = require("path");
+
+const getDataRegisterDosen = async (data) => {
+  console.log(data);
+  try {
+    const result = await prisma.tb_dosen.findUnique({
+      where: {
+        nip: data.nip,
+      },
+      select: {
+        nama: true,
+        fk_pemilik_akun_dosen: {
+          select: {
+            username: true,
+          },
+        },
+        nip: true,
+        foto: true,
+      },
+    });
+
+    return {
+      nama: result.nama,
+      username: result.fk_pemilik_akun_dosen.username,
+      nip: result.nip,
+      foto: result.foto,
+    };
+  } catch (err) {
+    throw err;
+  }
+};
+
+const updateDataDosen = async (data) => {
+  try {
+    if (data.oldUsername !== data.username) {
+      const checkUsername = await prisma.tb_akun_dosen.findUnique({
+        where: {
+          username: data.username,
+        },
+      });
+
+      if (checkUsername) {
+        throw new Error("Username sudah digunakan");
+      }
+    }
+
+    const kodeProv = data.kodeKab.substring(0, 2);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    let fileName;
+    if (data.foto) {
+      const imagePath = path.join(__dirname, "../../public/images/foto_dosen/");
+      const fileUpload = new ResizeFile(
+        imagePath,
+        path.extname(data.foto.originalname)
+      );
+      fileName = await fileUpload.save(data.foto.buffer);
+    }
+
+    const [updateAkun, updateDosen] = await prisma.$transaction([
+      prisma.tb_akun_dosen.update({
+        where: {
+          pemilik: data.nip,
+        },
+        data: {
+          username: data.username,
+          password: hashedPassword,
+        },
+      }),
+      prisma.tb_dosen.update({
+        where: {
+          nip: data.nip,
+        },
+        data: {
+          email: data.email,
+          alamat: data.alamat,
+          kodeKab: data.kodeKab,
+          kodeProv: kodeProv,
+          noHP: data.noHP,
+          foto: fileName,
+        },
+      }),
+    ]);
+
+    if (!updateAkun || !updateDosen) {
+      throw new Error("Terjadi kesalahan, silahkan coba lagi");
+    }
+
+    return {
+      foto: fileName,
+      username: data.username,
+    };
+  } catch (err) {
+    throw err;
+  }
+};
 
 // TODO: refactor get status validasi
 // !!! Forgot to add who hasn't entered the data yet
@@ -10,42 +107,44 @@ const getStatusValidasiIRS = async (data) => {
   try {
     // NEEDS: add search feature in frontend
     // Filter for search by keyword
-    const filterKeyword = (data.keyword ? 
-      {OR: [
-          {
-            nama: {
-              contains: data.keyword,
+    const filterKeyword = data.keyword
+      ? {
+          OR: [
+            {
+              nama: {
+                contains: data.keyword,
+              },
             },
-          },
-          {
-            nim: {
-              contains: data.keyword,
+            {
+              nim: {
+                contains: data.keyword,
+              },
             },
-          },
-        ],
-      } : {} 
-    )
+          ],
+        }
+      : {};
 
     // Get total amount of data
     let maxPage = await prisma.tb_irs.count({
       where: {
         fk_nim: {
           kodeWali: data.nip,
-          ...filterKeyword
+          ...filterKeyword,
         },
       },
-    })
-    maxPage = Math.ceil(maxPage / data.qty)
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
 
     // Revalidate current page
-    if (maxPage != 0 && (data.page < 1 || data.page > maxPage)) throw new Error("Bad request. Page param not valid")
+    if (maxPage != 0 && (data.page < 1 || data.page > maxPage))
+      throw new Error("Bad request. Page param not valid");
 
     // Create query
     const query = {
       where: {
         fk_nim: {
           kodeWali: data.nip,
-          ...filterKeyword
+          ...filterKeyword,
         },
       },
       include: {
@@ -54,33 +153,32 @@ const getStatusValidasiIRS = async (data) => {
       orderBy: {},
 
       take: data.qty,
-      skip: (data.page-1) * data.qty
-    } 
-  
+      skip: (data.page - 1) * data.qty,
+    };
+
     // Add order
-    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
-    const orderKhs = ["semester", "jumlahSks", "statusValidasi"]
-  
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"];
+    const orderKhs = ["semester", "jumlahSks", "statusValidasi"];
+
     if (orderKhs.includes(data.sortBy)) {
-      query.orderBy[data.sortBy] = data.order
+      query.orderBy[data.sortBy] = data.order;
     } else if (orderMhs.includes(data.sortBy)) {
-      query.orderBy["fk_nim"] = {}
-      query.orderBy.fk_nim[data.sortBy] = data.order
+      query.orderBy["fk_nim"] = {};
+      query.orderBy.fk_nim[data.sortBy] = data.order;
     } else {
-      throw new Error("Order not valid")
+      throw new Error("Order not valid");
     }
-    
+
     // Get all data irs according to query
     const result = await prisma.tb_irs.findMany(query);
 
-      
     // Reshape data
     const filledIrs = result.map((d) => {
       const dataMhs = {
         nim: d["fk_nim"].nim,
         nama: d["fk_nim"].nama,
         angkatan: d["fk_nim"].angkatan,
-        statusAktif: d["fk_nim"].statusAktif
+        statusAktif: d["fk_nim"].statusAktif,
       };
       delete d["fk_nim"];
 
@@ -93,9 +191,8 @@ const getStatusValidasiIRS = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      list: filledIrs
+      list: filledIrs,
     };
-
   } catch (err) {
     throw new Error(err);
   }
@@ -105,42 +202,44 @@ const getStatusValidasiKHS = async (data) => {
   try {
     // NEEDS: add search feature in frontend
     // Filter for search by keyword
-    const filterKeyword = (data.keyword ? 
-      {OR: [
-          {
-            nama: {
-              contains: data.keyword,
+    const filterKeyword = data.keyword
+      ? {
+          OR: [
+            {
+              nama: {
+                contains: data.keyword,
+              },
             },
-          },
-          {
-            nim: {
-              contains: data.keyword,
+            {
+              nim: {
+                contains: data.keyword,
+              },
             },
-          },
-        ],
-      } : {} 
-    )
+          ],
+        }
+      : {};
 
     // Get total amount of data
     let maxPage = await prisma.tb_khs.count({
       where: {
         fk_nim: {
           kodeWali: data.nip,
-          ...filterKeyword
+          ...filterKeyword,
         },
       },
-    })
-    maxPage = Math.ceil(maxPage / data.qty)
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
 
     // Revalidate current page
-    if (maxPage != 0 && (data.page < 1 || data.page > maxPage)) throw new Error("Bad request. Page param not valid")
+    if (maxPage != 0 && (data.page < 1 || data.page > maxPage))
+      throw new Error("Bad request. Page param not valid");
 
     // Create query
     const query = {
       where: {
         fk_nim: {
           kodeWali: data.nip,
-          ...filterKeyword
+          ...filterKeyword,
         },
       },
       include: {
@@ -149,22 +248,29 @@ const getStatusValidasiKHS = async (data) => {
       orderBy: {},
 
       take: data.qty,
-      skip: (data.page-1) * data.qty
-    } 
-  
+      skip: (data.page - 1) * data.qty,
+    };
+
     // Add order
-    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
-    const orderKhs = ["semester", "jumlahSksSemester", "ips", "jumlahSksKumulatif", "ipk", "statusValidasi"]
-  
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"];
+    const orderKhs = [
+      "semester",
+      "jumlahSksSemester",
+      "ips",
+      "jumlahSksKumulatif",
+      "ipk",
+      "statusValidasi",
+    ];
+
     if (orderKhs.includes(data.sortBy)) {
-      query.orderBy[data.sortBy] = data.order
+      query.orderBy[data.sortBy] = data.order;
     } else if (orderMhs.includes(data.sortBy)) {
-      query.orderBy["fk_nim"] = {}
-      query.orderBy.fk_nim[data.sortBy] = data.order
+      query.orderBy["fk_nim"] = {};
+      query.orderBy.fk_nim[data.sortBy] = data.order;
     } else {
-      throw new Error("Order not valid")
+      throw new Error("Order not valid");
     }
-    
+
     // Get all data irs according to query
     const result = await prisma.tb_khs.findMany(query);
 
@@ -174,7 +280,7 @@ const getStatusValidasiKHS = async (data) => {
         nim: d["fk_nim"].nim,
         nama: d["fk_nim"].nama,
         angkatan: d["fk_nim"].angkatan,
-        statusAktif: d["fk_nim"].statusAktif
+        statusAktif: d["fk_nim"].statusAktif,
       };
       delete d["fk_nim"];
 
@@ -187,7 +293,7 @@ const getStatusValidasiKHS = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      list: filledKhs
+      list: filledKhs,
     };
   } catch (err) {
     throw new Error(err);
@@ -198,42 +304,44 @@ const getStatusValidasiPKL = async (data) => {
   try {
     // NEEDS: add search feature in frontend
     // Filter for search by keyword
-    const filterKeyword = (data.keyword ? 
-      {OR: [
-          {
-            nama: {
-              contains: data.keyword,
+    const filterKeyword = data.keyword
+      ? {
+          OR: [
+            {
+              nama: {
+                contains: data.keyword,
+              },
             },
-          },
-          {
-            nim: {
-              contains: data.keyword,
+            {
+              nim: {
+                contains: data.keyword,
+              },
             },
-          },
-        ],
-      } : {} 
-    )
+          ],
+        }
+      : {};
 
     // Get total amount of data
     let maxPage = await prisma.tb_pkl.count({
       where: {
         fk_nim: {
           kodeWali: data.nip,
-          ...filterKeyword
+          ...filterKeyword,
         },
       },
-    })
-    maxPage = Math.ceil(maxPage / data.qty)
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
 
     // Revalidate current page
-    if (maxPage != 0 && (data.page < 1 || data.page > maxPage)) throw new Error("Bad request. Page param not valid")
+    if (maxPage != 0 && (data.page < 1 || data.page > maxPage))
+      throw new Error("Bad request. Page param not valid");
 
     // Create query
     const query = {
       where: {
         fk_nim: {
           kodeWali: data.nip,
-          ...filterKeyword
+          ...filterKeyword,
         },
       },
       include: {
@@ -242,22 +350,22 @@ const getStatusValidasiPKL = async (data) => {
       orderBy: {},
 
       take: data.qty,
-      skip: (data.page-1) * data.qty
-    } 
-  
+      skip: (data.page - 1) * data.qty,
+    };
+
     // Add order
-    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
-    const orderPkl = ["semester", "nilai", "statusValidasi"]
-  
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"];
+    const orderPkl = ["semester", "nilai", "statusValidasi"];
+
     if (orderPkl.includes(data.sortBy)) {
-      query.orderBy[data.sortBy] = data.order
+      query.orderBy[data.sortBy] = data.order;
     } else if (orderMhs.includes(data.sortBy)) {
-      query.orderBy["fk_nim"] = {}
-      query.orderBy.fk_nim[data.sortBy] = data.order
+      query.orderBy["fk_nim"] = {};
+      query.orderBy.fk_nim[data.sortBy] = data.order;
     } else {
-      throw new Error("Order not valid")
+      throw new Error("Order not valid");
     }
-    
+
     // Get all data irs according to query
     const result = await prisma.tb_pkl.findMany(query);
 
@@ -267,7 +375,7 @@ const getStatusValidasiPKL = async (data) => {
         nim: d["fk_nim"].nim,
         nama: d["fk_nim"].nama,
         angkatan: d["fk_nim"].angkatan,
-        statusAktif: d["fk_nim"].statusAktif
+        statusAktif: d["fk_nim"].statusAktif,
       };
       delete d["fk_nim"];
 
@@ -280,7 +388,7 @@ const getStatusValidasiPKL = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      list: filledPkl
+      list: filledPkl,
     };
   } catch (err) {
     throw new Error(err);
@@ -291,42 +399,44 @@ const getStatusValidasiSkripsi = async (data) => {
   try {
     // NEEDS: add search feature in frontend
     // Filter for search by keyword
-    const filterKeyword = (data.keyword ? 
-      {OR: [
-          {
-            nama: {
-              contains: data.keyword,
+    const filterKeyword = data.keyword
+      ? {
+          OR: [
+            {
+              nama: {
+                contains: data.keyword,
+              },
             },
-          },
-          {
-            nim: {
-              contains: data.keyword,
+            {
+              nim: {
+                contains: data.keyword,
+              },
             },
-          },
-        ],
-      } : {} 
-    )
+          ],
+        }
+      : {};
 
     // Get total amount of data
     let maxPage = await prisma.tb_skripsi.count({
       where: {
         fk_nim: {
           kodeWali: data.nip,
-          ...filterKeyword
+          ...filterKeyword,
         },
       },
-    })
-    maxPage = Math.ceil(maxPage / data.qty)
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
 
     // Revalidate current page
-    if (maxPage != 0 && (data.page < 1 || data.page > maxPage)) throw new Error("Bad request. Page param not valid")
+    if (maxPage != 0 && (data.page < 1 || data.page > maxPage))
+      throw new Error("Bad request. Page param not valid");
 
     // Create query
     const query = {
       where: {
         fk_nim: {
           kodeWali: data.nip,
-          ...filterKeyword
+          ...filterKeyword,
         },
       },
       include: {
@@ -335,22 +445,28 @@ const getStatusValidasiSkripsi = async (data) => {
       orderBy: {},
 
       take: data.qty,
-      skip: (data.page-1) * data.qty
-    } 
-  
+      skip: (data.page - 1) * data.qty,
+    };
+
     // Add order
-    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"]
-    const orderSkripsi = ["semester", "nilai", "tanggalLulusSidang", "lamaStudi", "statusValidasi"]
-  
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"];
+    const orderSkripsi = [
+      "semester",
+      "nilai",
+      "tanggalLulusSidang",
+      "lamaStudi",
+      "statusValidasi",
+    ];
+
     if (orderSkripsi.includes(data.sortBy)) {
-      query.orderBy[data.sortBy] = data.order
+      query.orderBy[data.sortBy] = data.order;
     } else if (orderMhs.includes(data.sortBy)) {
-      query.orderBy["fk_nim"] = {}
-      query.orderBy.fk_nim[data.sortBy] = data.order
+      query.orderBy["fk_nim"] = {};
+      query.orderBy.fk_nim[data.sortBy] = data.order;
     } else {
-      throw new Error("Order not valid")
+      throw new Error("Order not valid");
     }
-    
+
     // Get all data irs according to query
     const result = await prisma.tb_skripsi.findMany(query);
 
@@ -360,7 +476,7 @@ const getStatusValidasiSkripsi = async (data) => {
         nim: d["fk_nim"].nim,
         nama: d["fk_nim"].nama,
         angkatan: d["fk_nim"].angkatan,
-        statusAktif: d["fk_nim"].statusAktif
+        statusAktif: d["fk_nim"].statusAktif,
       };
       delete d["fk_nim"];
 
@@ -373,7 +489,7 @@ const getStatusValidasiSkripsi = async (data) => {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      list: filledSkripsi
+      list: filledSkripsi,
     };
   } catch (err) {
     throw new Error(err);
@@ -387,13 +503,14 @@ const validasiDataIrs = async (data) => {
     let oldSemester = data.fileName.split("-")[2]; // For renaming purpose
     oldSemester = oldSemester.substring(0, oldSemester.length - 4);
 
-    console.log(data)
+    console.log(data);
 
     // Check if file exists
-    if (!fs.existsSync(`public/documents` + data.fileName)) throw new Error("File doesn't exist, not valid")
+    if (!fs.existsSync(`public/documents` + data.fileName))
+      throw new Error("File doesn't exist, not valid");
 
     // Basic checking
-    if (isNaN(oldSemester)) throw new Error ("Filename not valid")
+    if (isNaN(oldSemester)) throw new Error("Filename not valid");
 
     // Check dosen wali
     const checkDoswal = await prisma.tb_mhs.findFirst({
@@ -403,7 +520,8 @@ const validasiDataIrs = async (data) => {
       },
     });
 
-    if (!checkDoswal) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
+    if (!checkDoswal)
+      throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
 
     // Check semester (WARNING: akan error bila file yang dikirim bukan file yang valid)
     if (data.semester != oldSemester) {
@@ -411,12 +529,12 @@ const validasiDataIrs = async (data) => {
         where: {
           nim_semester: {
             nim: data.nim,
-            semester: data.semester
-          }
-        }
-      })
+            semester: data.semester,
+          },
+        },
+      });
 
-      if (checkSemester) throw new Error("Semester sudah terisi")
+      if (checkSemester) throw new Error("Semester sudah terisi");
     }
 
     // Rename document if semester is different
@@ -433,12 +551,12 @@ const validasiDataIrs = async (data) => {
         where: {
           nim_semester: {
             nim: data.nim,
-            semester: data.semester
-          }
-        }
-      })
+            semester: data.semester,
+          },
+        },
+      });
 
-      if (checkSemester) throw new Error("Semester sudah terisi")
+      if (checkSemester) throw new Error("Semester sudah terisi");
     }
 
     // Rename document if semester is different
@@ -479,10 +597,11 @@ const validasiDataKhs = async (data) => {
     oldSemester = oldSemester.substring(0, oldSemester.length - 4);
 
     // Check if file exists
-    if (!fs.existsSync(`public/documents` + data.fileName)) throw new Error("File doesn't exist, not valid")
+    if (!fs.existsSync(`public/documents` + data.fileName))
+      throw new Error("File doesn't exist, not valid");
 
     // Basic checking
-    if (isNaN(oldSemester)) throw new Error ("Filename not valid")
+    if (isNaN(oldSemester)) throw new Error("Filename not valid");
 
     // Check dosen wali
     const checkDoswal = await prisma.tb_mhs.findFirst({
@@ -492,20 +611,21 @@ const validasiDataKhs = async (data) => {
       },
     });
 
-    if (!checkDoswal) throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses")
-    
+    if (!checkDoswal)
+      throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
+
     // Check semester
     if (data.semester != oldSemester) {
       const checkSemester = await prisma.tb_khs.findUnique({
         where: {
           nim_semester: {
             nim: data.nim,
-            semester: data.semester
-          }
-        }
-      })
+            semester: data.semester,
+          },
+        },
+      });
 
-      if (checkSemester) throw new Error("Semester sudah terisi")
+      if (checkSemester) throw new Error("Semester sudah terisi");
     }
 
     // Update
@@ -549,10 +669,11 @@ const validasiDataPkl = async (data) => {
     oldSemester = oldSemester.substring(0, oldSemester.length - 4);
 
     // Check if file exists
-    if (!fs.existsSync(`public/documents` + data.fileName)) throw new Error("File doesn't exist, not valid")
+    if (!fs.existsSync(`public/documents` + data.fileName))
+      throw new Error("File doesn't exist, not valid");
 
     // Basic checking
-    if (isNaN(oldSemester)) throw new Error ("Filename not valid")
+    if (isNaN(oldSemester)) throw new Error("Filename not valid");
 
     // Check dosen wali
     const checkDoswal = await prisma.tb_mhs.findFirst({
@@ -601,10 +722,11 @@ const validasiDataSkripsi = async (data) => {
     oldSemester = oldSemester.substring(0, oldSemester.length - 4);
 
     // Check if file exists
-    if (!fs.existsSync(`public/documents` + data.fileName)) throw new Error("File doesn't exist, not valid")
+    if (!fs.existsSync(`public/documents` + data.fileName))
+      throw new Error("File doesn't exist, not valid");
 
     // Basic checking
-    if (isNaN(oldSemester)) throw new Error ("Filename not valid")
+    if (isNaN(oldSemester)) throw new Error("Filename not valid");
 
     // Check dosen wali
     const checkDoswal = await prisma.tb_mhs.findFirst({
@@ -649,6 +771,9 @@ const validasiDataSkripsi = async (data) => {
 };
 
 module.exports = {
+  getDataRegisterDosen,
+  updateDataDosen,
+
   getStatusValidasiIRS,
   getStatusValidasiKHS,
   getStatusValidasiPKL,

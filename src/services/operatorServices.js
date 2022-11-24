@@ -1,7 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const xlsx = require("xlsx");
-const { getKodeWaliRandom } = require("../utils/mahasiswaUtil");
 
 async function getDataDosen() {
   // Get all dosen data
@@ -40,11 +39,12 @@ async function getDataDosen() {
 async function getAkunMahasiswa(data) {
   try {
     // Get total amount of data
-    let maxPage = await prisma.tb_mhs.count()
-    maxPage = Math.ceil(maxPage / data.qty)
+    let maxPage = await prisma.tb_mhs.count();
+    maxPage = Math.ceil(maxPage / data.qty);
 
     // Revalidate current page
-    if (data.page < 1 || data.page > maxPage) throw new Error("Bad request. Params not valid")
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
 
     const result = await prisma.tb_mhs.findMany({
       select: {
@@ -60,7 +60,7 @@ async function getAkunMahasiswa(data) {
         angkatan: "desc",
       },
       take: data.qty,
-      skip: (data.page-1) * data.qty
+      skip: (data.page - 1) * data.qty,
     });
 
     const mahasiswa = result.map((mahasiswa) => {
@@ -84,7 +84,53 @@ async function getAkunMahasiswa(data) {
     return {
       currentPage: data.page,
       maxPage: maxPage,
-      list: mahasiswa
+      list: mahasiswa,
+    };
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
+async function getAkunDosen(data) {
+  try {
+    // Get total amount of data
+    let maxPage = await prisma.tb_dosen.count();
+    maxPage = Math.ceil(maxPage / data.qty);
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
+
+    const result = await prisma.tb_dosen.findMany({
+      select: {
+        nip: true,
+        nama: true,
+        fk_pemilik_akun_dosen: true,
+      },
+      take: data.qty,
+      skip: (data.page - 1) * data.qty,
+    });
+
+    const dosen = result.map((dosen) => {
+      let username = null;
+      let password = null;
+      if (dosen.fk_pemilik_akun_dosen) {
+        username = dosen.fk_pemilik_akun_dosen.username;
+        password = dosen.fk_pemilik_akun_dosen.password;
+      }
+      delete dosen.fk_kodeWali;
+      delete dosen.fk_pemilik_akun_dosen;
+      return {
+        ...dosen,
+        username,
+        password,
+      };
+    });
+
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: dosen,
     };
   } catch (err) {
     throw new Error(err);
@@ -111,7 +157,7 @@ async function addMahasiswa(data) {
 
     if (findUsername)
       throw new Error(
-        "Username already exists, please use a different username"
+        "Username telah digunakan, silahkan gunakan username lain"
       );
 
     // Check dosen input
@@ -148,6 +194,55 @@ async function addMahasiswa(data) {
     if (!doneMhs || !doneAkun) throw new Error("Failed to create new account");
 
     return doneMhs;
+  } catch (err) {
+    throw err;
+  }
+}
+async function addDosen(data) {
+  try {
+    // Filter duplicate mahasiswa by finding them in database
+    const findDosen = await prisma.tb_dosen.findUnique({
+      where: {
+        nip: data.nip,
+      },
+    });
+
+    if (findDosen) throw new Error("Dosen sudah terdaftar");
+
+    // Check if username exists
+    const findUsername = await prisma.tb_akun_dosen.findUnique({
+      where: {
+        username: data.username,
+      },
+    });
+
+    if (findUsername)
+      throw new Error(
+        "Username telah digunakan, silahkan gunakan username lain"
+      );
+
+    const [doneDosen, doneAkun] = await prisma.$transaction([
+      prisma.tb_dosen.create({
+        data: {
+          nip: data.nip,
+          nama: data.namaLengkap,
+        },
+      }),
+
+      prisma.tb_akun_dosen.create({
+        data: {
+          username: data.username,
+          password: data.password,
+          status: "Aktif",
+          pemilik: data.nip,
+        },
+      }),
+    ]);
+
+    if (!doneDosen || !doneAkun)
+      throw new Error("Failed to create new account");
+
+    return doneDosen;
   } catch (err) {
     throw err;
   }
@@ -294,7 +389,22 @@ const getDataAkunMahasiswa = async () => {
   console.log(jumlahMahasiswa);
   const result = {
     sudahMemilikiAkun: jumlahAkunMahasiswa,
-    belumMemilikiAkun: jumlahMahasiswa - jumlahAkunMahasiswa,
+    belumMemilikiAkun:
+      jumlahMahasiswa - jumlahAkunMahasiswa > 0
+        ? jumlahMahasiswa - jumlahAkunMahasiswa
+        : 0,
+  };
+
+  return result;
+};
+
+const getDataAkunDosen = async () => {
+  const jumlahDosen = 26;
+  const jumlahAkunDosen = await prisma.tb_akun_dosen.count();
+  const result = {
+    sudahMemilikiAkun: jumlahAkunDosen,
+    belumMemilikiAkun:
+      jumlahDosen - jumlahAkunDosen > 0 ? jumlahDosen - jumlahAkunDosen : 0,
   };
 
   return result;
@@ -306,4 +416,8 @@ module.exports = {
   batchAddMahasiswa,
   getDataAkunMahasiswa,
   getAkunMahasiswa,
+
+  getDataAkunDosen,
+  getAkunDosen,
+  addDosen,
 };

@@ -34,7 +34,7 @@ const login = async (data) => {
   // Compare akun password
   try {
     let firstTime = false;
-    if (!akun.fk_pemilik.email && !dosen) {
+    if (!akun.fk_pemilik.email) {
       firstTime = true;
     }
     let passwordMatch = false;
