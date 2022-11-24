@@ -30,7 +30,6 @@ const {
 } = require("../services/rekapServices");
 const validateSemester = require("../utils/validateSemester");
 const path = require("path");
-const fs = require("fs");
 
 // Register
 const getDataRegisterDosenController = async (req, res) => {
@@ -649,22 +648,22 @@ const cetakDaftarMhsDosenController = async (req, res) => {
 
     return res.download(result, (err) => {
       if (err) {
-        console.log(err)
+        console.log(err);
         // res.status(400).json({
         //   message: err.message
         // })
       }
-      fs.unlinkSync(result)
+      fs.unlinkSync(result);
       // return res.status(200).json({
       //   message: "File berhasil di download"
       // })
-    })
+    });
   } catch (err) {
     return res.status(400).json({
       message: err.message,
     });
   }
-}
+};
 
 module.exports = {
   getDataRegisterDosenController,
