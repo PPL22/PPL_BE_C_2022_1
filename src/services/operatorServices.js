@@ -412,8 +412,6 @@ const updateStatusAkunMhs = async (data) => {
       }
     })
 
-    if (!result) throw new Error("Akun not found")
-
     return {
       statusAktif: statusAktif
     }
@@ -588,7 +586,7 @@ const updateStatusAkunDosen = async (data) => {
       statusAktif = "Aktif"
     }
 
-    const result = await prisma.tb_akun_mhs.update({
+    const result = await prisma.tb_akun_dosen.update({
       where: {
         pemilik: data.nip
       },
@@ -597,7 +595,7 @@ const updateStatusAkunDosen = async (data) => {
       }
     })
 
-    if (!result) throw new Error("Akun not found")
+    if (!result) throw new Error("Update status akun dosen failed")
 
     return {
       statusAktif: statusAktif

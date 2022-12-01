@@ -51,6 +51,7 @@ const {
   getDataRegisterDosenController,
   updateDataDosenController,
   cetakDaftarMhsDosenController,
+  updateStatusAktifMhsController,
 } = require("../controllers/dosenController");
 
 const {
@@ -77,32 +78,37 @@ router.use(verifyToken);
 
 //=======================================================
 // Operator
-router.get("/operator/daftar-dosen", getDataDosenController);
+// Dashboard
 router.get("/operator/jumlah-akun-mahasiswa", getJumlahAkunMahasiswaController);
 router.get("/operator/jumlah-akun-dosen", getJumlahAkunDosenController);
+router.get("/operator/profile", getProfileDosenController);
 
+// List akun
 router.get("/operator/akun-mahasiswa", getAkunMahasiswaController);
 router.get("/operator/akun-dosen", getAkunDosenController);
 
-router.get("/operator/profile", getProfileDosenController);
-
+// Add akun
+router.get("/operator/daftar-dosen", getDataDosenController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
 router.post("/operator/add-dosen", addDosenController);
-
 router.post(
   "/operator/batch-add-mahasiswa",
   uploadExcelMhs,
   batchAddMahasiswaController
 );
 
+// Cetak list akun
 router.get(
   "/operator/akun-mahasiswa/cetak",
   cetakDaftarAkunMahasiswaController
 );
 router.get("/operator/akun-dosen/cetak", cetakDaftarAkunDosenController);
 
+// Update status akun
 router.put("/operator/akun-mahasiswa/status-aktif/:nim", updateStatusAkunMhsController)
 router.put("/operator/akun-dosen/status-aktif/:nip", updateStatusAkunDosenController)
+
+
 //=======================================================
 // Mahasiswa Controller
 router.get("/mahasiswa/register", getDataRegisterMahasiswaController);
@@ -126,6 +132,7 @@ router.post(
   uploadDokumen,
   entryDataSkripsiController
 );
+
 
 //=======================================================
 // Dosen Controller
@@ -165,6 +172,10 @@ router.get("/dosen/daftar-skripsi/cetak", cetakDaftarMhsDosenController);
 // Search mahasiswa
 router.get("/dosen/search-mhs", searchMahasiswaDosenController);
 router.get("/dosen/data-akademik-mhs/", getDataAkademikMhsDosenController);
+
+// Update status aktif mahasiswa
+router.put("/dosen/status-aktif-mhs/", updateStatusAktifMhsController);
+
 
 //=======================================================
 // Departemen Controller

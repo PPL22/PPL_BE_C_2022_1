@@ -7,7 +7,6 @@ const ResizeFile = require("../utils/resizeFile");
 const path = require("path");
 
 const getDataRegisterDosen = async (data) => {
-  console.log(data);
   try {
     const result = await prisma.tb_dosen.findUnique({
       where: {
@@ -768,6 +767,25 @@ const validasiDataSkripsi = async (data) => {
   }
 };
 
+const updateStatusAktifMhs = async (data) => {
+  try {
+    const result = await prisma.tb_mhs.update({
+      where: {
+        nim: data.nim
+      },
+      data: {
+        statusAktif: data.statusAktif
+      }
+    })
+    
+    return {
+      statusAktif: data.statusAktif
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
 module.exports = {
   getDataRegisterDosen,
   updateDataDosen,
@@ -781,4 +799,6 @@ module.exports = {
   validasiDataKhs,
   validasiDataPkl,
   validasiDataSkripsi,
+
+  updateStatusAktifMhs,
 };

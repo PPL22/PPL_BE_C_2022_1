@@ -272,6 +272,12 @@ const cetakDaftarAkunDosenController = async (req, res) => {
 const updateStatusAkunMhsController = async (req, res) => {
   const { nim } = req.params
 
+  if (!nim) {
+    return res.status(400).json({
+      message: "Data tidak boleh kosong",
+    });
+  }
+
   try {
     const data = {nim}
     const result = await updateStatusAkunMhs(data)
@@ -284,6 +290,12 @@ const updateStatusAkunMhsController = async (req, res) => {
 
 const updateStatusAkunDosenController = async (req, res) => {
   const { nip } = req.params
+
+  if (!nip) {
+    return res.status(400).json({
+      message: "Data tidak boleh kosong",
+    });
+  }
 
   try {
     const data = {nip}

@@ -15,6 +15,7 @@ const {
   getStatusValidasiPKL,
   getStatusValidasiSkripsi,
   updateDataDosen,
+  updateStatusAktifMhs,
 } = require("../services/dosenServices");
 
 const {
@@ -483,14 +484,6 @@ const rekapMahasiswaDosenController = async (req, res) => {
   const nip = req.id;
   const path = req.path;
 
-  // !! Udah ada checking di JWT (?)
-  // // check null input
-  // if (!nip) {
-  //   return res.status(400).json({
-  //     message: "NIP tidak boleh kosong",
-  //   });
-  // }
-
   try {
     let result;
     if (path === `/dosen/rekap/pkl`) {
@@ -536,14 +529,6 @@ const daftarMahasiswaDosenController = async (req, res) => {
     return res.status(400).json({ message: "Bad request. Params not valid" });
   page = parseInt(page);
   qty = parseInt(qty);
-
-  // !! Udah ada checking di JWT (?)
-  // // check null input
-  // if (!nip) {
-  //   return res.status(400).json({
-  //     message: "NIP tidak boleh kosong",
-  //   });
-  // }
 
   try {
     const data = { nip, page, qty, sortBy, order };
@@ -599,7 +584,6 @@ const searchMahasiswaDosenController = async (req, res) => {
   }
 };
 
-// <R> Harus cek nip?
 const getDataAkademikMhsDosenController = async (req, res) => {
   const { nim } = req.query;
   const nip = req.id;
@@ -649,6 +633,7 @@ const cetakDaftarMhsDosenController = async (req, res) => {
       });
     }
 
+    // TODO: Handling ketika terjadi error ketika download
     return res.download(result, (err) => {
       if (err) {
         console.log(err);
@@ -667,6 +652,36 @@ const cetakDaftarMhsDosenController = async (req, res) => {
     });
   }
 };
+
+const updateStatusAktifMhsController = async (req, res) => {
+  const { nim, statusAktif } = req.body
+
+  if (!nim || !statusAktif) {
+    return res.status(400).json({
+      message: "Data tidak boleh kosong",
+    });
+  }
+
+  if (!["Aktif", "Cuti", "Mangkir", "DO", "Lulus", "UndurDiri", "MeninggalDunia"].includes(statusAktif)) {
+    return res.status(400).json({
+      message: "Value status aktif tidak valid",
+    })
+  }
+
+  try {
+    const data = {nim, statusAktif}
+    const result = await updateStatusAktifMhs(data)
+
+    return res.status(200).json({
+      data: result,
+      message: "Status aktif mahasiswa berhasil diupdate"
+    })
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message
+    })
+  }
+}
 
 module.exports = {
   getDataRegisterDosenController,
@@ -687,4 +702,6 @@ module.exports = {
   getDataAkademikMhsDosenController,
 
   cetakDaftarMhsDosenController,
+
+  updateStatusAktifMhsController
 };
