@@ -235,7 +235,6 @@ const batchAddMahasiswa = async (data) => {
   }
 };
 
-
 const getJumlahAkunMahasiswa = async () => {
   //reference = https://pddikti.kemdikbud.go.id/data_prodi/NjE1N0JBQTEtODE4Ny00Mjg4LUFERkYtMkREOTk1QTdDRkIw
   const jumlahMahasiswa = 773;
@@ -357,15 +356,31 @@ async function getAkunMahasiswa(data) {
       orderBy: sortFilter,
       take: data.qty,
       skip: (data.page - 1) * data.qty,
+      where: {
+        OR: [
+          {
+            nama: {
+              contains: data.keyword,
+            },
+          },
+          {
+            nim: {
+              contains: data.keyword,
+            },
+          },
+        ],
+      },
     });
 
     const mahasiswa = result.map((mahasiswa) => {
       const namaDoswal = mahasiswa.fk_kodeWali.nama;
       let username = null;
       let password = null;
+      let statusAkun = null;
       if (mahasiswa.fk_pemilik_akun_mhs) {
         username = mahasiswa.fk_pemilik_akun_mhs.username;
         password = mahasiswa.fk_pemilik_akun_mhs.password;
+        statusAkun = mahasiswa.fk_pemilik_akun_mhs.status;
       }
       delete mahasiswa.fk_kodeWali;
       delete mahasiswa.fk_pemilik_akun_mhs;
@@ -374,6 +389,7 @@ async function getAkunMahasiswa(data) {
         namaDoswal,
         username,
         password,
+        statusAkun,
       };
     });
 
@@ -391,37 +407,37 @@ const updateStatusAkunMhs = async (data) => {
   try {
     let statusAktif = await prisma.tb_akun_mhs.findFirst({
       where: {
-        pemilik: data.nim
+        pemilik: data.nim,
       },
       select: {
-        status: true
-      }
-    })
-    
-    if (!statusAktif) throw new Error("Akun not found")
+        status: true,
+      },
+    });
+
+    if (!statusAktif) throw new Error("Akun not found");
 
     if (statusAktif.status === "Aktif") {
-      statusAktif = "NonAktif"
+      statusAktif = "NonAktif";
     } else {
-      statusAktif = "Aktif"
+      statusAktif = "Aktif";
     }
 
     const result = await prisma.tb_akun_mhs.update({
       where: {
-        pemilik: data.nim
+        pemilik: data.nim,
       },
       data: {
-        status: statusAktif
-      }
-    })
+        status: statusAktif,
+      },
+    });
 
     return {
-      statusAktif: statusAktif
-    }
+      statusAktif: statusAktif,
+    };
   } catch (err) {
-    throw err
+    throw err;
   }
-}
+};
 
 // ================== Dosen ===================
 async function addDosen(data) {
@@ -534,22 +550,62 @@ async function getAkunDosen(data) {
     if (data.page < 1 || data.page > maxPage)
       throw new Error("Bad request. Params not valid");
 
+    // Create sorting argument for query
+    let sortFilter = {};
+    const orderDosen = ["nama", "nip"];
+
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          nip: "asc",
+        },
+        {
+          nama: "asc",
+        },
+      ];
+    } else if (orderDosen.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order;
+    } else if (data.sortBy === "doswal") {
+      sortFilter.fk_kodeWali = {
+        nip: data.order,
+      };
+    } else {
+      throw new Error("Bad Request: Sort params not valid");
+    }
+
     const result = await prisma.tb_dosen.findMany({
       select: {
         nip: true,
         nama: true,
         fk_pemilik_akun_dosen: true,
       },
+      orderBy: sortFilter,
       take: data.qty,
       skip: (data.page - 1) * data.qty,
+      where: {
+        OR: [
+          {
+            nama: {
+              contains: data.keyword,
+            },
+          },
+          {
+            nip: {
+              contains: data.keyword,
+            },
+          },
+        ],
+      },
     });
 
     const dosen = result.map((dosen) => {
       let username = null;
       let password = null;
+      let statusAkun = null;
       if (dosen.fk_pemilik_akun_dosen) {
         username = dosen.fk_pemilik_akun_dosen.username;
         password = dosen.fk_pemilik_akun_dosen.password;
+        statusAkun = dosen.fk_pemilik_akun_dosen.status;
       }
       delete dosen.fk_kodeWali;
       delete dosen.fk_pemilik_akun_dosen;
@@ -557,6 +613,7 @@ async function getAkunDosen(data) {
         ...dosen,
         username,
         password,
+        statusAkun,
       };
     });
 
@@ -574,39 +631,39 @@ const updateStatusAkunDosen = async (data) => {
   try {
     let statusAktif = await prisma.tb_akun_dosen.findFirst({
       where: {
-        pemilik: data.nip
+        pemilik: data.nip,
       },
       select: {
-        status: true
-      }
-    })
+        status: true,
+      },
+    });
 
-    if (!statusAktif) throw new Error("Akun not found")
+    if (!statusAktif) throw new Error("Akun not found");
 
     if (statusAktif.status === "Aktif") {
-      statusAktif = "NonAktif"
+      statusAktif = "NonAktif";
     } else {
-      statusAktif = "Aktif"
+      statusAktif = "Aktif";
     }
 
     const result = await prisma.tb_akun_dosen.update({
       where: {
-        pemilik: data.nip
+        pemilik: data.nip,
       },
       data: {
-        status: statusAktif
-      }
-    })
+        status: statusAktif,
+      },
+    });
 
-    if (!result) throw new Error("Update status akun dosen failed")
+    if (!result) throw new Error("Update status akun dosen failed");
 
     return {
-      statusAktif: statusAktif
-    }
+      statusAktif: statusAktif,
+    };
   } catch (err) {
-    throw err
+    throw err;
   }
-}
+};
 
 module.exports = {
   getDataDosen,
