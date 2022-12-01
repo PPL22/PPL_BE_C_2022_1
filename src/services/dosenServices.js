@@ -158,9 +158,9 @@ const getStatusValidasiIRS = async (data) => {
 
     // Add order
     const orderMhs = ["nama", "nim", "angkatan", "statusAktif"];
-    const orderKhs = ["semester", "jumlahSks", "statusValidasi"];
+    const orderIrs = ["semester", "jumlahSks", "statusValidasi"];
 
-    if (orderKhs.includes(data.sortBy)) {
+    if (orderIrs.includes(data.sortBy)) {
       query.orderBy[data.sortBy] = data.order;
     } else if (orderMhs.includes(data.sortBy)) {
       query.orderBy["fk_nim"] = {};

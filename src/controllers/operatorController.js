@@ -26,7 +26,7 @@ const getAkunMahasiswaController = async (req, res) => {
   let { page, qty, sortBy, order } = req.query;
 
   if (!page) page = 1;
-  if (!qty) qty = 10;
+  if (!qty) qty = 5;
   if (!order) order = "asc";
 
   // Check params
@@ -49,7 +49,7 @@ const getAkunDosenController = async (req, res) => {
   let { page, qty } = req.query;
 
   if (!page) page = 1;
-  if (!qty) qty = 10;
+  if (!qty) qty = 5;
 
   // Check params
   if (isNaN(page) || isNaN(qty))

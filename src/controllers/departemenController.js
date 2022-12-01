@@ -13,9 +13,10 @@ const {
 } = require("../services/rekapServices");
 
 const getDashboardDepartemenController = async (req, res) => {
-  const { angkatan, dokumen } = req.query
+  let { angkatan, dokumen } = req.query
   
-  if (!["ALL", "IRS", "KHS", "PKL", "SKRIPSI"].includes(dokumen)) return res.status(400).json("Dokumen param not valid")
+  if (!dokumen) dokumen = "ALL"
+  if (!["ALL", "IRS", "KHS", "PKL", "SKRIPSI"].includes(dokumen)) return res.status(400).json({message: "Dokumen param not valid"})
 
   try {
     const data = {angkatan, dokumen}
@@ -60,7 +61,7 @@ const daftarMahasiswaDepartemenController = async (req, res) => {
   let {page, qty, sortBy, order} = req.query;
   
   if (!page) page = 1;
-  if (!qty) qty = 10;
+  if (!qty) qty = 5;
   if (!order) order = "asc" 
   
   // Check params
@@ -113,7 +114,11 @@ const searchMahasiswaDepartemenController = async (req, res) => {
 const getDataAkademikMhsDepartemenController = async (req, res) => {
   const {
     nim
-  } = req.params
+  } = req.query
+
+  if (!nim) {
+    return res.status(400).json({message: "NIM tidak boleh kosong"})
+  }
 
   try {
     const result = await getDataAkademikMhs({

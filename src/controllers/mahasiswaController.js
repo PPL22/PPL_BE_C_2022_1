@@ -82,7 +82,7 @@ const updateDataMahasiswaController = async (req, res) => {
   // TODO-VALIDATE: check password
 
   // Check nomor HP (format nomor HP Indonesia)
-  const regexNoHP = /^(628)\d{8,13}$/;
+  const regexNoHP = /^(628)|+628\d{8,13}$/;
   if (!regexNoHP.test(noHP)) {
     if (noHP.length < 10 || noHP.length > 13) {
       return res.status(400).json({

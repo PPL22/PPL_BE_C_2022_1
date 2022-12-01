@@ -161,7 +161,7 @@ router.get("/dosen/daftar-skripsi/cetak", cetakDaftarMhsDosenController);
 
 // Search mahasiswa
 router.get("/dosen/search-mhs", searchMahasiswaDosenController);
-router.get("/dosen/data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
+router.get("/dosen/data-akademik-mhs/", getDataAkademikMhsDosenController);
 
 //=======================================================
 // Departemen Controller
@@ -190,7 +190,7 @@ router.get(
 // Search mahasiswa
 router.get("/departemen/search-mhs/", searchMahasiswaDepartemenController);
 router.get(
-  "/departemen/data-akademik-mhs/:nim",
+  "/departemen/data-akademik-mhs/",
   getDataAkademikMhsDepartemenController
 );
 

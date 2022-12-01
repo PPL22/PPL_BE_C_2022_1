@@ -69,11 +69,8 @@ const updateDataDosenController = async (req, res) => {
     });
   }
 
-  // Check nim
+  // Check nip
   if (nip != req.id) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
     return res.status(403).json({
       message: "NIP berbeda dari data login. Entry tidak dapat dilakukan",
     });
@@ -101,7 +98,7 @@ const updateDataDosenController = async (req, res) => {
   // TODO-VALIDATE: check password
 
   // Check nomor HP (format nomor HP Indonesia)
-  const regexNoHP = /^(628)\d{8,13}$/;
+  const regexNoHP = /^(628|\+628)\d{8,13}$/;
   if (!regexNoHP.test(noHP)) {
     if (noHP.length < 10 || noHP.length > 13) {
       return res.status(400).json({
@@ -156,7 +153,7 @@ const updateDataDosenController = async (req, res) => {
 // Dashboard
 const getDashboardDosenController = async (req, res) => {
   const nip = req.id;
-  const { angkatan, dokumen } = req.query;
+  let { angkatan, dokumen } = req.query;
 
   // !! Udah ada checking di JWT (?)
   // if (!nip) {
@@ -165,8 +162,9 @@ const getDashboardDosenController = async (req, res) => {
   //   });
   // }
 
+  if (!dokumen) dokumen = "ALL"
   if (!["ALL", "IRS", "KHS", "PKL", "SKRIPSI"].includes(dokumen))
-    return res.status(400).json("Dokumen param not valid");
+    return res.status(400).json({message: "Dokumen param not valid"});
 
   try {
     const data = { nip, angkatan, dokumen };
@@ -191,7 +189,7 @@ const getStatusValidasiController = async (req, res) => {
 
   // Insert default value
   if (!page) page = 1;
-  if (!qty) qty = 10;
+  if (!qty) qty = 5;
   if (!sortBy) sortBy = "statusValidasi";
   if (!order) order = "asc";
 
@@ -530,7 +528,7 @@ const daftarMahasiswaDosenController = async (req, res) => {
   let { page, qty, sortBy, order } = req.query;
 
   if (!page) page = 1;
-  if (!qty) qty = 10;
+  if (!qty) qty = 5;
   if (!order) order = "asc";
 
   // Check params
@@ -603,8 +601,13 @@ const searchMahasiswaDosenController = async (req, res) => {
 
 // <R> Harus cek nip?
 const getDataAkademikMhsDosenController = async (req, res) => {
-  const { nim } = req.params;
+  const { nim } = req.query;
   const nip = req.id;
+
+  if (!nim) {
+    return res.status(400).json({message: "NIM tidak boleh kosong"})
+  }
+
   try {
     const result = await getDataAkademikMhs({
       nim,
