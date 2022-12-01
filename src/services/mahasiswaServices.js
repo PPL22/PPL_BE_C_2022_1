@@ -156,7 +156,7 @@ const entryDataIrs = async (data) => {
 
     // Check if semester is valid
     // TODO: Validate semester masih error
-    if (validateSemester(data.nim, data.semester)) {
+    if (await validateSemester(data.nim, data.semester)) {
       let lastIrs = await prisma.tb_irs.aggregate({
         where: {
           nim: data.nim,
@@ -248,7 +248,7 @@ const entryDataKhs = async (data) => {
 
     // Check if semester is valid
     // let valid = false
-    if (validateSemester(data.nim, data.semester)) {
+    if (await validateSemester(data.nim, data.semester)) {
       // Check if KHS is valid filled
       const lastKhs = await prisma.tb_khs.aggregate({
         where: {
@@ -333,7 +333,7 @@ const entryDataPkl = async (data) => {
     });
 
     // let valid = false
-    if (validateSemester(data.nim, data.semester)) {
+    if (await validateSemester(data.nim, data.semester)) {
       // Check if IRS is already filled
       const lastIrs = await prisma.tb_irs.findUnique({
         where: {
@@ -398,7 +398,7 @@ const entryDataSkripsi = async (data) => {
     });
 
     // let valid = false
-    if (validateSemester(data.nim, data.semester)) {
+    if (await validateSemester(data.nim, data.semester)) {
       // Check if IRS is already filled
       const lastIrs = await prisma.tb_irs.findUnique({
         where: {

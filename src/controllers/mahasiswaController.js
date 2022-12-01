@@ -10,7 +10,6 @@ const {
 } = require("../services/mahasiswaServices");
 const path = require("path");
 const fs = require("fs");
-const validateSemester = require("../utils/validateSemester");
 
 const getDataRegisterMahasiswaController = async (req, res) => {
   const nim = req.id;
@@ -373,15 +372,7 @@ const entryDataPklController = async (req, res) => {
     });
   }
 
-  // Check semester
-  if (!validateSemester(nim, semester)) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
-    return res.status(400).json({
-      message: "Semester tidak valid",
-    });
-  }
+  // Check semester | Done in service
 
   // TODO-VALIDATE: validasi nilai PKL
 
@@ -446,15 +437,7 @@ const entryDataSkripsiController = async (req, res) => {
     });
   }
 
-  // Check semester
-  if (!validateSemester(nim, semester)) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
-    return res.status(400).json({
-      message: "Semester tidak valid",
-    });
-  }
+  // Check semester | Done in service
 
   // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
 

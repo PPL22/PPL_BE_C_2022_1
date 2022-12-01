@@ -254,7 +254,7 @@ const validasiDataIrsController = async (req, res) => {
   }
 
   // Check semester
-  if (!validateSemester(nim, semester)) {
+  if (!(await validateSemester(nim, semester))) {
     return res.status(400).json({
       message: "Semester tidak valid",
     });
@@ -329,7 +329,7 @@ const validasiDataKhsController = async (req, res) => {
 
   // TODO-VALIDATE: Recheck validate semester in KHS (validasi dosen)
   // Check semester
-  if (!validateSemester(nim, semester)) {
+  if (!(await validateSemester(nim, semester))) {
     return res.status(400).json({
       message: "Semester tidak valid",
     });
@@ -396,7 +396,7 @@ const validasiDataPklController = async (req, res) => {
   }
 
   // Check semester
-  if (!validateSemester(nim, semester)) {
+  if (!(await validateSemester(nim, semester))) {
     return res.status(400).json({
       message: "Semester tidak valid",
     });
@@ -447,7 +447,7 @@ const validasiDataSkripsiController = async (req, res) => {
   }
 
   // Check semester
-  if (!validateSemester(nim, semester)) {
+  if (!(await validateSemester(nim, semester))) {
     return res.status(400).json({
       message: "Semester tidak valid",
     });

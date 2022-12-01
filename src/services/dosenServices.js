@@ -503,8 +503,6 @@ const validasiDataIrs = async (data) => {
     let oldSemester = data.fileName.split("-")[2]; // For renaming purpose
     oldSemester = oldSemester.substring(0, oldSemester.length - 4);
 
-    console.log(data);
-
     // Check if file exists
     if (!fs.existsSync(`public/documents` + data.fileName))
       throw new Error("File doesn't exist, not valid");
