@@ -22,6 +22,8 @@ const {
   getAkunDosenController,
   addDosenController,
   cetakDaftarAkunDosenController,
+  updateStatusAkunMhsController,
+  updateStatusAkunDosenController,
 } = require("../controllers/operatorController");
 
 const {
@@ -97,9 +99,10 @@ router.get(
   "/operator/akun-mahasiswa/cetak",
   cetakDaftarAkunMahasiswaController
 );
-
 router.get("/operator/akun-dosen/cetak", cetakDaftarAkunDosenController);
 
+router.put("/operator/akun-mahasiswa/status-aktif/:nim", updateStatusAkunMhsController)
+router.put("/operator/akun-dosen/status-aktif/:nip", updateStatusAkunDosenController)
 //=======================================================
 // Mahasiswa Controller
 router.get("/mahasiswa/register", getDataRegisterMahasiswaController);

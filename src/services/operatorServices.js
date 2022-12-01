@@ -34,128 +34,7 @@ async function getDataDosen() {
   }
 }
 
-async function getAkunMahasiswa(data) {
-  try {
-    // Get total amount of data
-    let maxPage = await prisma.tb_mhs.count();
-    maxPage = Math.ceil(maxPage / data.qty);
-
-    // Revalidate current page
-    if (data.page < 1 || data.page > maxPage)
-      throw new Error("Bad request. Params not valid");
-
-    // Create sorting argument for query
-    let sortFilter = {};
-    const orderMhs = ["nama", "nim", "angkatan", "jalurMasuk", "statusAktif"];
-
-    if (!data.sortBy) {
-      sortFilter = [
-        {
-          angkatan: "asc",
-        },
-        {
-          nim: "asc",
-        },
-      ];
-    } else if (orderMhs.includes(data.sortBy)) {
-      sortFilter[data.sortBy] = data.order;
-    } else if (data.sortBy === "doswal") {
-      sortFilter.fk_kodeWali = {
-        nip: data.order,
-      };
-    } else {
-      throw new Error("Bad Request: Sort params not valid");
-    }
-
-    const result = await prisma.tb_mhs.findMany({
-      select: {
-        nim: true,
-        nama: true,
-        angkatan: true,
-        jalurMasuk: true,
-        statusAktif: true,
-        fk_kodeWali: true,
-        fk_pemilik_akun_mhs: true,
-      },
-      orderBy: sortFilter,
-      take: data.qty,
-      skip: (data.page - 1) * data.qty,
-    });
-
-    const mahasiswa = result.map((mahasiswa) => {
-      const namaDoswal = mahasiswa.fk_kodeWali.nama;
-      let username = null;
-      let password = null;
-      if (mahasiswa.fk_pemilik_akun_mhs) {
-        username = mahasiswa.fk_pemilik_akun_mhs.username;
-        password = mahasiswa.fk_pemilik_akun_mhs.password;
-      }
-      delete mahasiswa.fk_kodeWali;
-      delete mahasiswa.fk_pemilik_akun_mhs;
-      return {
-        ...mahasiswa,
-        namaDoswal,
-        username,
-        password,
-      };
-    });
-
-    return {
-      currentPage: data.page,
-      maxPage: maxPage,
-      list: mahasiswa,
-    };
-  } catch (err) {
-    throw new Error(err);
-  }
-}
-
-async function getAkunDosen(data) {
-  try {
-    // Get total amount of data
-    let maxPage = await prisma.tb_dosen.count();
-    maxPage = Math.ceil(maxPage / data.qty);
-
-    // Revalidate current page
-    if (data.page < 1 || data.page > maxPage)
-      throw new Error("Bad request. Params not valid");
-
-    const result = await prisma.tb_dosen.findMany({
-      select: {
-        nip: true,
-        nama: true,
-        fk_pemilik_akun_dosen: true,
-      },
-      take: data.qty,
-      skip: (data.page - 1) * data.qty,
-    });
-
-    const dosen = result.map((dosen) => {
-      let username = null;
-      let password = null;
-      if (dosen.fk_pemilik_akun_dosen) {
-        username = dosen.fk_pemilik_akun_dosen.username;
-        password = dosen.fk_pemilik_akun_dosen.password;
-      }
-      delete dosen.fk_kodeWali;
-      delete dosen.fk_pemilik_akun_dosen;
-      return {
-        ...dosen,
-        username,
-        password,
-      };
-    });
-
-    return {
-      currentPage: data.page,
-      maxPage: maxPage,
-      list: dosen,
-    };
-  } catch (err) {
-    throw new Error(err);
-  }
-}
-
+// ============= Mahasiswa ==============
 async function addMahasiswa(data) {
   try {
     // Filter duplicate mahasiswa by finding them in database
@@ -213,55 +92,6 @@ async function addMahasiswa(data) {
     if (!doneMhs || !doneAkun) throw new Error("Failed to create new account");
 
     return doneMhs;
-  } catch (err) {
-    throw err;
-  }
-}
-async function addDosen(data) {
-  try {
-    // Filter duplicate mahasiswa by finding them in database
-    const findDosen = await prisma.tb_dosen.findUnique({
-      where: {
-        nip: data.nip,
-      },
-    });
-
-    if (findDosen) throw new Error("Dosen sudah terdaftar");
-
-    // Check if username exists
-    const findUsername = await prisma.tb_akun_dosen.findUnique({
-      where: {
-        username: data.username,
-      },
-    });
-
-    if (findUsername)
-      throw new Error(
-        "Username telah digunakan, silahkan gunakan username lain"
-      );
-
-    const [doneDosen, doneAkun] = await prisma.$transaction([
-      prisma.tb_dosen.create({
-        data: {
-          nip: data.nip,
-          nama: data.namaLengkap,
-        },
-      }),
-
-      prisma.tb_akun_dosen.create({
-        data: {
-          username: data.username,
-          password: data.password,
-          status: "Aktif",
-          pemilik: data.nip,
-        },
-      }),
-    ]);
-
-    if (!doneDosen || !doneAkun)
-      throw new Error("Failed to create new account");
-
-    return doneDosen;
   } catch (err) {
     throw err;
   }
@@ -402,6 +232,7 @@ const batchAddMahasiswa = async (data) => {
   }
 };
 
+
 const getJumlahAkunMahasiswa = async () => {
   //reference = https://pddikti.kemdikbud.go.id/data_prodi/NjE1N0JBQTEtODE4Ny00Mjg4LUFERkYtMkREOTk1QTdDRkIw
   const jumlahMahasiswa = 773;
@@ -413,19 +244,6 @@ const getJumlahAkunMahasiswa = async () => {
       jumlahMahasiswa - jumlahAkunMahasiswa > 0
         ? jumlahMahasiswa - jumlahAkunMahasiswa
         : 0,
-  };
-
-  return result;
-};
-
-const getDataAkunDosen = async () => {
-  //reference = https://if.fsm.undip.ac.id/id/struktur-organisasi
-  const jumlahDosen = 30;
-  const jumlahAkunDosen = await prisma.tb_akun_dosen.count();
-  const result = {
-    sudahMemilikiAkun: jumlahAkunDosen,
-    belumMemilikiAkun:
-      jumlahDosen - jumlahAkunDosen > 0 ? jumlahDosen - jumlahAkunDosen : 0,
   };
 
   return result;
@@ -490,6 +308,184 @@ const cetakDaftarAkunMahasiswa = async (data) => {
   }
 };
 
+async function getAkunMahasiswa(data) {
+  try {
+    // Get total amount of data
+    let maxPage = await prisma.tb_mhs.count();
+    maxPage = Math.ceil(maxPage / data.qty);
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
+
+    // Create sorting argument for query
+    let sortFilter = {};
+    const orderMhs = ["nama", "nim", "angkatan", "jalurMasuk", "statusAktif"];
+
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          angkatan: "asc",
+        },
+        {
+          nim: "asc",
+        },
+      ];
+    } else if (orderMhs.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order;
+    } else if (data.sortBy === "doswal") {
+      sortFilter.fk_kodeWali = {
+        nip: data.order,
+      };
+    } else {
+      throw new Error("Bad Request: Sort params not valid");
+    }
+
+    const result = await prisma.tb_mhs.findMany({
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        jalurMasuk: true,
+        statusAktif: true,
+        fk_kodeWali: true,
+        fk_pemilik_akun_mhs: true,
+      },
+      orderBy: sortFilter,
+      take: data.qty,
+      skip: (data.page - 1) * data.qty,
+    });
+
+    const mahasiswa = result.map((mahasiswa) => {
+      const namaDoswal = mahasiswa.fk_kodeWali.nama;
+      let username = null;
+      let password = null;
+      if (mahasiswa.fk_pemilik_akun_mhs) {
+        username = mahasiswa.fk_pemilik_akun_mhs.username;
+        password = mahasiswa.fk_pemilik_akun_mhs.password;
+      }
+      delete mahasiswa.fk_kodeWali;
+      delete mahasiswa.fk_pemilik_akun_mhs;
+      return {
+        ...mahasiswa,
+        namaDoswal,
+        username,
+        password,
+      };
+    });
+
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: mahasiswa,
+    };
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
+const updateStatusAkunMhs = async (data) => {
+  try {
+    let statusAktif = await prisma.tb_akun_mhs.findFirst({
+      where: {
+        pemilik: data.nim
+      },
+      select: {
+        status: true
+      }
+    })
+    
+    if (!statusAktif) throw new Error("Akun not found")
+
+    if (statusAktif.status === "Aktif") {
+      statusAktif = "NonAktif"
+    } else {
+      statusAktif = "Aktif"
+    }
+
+    const result = await prisma.tb_akun_mhs.update({
+      where: {
+        pemilik: data.nim
+      },
+      data: {
+        status: statusAktif
+      }
+    })
+
+    if (!result) throw new Error("Akun not found")
+
+    return {
+      statusAktif: statusAktif
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
+// ================== Dosen ===================
+async function addDosen(data) {
+  try {
+    // Filter duplicate mahasiswa by finding them in database
+    const findDosen = await prisma.tb_dosen.findUnique({
+      where: {
+        nip: data.nip,
+      },
+    });
+
+    if (findDosen) throw new Error("Dosen sudah terdaftar");
+
+    // Check if username exists
+    const findUsername = await prisma.tb_akun_dosen.findUnique({
+      where: {
+        username: data.username,
+      },
+    });
+
+    if (findUsername)
+      throw new Error(
+        "Username telah digunakan, silahkan gunakan username lain"
+      );
+
+    const [doneDosen, doneAkun] = await prisma.$transaction([
+      prisma.tb_dosen.create({
+        data: {
+          nip: data.nip,
+          nama: data.namaLengkap,
+        },
+      }),
+
+      prisma.tb_akun_dosen.create({
+        data: {
+          username: data.username,
+          password: data.password,
+          status: "Aktif",
+          pemilik: data.nip,
+        },
+      }),
+    ]);
+
+    if (!doneDosen || !doneAkun)
+      throw new Error("Failed to create new account");
+
+    return doneDosen;
+  } catch (err) {
+    throw err;
+  }
+}
+
+const getJumlahAkunDosen = async () => {
+  //reference = https://if.fsm.undip.ac.id/id/struktur-organisasi
+  const jumlahDosen = 30;
+  const jumlahAkunDosen = await prisma.tb_akun_dosen.count();
+  const result = {
+    sudahMemilikiAkun: jumlahAkunDosen,
+    belumMemilikiAkun:
+      jumlahDosen - jumlahAkunDosen > 0 ? jumlahDosen - jumlahAkunDosen : 0,
+  };
+
+  return result;
+};
+
 const cetakDaftarAkunDosen = async (data) => {
   try {
     const result = await prisma.tb_dosen.findMany({
@@ -527,15 +523,103 @@ const cetakDaftarAkunDosen = async (data) => {
   }
 };
 
+async function getAkunDosen(data) {
+  try {
+    // Get total amount of data
+    let maxPage = await prisma.tb_dosen.count();
+    maxPage = Math.ceil(maxPage / data.qty);
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
+
+    const result = await prisma.tb_dosen.findMany({
+      select: {
+        nip: true,
+        nama: true,
+        fk_pemilik_akun_dosen: true,
+      },
+      take: data.qty,
+      skip: (data.page - 1) * data.qty,
+    });
+
+    const dosen = result.map((dosen) => {
+      let username = null;
+      let password = null;
+      if (dosen.fk_pemilik_akun_dosen) {
+        username = dosen.fk_pemilik_akun_dosen.username;
+        password = dosen.fk_pemilik_akun_dosen.password;
+      }
+      delete dosen.fk_kodeWali;
+      delete dosen.fk_pemilik_akun_dosen;
+      return {
+        ...dosen,
+        username,
+        password,
+      };
+    });
+
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: dosen,
+    };
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
+const updateStatusAkunDosen = async (data) => {
+  try {
+    let statusAktif = await prisma.tb_akun_dosen.findFirst({
+      where: {
+        pemilik: data.nip
+      },
+      select: {
+        status: true
+      }
+    })
+
+    if (!statusAktif) throw new Error("Akun not found")
+
+    if (statusAktif.status === "Aktif") {
+      statusAktif = "NonAktif"
+    } else {
+      statusAktif = "Aktif"
+    }
+
+    const result = await prisma.tb_akun_mhs.update({
+      where: {
+        pemilik: data.nip
+      },
+      data: {
+        status: statusAktif
+      }
+    })
+
+    if (!result) throw new Error("Akun not found")
+
+    return {
+      statusAktif: statusAktif
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
 module.exports = {
   getDataDosen,
+
   addMahasiswa,
   batchAddMahasiswa,
   getJumlahAkunMahasiswa,
-  getAkunMahasiswa,
   cetakDaftarAkunMahasiswa,
-  getDataAkunDosen,
+  getAkunMahasiswa,
+  updateStatusAkunMhs,
+
+  addDosen,
+  getJumlahAkunDosen,
   cetakDaftarAkunDosen,
   getAkunDosen,
-  addDosen,
+  updateStatusAkunDosen,
 };
