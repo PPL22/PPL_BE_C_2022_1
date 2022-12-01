@@ -132,11 +132,14 @@ const updateDataMahasiswa = async (data) => {
 
 const entryDataIrs = async (data) => {
   try {
-    const fileName = `irs-${data.nim}-${data.semester}.pdf`;
-    fs.renameSync(
-      `public/documents/${data.dokumen.originalname}`,
-      `public/documents/irs/${fileName}`
-    );
+    let fileName = "";
+    if (data.dokumen) {
+      fileName = `irs-${data.nim}-${data.semester}.pdf`;
+      fs.renameSync(
+        `public/documents/${data.dokumen.originalname}`,
+        `public/documents/irs/${fileName}`
+      );
+    }
 
     const exist = await prisma.tb_irs.findUnique({
       where: {
@@ -147,58 +150,100 @@ const entryDataIrs = async (data) => {
       },
     });
 
-    if (exist) {
-      fs.unlink(`public/documents/irs/${fileName}`, (err) => {
-        if (err) throw err;
-      });
+    if (exist && data.oldSemester !== data.semester) {
+      if (data.dokumen) {
+        fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+      }
       throw new Error(`IRS semester ${data.semester} telah diisi`);
     }
 
     // Check if semester is valid
     // TODO: Validate semester masih error
-    if (validateSemester(data.nim, data.semester)) {
-      let lastIrs = await prisma.tb_irs.aggregate({
-        where: {
-          nim: data.nim,
-        },
-        _max: {
-          semester: true,
-        },
-      });
-      if (lastIrs._max.semester == null) {
-        if (data.semester != 1) {
+    if (!data.oldSemester) {
+      if (validateSemester(data.nim, data.semester)) {
+        let lastIrs = await prisma.tb_irs.aggregate({
+          where: {
+            nim: data.nim,
+          },
+          _max: {
+            semester: true,
+          },
+        });
+        if (lastIrs._max.semester == null) {
+          if (data.semester != 1) {
+            if (data.dokumen) {
+              fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+                if (err) throw err;
+              });
+            }
+            throw new Error(`IRS harus diisi urut mulai dari semester 1`);
+          }
+        } else if (
+          parseInt(data.semester) !=
+          parseInt(lastIrs._max.semester) + 1
+        ) {
+          if (data.dokumen) {
+            fs.unlink(`public/documents/irs/${fileName}`, (err) => {
+              if (err) throw err;
+            });
+          }
+          throw new Error(
+            `IRS harus diisi urut semester (IRS terakhir yang diisi: semester ${lastIrs._max.semester})`
+          );
+        }
+      } else {
+        if (data.dokumen) {
           fs.unlink(`public/documents/irs/${fileName}`, (err) => {
             if (err) throw err;
           });
-          throw new Error(`IRS harus diisi urut mulai dari semester 1`);
         }
-      } else if (parseInt(data.semester) != parseInt(lastIrs._max.semester) + 1) {
-        fs.unlink(`public/documents/irs/${fileName}`, (err) => {
-          if (err) throw err;
-        });
-        throw new Error(
-          `IRS harus diisi urut semester (IRS terakhir yang diisi: semester ${lastIrs._max.semester})`
-        );
+        throw new Error(`Semester tidak valid`);
       }
-    } else {
-      fs.unlink(`public/documents/irs/${fileName}`, (err) => {
-        if (err) throw err;
-      });
-      throw new Error(`Semester tidak valid`);
     }
 
     // Input IRS
-    const result = await prisma.tb_irs.create({
-      data: {
-        nim: data.nim,
-        semester: data.semester,
-        status: data.status,
-        jumlahSks: data.jumlahSks,
-        fileIrs: fileName,
-      },
-    });
+    if (data.oldSemester) {
+      const updateIrs = await prisma.tb_irs.update({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.oldSemester,
+          },
+        },
+        data: data.dokumen
+          ? {
+              semester: data.semester,
+              fileIrs: fileName,
+              jumlahSks: data.jumlahSks,
+              status: data.status,
+            }
+          : {
+              semester: data.semester,
+              jumlahSks: data.jumlahSks,
+              status: data.status,
+            },
+      });
 
-    return result;
+      if (!updateIrs) {
+        throw new Error("Terjadi kesalahan, silahkan coba lagi");
+      }
+
+      return updateIrs;
+    } else {
+      const result = await prisma.tb_irs.create({
+        data: {
+          nim: data.nim,
+          semester: data.semester,
+          status: data.status,
+          jumlahSks: data.jumlahSks,
+          fileIrs: fileName,
+        },
+      });
+
+      return result;
+    }
   } catch (err) {
     throw err;
   }
@@ -206,27 +251,32 @@ const entryDataIrs = async (data) => {
 
 const entryDataKhs = async (data) => {
   try {
-    const fileName = `khs-${data.nim}-${data.semester}.pdf`;
-    fs.renameSync(
-      `public/documents/${data.dokumen.originalname}`,
-      `public/documents/khs/${fileName}`
-    );
+    let fileName = "";
+    if (data.dokumen) {
+      fileName = `khs-${data.nim}-${data.semester}.pdf`;
+      fs.renameSync(
+        `public/documents/${data.dokumen.originalname}`,
+        `public/documents/khs/${fileName}`
+      );
+    }
 
     // Check IRS
     const irsExist = await prisma.tb_irs.findUnique({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester
-        }
-      }
-    })
+          semester: data.semester,
+        },
+      },
+    });
 
     if (!irsExist) {
       fs.unlink(`public/documents/khs/${fileName}`, (err) => {
         if (err) throw err;
       });
-      throw new Error(`IRS semester ${data.semester} harus diisi terlebih dahulu`);
+      throw new Error(
+        `IRS semester ${data.semester} harus diisi terlebih dahulu`
+      );
     }
 
     // Check if KHS already exists
@@ -239,127 +289,202 @@ const entryDataKhs = async (data) => {
       },
     });
 
-    if (exist) {
-      fs.unlink(`public/documents/khs/${fileName}`, (err) => {
-        if (err) throw err;
-      });
+    if (exist && data.oldSemester !== data.semester) {
+      if (data.dokumen) {
+        fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+          if (err) throw err;
+        });
+      }
       throw new Error(`KHS semester ${data.semester} telah diisi`);
     }
 
     // Check if semester is valid
     // let valid = false
-    if (validateSemester(data.nim, data.semester)) {
-      // Check if KHS is valid filled
-      const lastKhs = await prisma.tb_khs.aggregate({
-        where: {
-          nim: data.nim
-        },
-        _max: {
-          semester: true
-        }
-      })
+    if (!data.oldSemester) {
+      if (validateSemester(data.nim, data.semester)) {
+        // Check if KHS is valid filled
+        const lastKhs = await prisma.tb_khs.aggregate({
+          where: {
+            nim: data.nim,
+          },
+          _max: {
+            semester: true,
+          },
+        });
 
-      if (lastKhs._max.semester == null) {
-        if (data.semester != 1) {
+        if (lastKhs._max.semester == null) {
+          if (data.semester != 1) {
+            fs.unlink(`public/documents/khs/${fileName}`, (err) => {
+              if (err) throw err;
+            });
+            throw new Error(`KHS harus diisi urut mulai dari semester 1`);
+          }
+        } else if (
+          parseInt(data.semester) !=
+          parseInt(lastKhs._max.semester) + 1
+        ) {
           fs.unlink(`public/documents/khs/${fileName}`, (err) => {
             if (err) throw err;
           });
-          throw new Error(`KHS harus diisi urut mulai dari semester 1`);
+          throw new Error(
+            `KHS harus diisi urut semester (KHS terakhir yang diisi: semester ${lastKhs._max.semester})`
+          );
         }
-      } else if (parseInt(data.semester) != parseInt(lastKhs._max.semester) + 1) {
+      } else {
         fs.unlink(`public/documents/khs/${fileName}`, (err) => {
           if (err) throw err;
         });
-        throw new Error(
-          `KHS harus diisi urut semester (KHS terakhir yang diisi: semester ${lastKhs._max.semester})`
-        );
+        throw new Error(`Semester tidak valid`);
       }
-    } else {
-      fs.unlink(`public/documents/khs/${fileName}`, (err) => {
-        if (err) throw err;
-      });
-      throw new Error(`Semester tidak valid`);
     }
 
     // INPUT
-    const result = await prisma.tb_khs.create({
-      data: {
-        nim: data.nim,
-        semester: data.semester,
-        status: data.status,
-        jumlahSksSemester: data.jumlahSksSemester,
-        ips: data.ips,
-        jumlahSksKumulatif: data.jumlahSksKumulatif,
-        ipk: data.ipk,
-        fileKhs: fileName,
-      },
-    });
+    if (data.oldSemester) {
+      const updateKhs = await prisma.tb_khs.update({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.oldSemester,
+          },
+        },
+        data: data.dokumen
+          ? {
+              semester: data.semester,
+              status: data.status,
+              jumlahSksSemester: data.jumlahSksSemester,
+              ips: data.ips,
+              jumlahSksKumulatif: data.jumlahSksKumulatif,
+              ipk: data.ipk,
+              fileKhs: fileName,
+            }
+          : {
+              semester: data.semester,
+              status: data.status,
+              jumlahSksSemester: data.jumlahSksSemester,
+              ips: data.ips,
+              jumlahSksKumulatif: data.jumlahSksKumulatif,
+              ipk: data.ipk,
+            },
+      });
 
-    return result;
+      if (!updateKhs) {
+        throw new Error("Terjadi kesalahan, silahkan coba lagi");
+      }
+
+      return updateKhs;
+    } else {
+      const result = await prisma.tb_khs.create({
+        data: {
+          nim: data.nim,
+          semester: data.semester,
+          status: data.status,
+          jumlahSksSemester: data.jumlahSksSemester,
+          ips: data.ips,
+          jumlahSksKumulatif: data.jumlahSksKumulatif,
+          ipk: data.ipk,
+          fileKhs: fileName,
+        },
+      });
+
+      return result;
+    }
   } catch (err) {
-    console.log(err)
+    console.log(err);
     throw err;
   }
 };
 
 const entryDataPkl = async (data) => {
   try {
-    const fileName = `pkl-${data.nim}-${data.semester}.pdf`;
-    fs.renameSync(
-      `public/documents/${data.dokumen.originalname}`,
-      `public/documents/pkl/${fileName}`
-    );
+    let fileName = "";
+    if (data.dokumen) {
+      fileName = `pkl-${data.nim}-${data.semester}.pdf`;
+      fs.renameSync(
+        `public/documents/${data.dokumen.originalname}`,
+        `public/documents/pkl/${fileName}`
+      );
+    }
 
     // PKL can only be filled once
     const findPkl = await prisma.tb_pkl.findUnique({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester
-        }
-      }
-    })
-
-    if (findPkl) throw new Error("Data PKL telah terisi")
-
-    const result = await prisma.tb_pkl.create({
-      data: {
-        nim: data.nim,
-        semester: data.semester,
-        status: data.status,
-        nilai: data.nilai,
-        filePkl: fileName,
+          semester: data.semester,
+        },
       },
     });
 
-    // let valid = false
-    if (validateSemester(data.nim, data.semester)) {
-      // Check if IRS is already filled
-      const lastIrs = await prisma.tb_irs.findUnique({
-        where: {
-          nim_semester: {
-            nim: data.nim,
-            semester: data.semester,
-          },
-        },
-      });
+    if (findPkl && data.oldSemester !== data.semester)
+      throw new Error("Data PKL telah terisi");
 
-      if (!lastIrs) {
+    // let valid = false
+    if (!data.oldSemester) {
+      if (validateSemester(data.nim, data.semester)) {
+        // Check if IRS is already filled
+        const lastIrs = await prisma.tb_irs.findUnique({
+          where: {
+            nim_semester: {
+              nim: data.nim,
+              semester: data.semester,
+            },
+          },
+        });
+
+        if (!lastIrs) {
+          fs.unlink(`public/documents/pkl/${fileName}`, (err) => {
+            if (err) throw err;
+          });
+          throw new Error(
+            `IRS semester ${data.semester} harus diisi terlebih dahulu`
+          );
+        }
+      } else {
         fs.unlink(`public/documents/pkl/${fileName}`, (err) => {
           if (err) throw err;
         });
-        throw new Error(
-          `IRS semester ${data.semester} harus diisi terlebih dahulu`
-        );
+        throw new Error(`Semester tidak valid`);
       }
-    } else {
-      fs.unlink(`public/documents/pkl/${fileName}`, (err) => {
-        if (err) throw err;
-      });
-      throw new Error(`Semester tidak valid`);
     }
 
-    return result;
+    if (data.oldSemester) {
+      const updatePkl = await prisma.tb_pkl.update({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.oldSemester,
+          },
+        },
+        data: data.dokumen
+          ? {
+              semester: data.semester,
+              nilai: data.nilai,
+              filePkl: fileName,
+            }
+          : {
+              semester: data.semester,
+              nilai: data.nilai,
+            },
+      });
+
+      if (!updatePkl) {
+        throw new Error("Terjadi kesalahan, silahkan coba lagi");
+      }
+
+      return updatePkl;
+    } else {
+      const result = await prisma.tb_pkl.create({
+        data: {
+          nim: data.nim,
+          semester: data.semester,
+          status: data.status,
+          nilai: data.nilai,
+          filePkl: fileName,
+        },
+      });
+
+      return result;
+    }
   } catch (err) {
     throw err;
   }
@@ -367,35 +492,27 @@ const entryDataPkl = async (data) => {
 
 const entryDataSkripsi = async (data) => {
   try {
-    const fileName = `skripsi-${data.nim}-${data.semester}.pdf`;
-    fs.renameSync(
-      `public/documents/${data.dokumen.originalname}`,
-      `public/documents/skripsi/${fileName}`
-    );
+    let fileName = "";
+    if (data.dokumen) {
+      fileName = `skripsi-${data.nim}-${data.semester}.pdf`;
+      fs.renameSync(
+        `public/documents/${data.dokumen.originalname}`,
+        `public/documents/skripsi/${fileName}`
+      );
+    }
 
     // Skripsi can only be filled once
     const findSkripsi = await prisma.tb_skripsi.findUnique({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester
-        }
-      }
-    })
-
-    if (findSkripsi) throw new Error("Data Skripsi telah terisi")
-
-    const result = await prisma.tb_skripsi.create({
-      data: {
-        nim: data.nim,
-        semester: data.semester,
-        status: data.status,
-        nilai: data.nilai,
-        tanggalLulusSidang: new Date(data.tanggalLulusSidang),
-        fileSkripsi: fileName,
-        lamaStudi: parseInt(data.lamaStudi),
+          semester: data.semester,
+        },
       },
     });
+
+    if (findSkripsi && data.oldSemester !== data.semester)
+      throw new Error("Data Skripsi telah terisi");
 
     // let valid = false
     if (validateSemester(data.nim, data.semester)) {
@@ -424,7 +541,45 @@ const entryDataSkripsi = async (data) => {
       throw new Error(`Semester tidak valid`);
     }
 
-    return result;
+    if (data.oldSemester) {
+      const updateSkripsi = await prisma.tb_skripsi.update({
+        where: {
+          nim_semester: {
+            nim: data.nim,
+            semester: data.oldSemester,
+          },
+        },
+        data: data.dokumen
+          ? {
+              semester: data.semester,
+              status: data.status,
+              nilai: data.nilai,
+              tanggalLulusSidang: new Date(data.tanggalLulusSidang),
+              fileSkripsi: fileName,
+              lamaStudi: parseInt(data.lamaStudi),
+            }
+          : {
+              semester: data.semester,
+              status: data.status,
+              nilai: data.nilai,
+              tanggalLulusSidang: new Date(data.tanggalLulusSidang),
+              lamaStudi: parseInt(data.lamaStudi),
+            },
+      });
+    } else {
+      const result = await prisma.tb_skripsi.create({
+        data: {
+          nim: data.nim,
+          semester: data.semester,
+          status: data.status,
+          nilai: data.nilai,
+          tanggalLulusSidang: new Date(data.tanggalLulusSidang),
+          fileSkripsi: fileName,
+          lamaStudi: parseInt(data.lamaStudi),
+        },
+      });
+      return result;
+    }
   } catch (err) {
     throw err;
   }

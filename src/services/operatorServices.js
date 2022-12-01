@@ -187,7 +187,6 @@ async function addMahasiswa(data) {
     });
 
     if (!findDosen) throw new Error("Dosen tidak ditemukan");
-
     const [doneMhs, doneAkun] = await prisma.$transaction([
       prisma.tb_mhs.create({
         data: {
@@ -196,7 +195,11 @@ async function addMahasiswa(data) {
           angkatan: data.angkatan,
           statusAktif: data.status,
           jalurMasuk: data.jalurMasuk,
-          kodeWali: data.dosenWali,
+          fk_kodeWali: {
+            connect: {
+              nip: data.dosenWali,
+            },
+          },
         },
       }),
 

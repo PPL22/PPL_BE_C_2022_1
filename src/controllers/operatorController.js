@@ -78,6 +78,21 @@ const addMahasiswaController = async (req, res) => {
     dosenWali,
   } = req.body;
 
+  if (
+    !username ||
+    !namaLengkap ||
+    !nim ||
+    !angkatan ||
+    !password ||
+    !status ||
+    !jalurMasuk ||
+    !dosenWali
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Paramater tidak boleh ada yang kosong" });
+  }
+
   // regex username hanya boleh huruf kecil, angka, dan underscore
   const regexUsername = /^[a-z0-9_]+$/;
   //check username (check duplicate sudah ada di service)
