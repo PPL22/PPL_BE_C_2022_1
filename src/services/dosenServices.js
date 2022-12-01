@@ -7,7 +7,6 @@ const ResizeFile = require("../utils/resizeFile");
 const path = require("path");
 
 const getDataRegisterDosen = async (data) => {
-  console.log(data);
   try {
     const result = await prisma.tb_dosen.findUnique({
       where: {
@@ -158,9 +157,9 @@ const getStatusValidasiIRS = async (data) => {
 
     // Add order
     const orderMhs = ["nama", "nim", "angkatan", "statusAktif"];
-    const orderKhs = ["semester", "jumlahSks", "statusValidasi"];
+    const orderIrs = ["semester", "jumlahSks", "statusValidasi"];
 
-    if (orderKhs.includes(data.sortBy)) {
+    if (orderIrs.includes(data.sortBy)) {
       query.orderBy[data.sortBy] = data.order;
     } else if (orderMhs.includes(data.sortBy)) {
       query.orderBy["fk_nim"] = {};
@@ -503,8 +502,6 @@ const validasiDataIrs = async (data) => {
     let oldSemester = data.fileName.split("-")[2]; // For renaming purpose
     oldSemester = oldSemester.substring(0, oldSemester.length - 4);
 
-    console.log(data);
-
     // Check if file exists
     if (!fs.existsSync(`public/documents` + data.fileName))
       throw new Error("File doesn't exist, not valid");
@@ -770,6 +767,25 @@ const validasiDataSkripsi = async (data) => {
   }
 };
 
+const updateStatusAktifMhs = async (data) => {
+  try {
+    const result = await prisma.tb_mhs.update({
+      where: {
+        nim: data.nim
+      },
+      data: {
+        statusAktif: data.statusAktif
+      }
+    })
+    
+    return {
+      statusAktif: data.statusAktif
+    }
+  } catch (err) {
+    throw err
+  }
+}
+
 module.exports = {
   getDataRegisterDosen,
   updateDataDosen,
@@ -783,4 +799,6 @@ module.exports = {
   validasiDataKhs,
   validasiDataPkl,
   validasiDataSkripsi,
+
+  updateStatusAktifMhs,
 };

@@ -6,10 +6,12 @@ const {
   batchAddMahasiswa,
   getJumlahAkunMahasiswa,
   cetakDaftarAkunMahasiswa,
-  getDataAkunDosen,
   getAkunDosen,
   addDosen,
   cetakDaftarAkunDosen,
+  updateStatusAkunMhs,
+  getJumlahAkunDosen,
+  updateStatusAkunDosen,
 } = require("../services/operatorServices");
 
 const getDataDosenController = async (req, res) => {
@@ -21,12 +23,13 @@ const getDataDosenController = async (req, res) => {
   }
 };
 
+// =================== Mahasiswa ====================
 const getAkunMahasiswaController = async (req, res) => {
   const path = req.path;
   let { page, qty, sortBy, order } = req.query;
 
   if (!page) page = 1;
-  if (!qty) qty = 10;
+  if (!qty) qty = 5;
   if (!order) order = "asc";
 
   // Check params
@@ -45,11 +48,10 @@ const getAkunMahasiswaController = async (req, res) => {
 };
 
 const getAkunDosenController = async (req, res) => {
-  const path = req.path;
   let { page, qty } = req.query;
 
   if (!page) page = 1;
-  if (!qty) qty = 10;
+  if (!qty) qty = 5;
 
   // Check params
   if (isNaN(page) || isNaN(qty))
@@ -224,6 +226,15 @@ const getJumlahAkunMahasiswaController = async (req, res) => {
   }
 };
 
+const getJumlahAkunDosenController = async (req, res) => {
+  try {
+    const result = await getJumlahAkunDosen();
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(403).json({ message: err.message });
+  }
+};
+
 const cetakDaftarAkunMahasiswaController = async (req, res) => {
   try {
     const data = {};
@@ -273,25 +284,57 @@ const cetakDaftarAkunDosenController = async (req, res) => {
   }
 };
 
-const getJumlahAkunDosenController = async (req, res) => {
-  try {
-    const result = await getDataAkunDosen();
-    return res.json(result);
-  } catch (err) {
-    return res.status(403).json({ message: err.message });
+const updateStatusAkunMhsController = async (req, res) => {
+  const { nim } = req.params
+
+  if (!nim) {
+    return res.status(400).json({
+      message: "Data tidak boleh kosong",
+    });
   }
-};
+
+  try {
+    const data = {nim}
+    const result = await updateStatusAkunMhs(data)
+
+    return res.status(200).json({ data: result, message: "Status aktif berhasil diupdate" });
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+}
+
+const updateStatusAkunDosenController = async (req, res) => {
+  const { nip } = req.params
+
+  if (!nip) {
+    return res.status(400).json({
+      message: "Data tidak boleh kosong",
+    });
+  }
+
+  try {
+    const data = {nip}
+    const result = await updateStatusAkunDosen(data)
+
+    return res.status(200).json({ data: result, message: "Status aktif berhasil diupdate" });
+  } catch (err) {
+    return res.status(400).json({ message: err.message })
+  }
+}
 
 module.exports = {
   getDataDosenController,
+
   getAkunMahasiswaController,
   addMahasiswaController,
   batchAddMahasiswaController,
   getJumlahAkunMahasiswaController,
   cetakDaftarAkunMahasiswaController,
+  updateStatusAkunMhsController,
 
   getAkunDosenController,
   addDosenController,
   getJumlahAkunDosenController,
   cetakDaftarAkunDosenController,
+  updateStatusAkunDosenController,
 };

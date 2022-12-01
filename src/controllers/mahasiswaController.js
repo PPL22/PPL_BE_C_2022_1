@@ -10,7 +10,6 @@ const {
 } = require("../services/mahasiswaServices");
 const path = require("path");
 const fs = require("fs");
-const validateSemester = require("../utils/validateSemester");
 
 const getDataRegisterMahasiswaController = async (req, res) => {
   const nim = req.id;
@@ -82,7 +81,7 @@ const updateDataMahasiswaController = async (req, res) => {
   // TODO-VALIDATE: check password
 
   // Check nomor HP (format nomor HP Indonesia)
-  const regexNoHP = /^(628)\d{8,13}$/;
+  const regexNoHP = /^(628)|+628\d{8,13}$/;
   if (!regexNoHP.test(noHP)) {
     if (noHP.length < 10 || noHP.length > 13) {
       return res.status(400).json({
@@ -137,9 +136,9 @@ const getDashboardMahasiswaController = async (req, res) => {
     const data = { nim };
     const result = await getDashboardMahasiswa(data);
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    return res.status(400).json({ message: err.message });
   }
 };
 
@@ -395,17 +394,7 @@ const entryDataPklController = async (req, res) => {
     });
   }
 
-  // Check semester
-  if (!validateSemester(nim, semester)) {
-    if (dokumen) {
-      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-        if (err) throw err;
-      });
-    }
-    return res.status(400).json({
-      message: "Semester tidak valid",
-    });
-  }
+  // Check semester | Done in service
 
   // TODO-VALIDATE: validasi nilai PKL
 
@@ -469,17 +458,7 @@ const entryDataSkripsiController = async (req, res) => {
     });
   }
 
-  // Check semester
-  if (!validateSemester(nim, semester)) {
-    if (dokumen) {
-      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-        if (err) throw err;
-      });
-    }
-    return res.status(400).json({
-      message: "Semester tidak valid",
-    });
-  }
+  // Check semester | Done in service
 
   // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
 
