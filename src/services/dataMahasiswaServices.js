@@ -96,10 +96,13 @@ const getDataAkademikMhs = async (data) => {
 
     // Get available semester
     let availableSmt = [];
-    irs = irs.map((data) => {
-      availableSmt.push(data.semester);
-      return { type: "irs", available: true, ...data };
-    });
+    irs = irs.reduce((r, doc) => {
+      if (parseInt(doc.semester) > 0 && parseInt(doc.semester) <= currentSmt) {
+        availableSmt.push(doc.semester);
+        r.push({ type: "irs", available: true, ...doc });
+      }
+      return r
+    }, []);
 
     // Insert empty irs
     for (let i = 1; i <= currentSmt; i++) {
@@ -117,11 +120,16 @@ const getDataAkademikMhs = async (data) => {
         semester: "asc",
       },
     });
+
+    // Get all available semester
     availableSmt = [];
-    khs = khs.map((data) => {
-      availableSmt.push(data.semester);
-      return { type: "khs", available: true, ...data };
-    });
+    khs = khs.reduce((r, doc) => {
+      if (parseInt(doc.semester) > 0 && parseInt(doc.semester) <= currentSmt) {
+        availableSmt.push(doc.semester);
+        r.push({ type: "khs", available: true, ...doc });
+      }
+      return r
+    }, []);
 
     // Insert empty khs
     for (let i = 1; i <= currentSmt; i++) {
@@ -140,7 +148,18 @@ const getDataAkademikMhs = async (data) => {
         semester: "asc",
       },
     });
-    pkl = pkl.map((data) => ({ type: "pkl", available: true, ...data }));
+
+    // Reshape PKL data
+    pkl = pkl.reduce((r, doc) => {
+      if (parseInt(doc.semester) > 0 && parseInt(doc.semester) <= currentSmt) {
+        r.push({ 
+          type: "pkl", 
+          available: true, 
+          ...doc 
+        })
+      } 
+      return r
+    }, []);
 
     // ============== SKRIPSI ==============
     let skripsi = await prisma.tb_skripsi.findMany({
@@ -151,13 +170,19 @@ const getDataAkademikMhs = async (data) => {
         semester: "asc",
       },
     });
-    skripsi = skripsi.map((data) => ({
-      type: "skripsi",
-      available: true,
-      ...data,
-    }));
 
-    // console.log(skripsi)
+    // Reshape Skripsi data
+    skripsi = skripsi.reduce((r, doc) => {
+      if (parseInt(doc.semester) > 0 && parseInt(doc.semester) <= currentSmt) {
+        r.push({
+          type: "skripsi",
+          available: true,
+          ...doc,
+        })
+      }
+      return r 
+    }, []);
+
     // Append all queried data into one array
     let combinedData = irs.concat(khs, pkl, skripsi);
 
@@ -182,6 +207,7 @@ const getDataAkademikMhs = async (data) => {
       dataAkademik: groupBySmt,
     };
   } catch (err) {
+    console.log(err)
     throw err;
   }
 };

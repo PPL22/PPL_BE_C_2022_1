@@ -136,10 +136,10 @@ const getDashboardMahasiswaController = async (req, res) => {
   try {
     const data = { nim };
     const result = await getDashboardMahasiswa(data);
-
-    res.status(200).json(result);
+    
+    return res.status(200).json(result);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    return res.status(400).json({ message: err.message });
   }
 };
 
