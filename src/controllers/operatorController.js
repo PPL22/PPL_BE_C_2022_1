@@ -26,7 +26,7 @@ const getDataDosenController = async (req, res) => {
 // =================== Mahasiswa ====================
 const getAkunMahasiswaController = async (req, res) => {
   const path = req.path;
-  let { page, qty, sortBy, order } = req.query;
+  let { page, qty, sortBy, order, keyword } = req.query;
 
   if (!page) page = 1;
   if (!qty) qty = 5;
@@ -39,7 +39,7 @@ const getAkunMahasiswaController = async (req, res) => {
   qty = parseInt(qty);
 
   try {
-    const data = { page, qty, sortBy, order };
+    const data = { page, qty, sortBy, order, keyword };
     const result = await getAkunMahasiswa(data);
     return res.json(result);
   } catch (err) {
@@ -48,10 +48,17 @@ const getAkunMahasiswaController = async (req, res) => {
 };
 
 const getAkunDosenController = async (req, res) => {
-  let { page, qty } = req.query;
+  let { page, qty, sortBy, order, keyword } = req.query;
 
   if (!page) page = 1;
   if (!qty) qty = 5;
+  if (!order) order = "asc";
+
+  // Check params
+  if (isNaN(page) || isNaN(qty) || !["asc", "desc"].includes(order))
+    return res.status(400).json({ message: "Bad request. Params not valid" });
+  page = parseInt(page);
+  qty = parseInt(qty);
 
   // Check params
   if (isNaN(page) || isNaN(qty))
@@ -60,7 +67,7 @@ const getAkunDosenController = async (req, res) => {
   qty = parseInt(qty);
 
   try {
-    const data = { page, qty };
+    const data = { page, qty, sortBy, order, keyword };
     const result = await getAkunDosen(data);
     return res.json(result);
   } catch (err) {
@@ -79,6 +86,21 @@ const addMahasiswaController = async (req, res) => {
     jalurMasuk,
     dosenWali,
   } = req.body;
+
+  if (
+    !username ||
+    !namaLengkap ||
+    !nim ||
+    !angkatan ||
+    !password ||
+    !status ||
+    !jalurMasuk ||
+    !dosenWali
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Paramater tidak boleh ada yang kosong" });
+  }
 
   // regex username hanya boleh huruf kecil, angka, dan underscore
   const regexUsername = /^[a-z0-9_]+$/;
@@ -270,7 +292,7 @@ const cetakDaftarAkunDosenController = async (req, res) => {
 };
 
 const updateStatusAkunMhsController = async (req, res) => {
-  const { nim } = req.params
+  const { nim } = req.params;
 
   if (!nim) {
     return res.status(400).json({
@@ -279,17 +301,19 @@ const updateStatusAkunMhsController = async (req, res) => {
   }
 
   try {
-    const data = {nim}
-    const result = await updateStatusAkunMhs(data)
+    const data = { nim };
+    const result = await updateStatusAkunMhs(data);
 
-    return res.status(200).json({ data: result, message: "Status aktif berhasil diupdate" });
+    return res
+      .status(200)
+      .json({ data: result, message: "Status aktif berhasil diupdate" });
   } catch (err) {
-    return res.status(400).json({ message: err.message })
+    return res.status(400).json({ message: err.message });
   }
-}
+};
 
 const updateStatusAkunDosenController = async (req, res) => {
-  const { nip } = req.params
+  const { nip } = req.params;
 
   if (!nip) {
     return res.status(400).json({
@@ -298,14 +322,16 @@ const updateStatusAkunDosenController = async (req, res) => {
   }
 
   try {
-    const data = {nip}
-    const result = await updateStatusAkunDosen(data)
+    const data = { nip };
+    const result = await updateStatusAkunDosen(data);
 
-    return res.status(200).json({ data: result, message: "Status aktif berhasil diupdate" });
+    return res
+      .status(200)
+      .json({ data: result, message: "Status aktif berhasil diupdate" });
   } catch (err) {
-    return res.status(400).json({ message: err.message })
+    return res.status(400).json({ message: err.message });
   }
-}
+};
 
 module.exports = {
   getDataDosenController,

@@ -135,7 +135,7 @@ const getDashboardMahasiswaController = async (req, res) => {
   try {
     const data = { nim };
     const result = await getDashboardMahasiswa(data);
-    
+
     return res.status(200).json(result);
   } catch (err) {
     return res.status(400).json({ message: err.message });
@@ -157,11 +157,11 @@ const getProfileMahasiswaController = async (req, res) => {
 
 // !!! CHECK APAKAH SEMESTER YANG AKAN DIINPUT VALID
 const entryDataIrsController = async (req, res) => {
-  const { nim, semester, status, jumlahSks } = req.body;
+  const { nim, semester, status, jumlahSks, oldSemester } = req.body;
   const dokumen = req.file;
 
   // check null input
-  if (!nim || !semester || !status || !jumlahSks || !dokumen) {
+  if (!nim || !semester || !status || !jumlahSks) {
     if (dokumen) {
       fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
         if (err) throw err;
@@ -174,9 +174,11 @@ const entryDataIrsController = async (req, res) => {
 
   // Check nim
   if (nim != req.id) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(403).json({
       message: "NIM berbeda dari data login. Entry tidak dapat dilakukan",
     });
@@ -187,9 +189,11 @@ const entryDataIrsController = async (req, res) => {
   // Check status
   const statusIRS = ["Aktif", "Cuti"];
   if (!statusIRS.includes(status)) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(400).json({
       message: "Status IRS tidak valid",
     });
@@ -197,23 +201,28 @@ const entryDataIrsController = async (req, res) => {
 
   // Check jumlah sks
   if (jumlahSks < 0 || jumlahSks > 24) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(400).json({
       message: "Jumlah SKS tidak valid",
     });
   }
 
   // Check file
-  if (path.extname(dokumen.originalname) !== ".pdf") {
-    // Errornya ngga json?
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
-    return res.status(400).json({
-      message: "Format dokumen harus pdf",
-    });
+  if (dokumen) {
+    if (path.extname(dokumen.originalname) !== ".pdf") {
+      // Errornya ngga json?
+
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+      return res.status(400).json({
+        message: "Format dokumen harus pdf",
+      });
+    }
   }
 
   try {
@@ -223,6 +232,7 @@ const entryDataIrsController = async (req, res) => {
       status,
       jumlahSks,
       dokumen,
+      oldSemester,
     };
 
     const result = await entryDataIrs(data);
@@ -246,6 +256,7 @@ const entryDataKhsController = async (req, res) => {
     ips,
     jumlahSksKumulatif,
     ipk,
+    oldSemester,
   } = req.body;
   const dokumen = req.file;
 
@@ -257,8 +268,7 @@ const entryDataKhsController = async (req, res) => {
     !jumlahSksSemester ||
     !ips ||
     !jumlahSksKumulatif ||
-    !ipk ||
-    !dokumen
+    !ipk
   ) {
     if (dokumen) {
       fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
@@ -272,9 +282,11 @@ const entryDataKhsController = async (req, res) => {
 
   // Check nim
   if (nim != req.id) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(403).json({
       message: "NIM berbeda dari data login. Entry tidak dapat dilakukan",
     });
@@ -284,9 +296,11 @@ const entryDataKhsController = async (req, res) => {
 
   // Check jumlah sks
   if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(400).json({
       message: "Jumlah SKS tidak valid",
     });
@@ -294,9 +308,11 @@ const entryDataKhsController = async (req, res) => {
 
   // Check IPS
   if (parseFloat(ips) < 0 || parseFloat(ips) > 4) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(400).json({
       message: "IPS tidak valid",
     });
@@ -306,16 +322,19 @@ const entryDataKhsController = async (req, res) => {
 
   // Check IPK
   if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(400).json({
       message: "IPK tidak valid",
     });
   }
 
   // Check dokumen
-  if (path.extname(dokumen.originalname) !== ".pdf") {
+
+  if (dokumen && path.extname(dokumen.originalname) !== ".pdf") {
     fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
       if (err) throw err;
     });
@@ -334,6 +353,7 @@ const entryDataKhsController = async (req, res) => {
       jumlahSksKumulatif,
       ipk,
       dokumen,
+      oldSemester,
     };
 
     const result = await entryDataKhs(data);
@@ -348,11 +368,11 @@ const entryDataKhsController = async (req, res) => {
 };
 
 const entryDataPklController = async (req, res) => {
-  const { nim, semester, nilai } = req.body;
+  const { nim, semester, nilai, oldSemester } = req.body;
   const dokumen = req.file;
 
   // check null input
-  if (!nim || !semester || !nilai || !dokumen) {
+  if (!nim || !semester || !nilai) {
     if (dokumen) {
       fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
         if (err) throw err;
@@ -364,9 +384,11 @@ const entryDataPklController = async (req, res) => {
   }
   // Check nim
   if (nim != req.id) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(403).json({
       message: "NIM berbeda dari data login. Entry tidak dapat dilakukan",
     });
@@ -376,10 +398,12 @@ const entryDataPklController = async (req, res) => {
 
   // TODO-VALIDATE: validasi nilai PKL
 
-  if (path.extname(dokumen.originalname) !== ".pdf") {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+  if (dokumen && path.extname(dokumen.originalname) !== ".pdf") {
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(400).json({
       message: "Format dokumen harus pdf",
     });
@@ -391,6 +415,7 @@ const entryDataPklController = async (req, res) => {
       semester,
       nilai,
       dokumen,
+      oldSemester,
     };
 
     const result = await entryDataPkl(data);
@@ -405,18 +430,12 @@ const entryDataPklController = async (req, res) => {
 };
 
 const entryDataSkripsiController = async (req, res) => {
-  const { nim, semester, nilai, tanggalLulusSidang, lamaStudi } = req.body;
+  const { nim, semester, nilai, tanggalLulusSidang, lamaStudi, oldSemester } =
+    req.body;
   const dokumen = req.file;
 
   // check null input
-  if (
-    !nim ||
-    !semester ||
-    !nilai ||
-    !tanggalLulusSidang ||
-    !lamaStudi ||
-    !dokumen
-  ) {
+  if (!nim || !semester || !nilai || !tanggalLulusSidang || !lamaStudi) {
     if (dokumen) {
       fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
         if (err) throw err;
@@ -429,9 +448,11 @@ const entryDataSkripsiController = async (req, res) => {
 
   // Check nim
   if (nim != req.id) {
-    fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
-      if (err) throw err;
-    });
+    if (dokumen) {
+      fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
+        if (err) throw err;
+      });
+    }
     return res.status(403).json({
       message: "NIM berbeda dari data login. Entry tidak dapat dilakukan",
     });
@@ -441,7 +462,7 @@ const entryDataSkripsiController = async (req, res) => {
 
   // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
 
-  if (path.extname(dokumen.originalname) !== ".pdf") {
+  if (dokumen && path.extname(dokumen.originalname) !== ".pdf") {
     return res.status(400).json({
       message: "Format dokumen harus pdf",
     });
@@ -455,6 +476,7 @@ const entryDataSkripsiController = async (req, res) => {
       tanggalLulusSidang,
       dokumen,
       lamaStudi,
+      oldSemester,
     };
 
     const result = await entryDataSkripsi(data);

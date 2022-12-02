@@ -1,11 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { dosen } = require("../src/data/dosen");
 const { provinsi, kabupaten } = require("../src/data/locations");
-const {
-  getRole,
-  convertUsername,
-  hashPassword,
-} = require("../src/utils/dosenUtil");
+const { getRole, convertUsername } = require("../src/utils/dosenUtil");
 const { getKodeWaliRandom } = require("../src/utils/mahasiswaUtil");
 const prisma = new PrismaClient();
 
