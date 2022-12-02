@@ -35,6 +35,7 @@ const verifyToken = (req, res, next) => {
               // If url consists of the role, (/dosen/search), continue
               if (req.originalUrl.includes(item.toLowerCase())) {
                 roleExists = true;
+                res.headers
                 next();
               }
             });
