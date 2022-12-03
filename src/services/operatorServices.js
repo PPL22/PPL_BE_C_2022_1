@@ -148,7 +148,7 @@ const batchAddMahasiswa = async (data) => {
         } else {
           // ============== Validation ==============
           // Check nama
-          const regexNama = /^[A-Za-z ,.']+$/;
+          const regexNama = /^[A-Za-z ,.'-]+$/;
           if (!regexNama.test(mhs.nama)) {
             throw new Error(
               `Nama tidak valid pada baris ${row} sheet ${sheetName}. Nama hanya boleh terdiri dari huruf besar/kecil, spasi, koma, atau tanda petik`
