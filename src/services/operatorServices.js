@@ -339,6 +339,10 @@ async function getAkunMahasiswa(data) {
       sortFilter.fk_kodeWali = {
         nip: data.order,
       };
+    } else if (data.sortBy === "status") {
+      sortFilter.fk_pemilik_akun_mhs = {
+        status: data.order,
+      };
     } else {
       throw new Error("Bad Request: Sort params not valid");
     }

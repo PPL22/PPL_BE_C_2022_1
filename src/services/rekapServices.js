@@ -71,7 +71,7 @@ const daftarStatusMahasiswa = async (data) => {
 
     // Sort by mahasiswa data
     let sortFilter = {};
-    const orderMhs = ["nama", "nim", "angkatan"];
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"];
     const orderKhs = ["ipk", "jumlahSksKumulatif"];
     if (!data.sortBy) {
       sortFilter = [
