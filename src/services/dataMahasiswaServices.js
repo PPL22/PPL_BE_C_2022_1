@@ -204,6 +204,7 @@ const getDataAkademikMhs = async (data) => {
       angkatan: dataMhs.angkatan,
       statusAktif: dataMhs.statusAktif,
       jalurMasuk: dataMhs.jalurMasuk,
+      semester: currentSmt,
       foto: dataMhs.foto,
       alamat: dataMhs.alamat,
       email: dataMhs.email,
