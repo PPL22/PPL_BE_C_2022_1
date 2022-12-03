@@ -163,9 +163,9 @@ const getDashboardDosenController = async (req, res) => {
   //   });
   // }
 
-  if (!dokumen) dokumen = "ALL"
+  if (!dokumen) dokumen = "ALL";
   if (!["ALL", "IRS", "KHS", "PKL", "SKRIPSI"].includes(dokumen))
-    return res.status(400).json({message: "Dokumen param not valid"});
+    return res.status(400).json({ message: "Dokumen param not valid" });
 
   try {
     const data = { nip, angkatan, dokumen };
@@ -589,7 +589,7 @@ const getDataAkademikMhsDosenController = async (req, res) => {
   const nip = req.id;
 
   if (!nim) {
-    return res.status(400).json({message: "NIM tidak boleh kosong"})
+    return res.status(400).json({ message: "NIM tidak boleh kosong" });
   }
 
   try {
@@ -654,34 +654,43 @@ const cetakDaftarMhsDosenController = async (req, res) => {
 };
 
 const updateStatusAktifMhsController = async (req, res) => {
-  const { nim, statusAktif } = req.body
-
+  const { nim, statusAktif } = req.body;
   if (!nim || !statusAktif) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
   }
 
-  if (!["Aktif", "Cuti", "Mangkir", "DO", "Lulus", "UndurDiri", "MeninggalDunia"].includes(statusAktif)) {
+  if (
+    ![
+      "Aktif",
+      "Cuti",
+      "Mangkir",
+      "DO",
+      "Lulus",
+      "UndurDiri",
+      "MeninggalDunia",
+    ].includes(statusAktif)
+  ) {
     return res.status(400).json({
       message: "Value status aktif tidak valid",
-    })
+    });
   }
 
   try {
-    const data = {nim, statusAktif}
-    const result = await updateStatusAktifMhs(data)
+    const data = { nim, statusAktif };
+    const result = await updateStatusAktifMhs(data);
 
     return res.status(200).json({
       data: result,
-      message: "Status aktif mahasiswa berhasil diupdate"
-    })
+      message: "Status aktif mahasiswa berhasil diupdate",
+    });
   } catch (err) {
     return res.status(400).json({
-      message: err.message
-    })
+      message: err.message,
+    });
   }
-}
+};
 
 module.exports = {
   getDataRegisterDosenController,
@@ -703,5 +712,5 @@ module.exports = {
 
   cetakDaftarMhsDosenController,
 
-  updateStatusAktifMhsController
+  updateStatusAktifMhsController,
 };

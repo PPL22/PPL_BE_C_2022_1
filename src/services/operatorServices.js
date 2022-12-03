@@ -148,7 +148,7 @@ const batchAddMahasiswa = async (data) => {
         } else {
           // ============== Validation ==============
           // Check nama
-          const regexNama = /^[A-Za-z ,.']+$/;
+          const regexNama = /^[A-Za-z ,.'-]+$/;
           if (!regexNama.test(mhs.nama)) {
             throw new Error(
               `Nama tidak valid pada baris ${row} sheet ${sheetName}. Nama hanya boleh terdiri dari huruf besar/kecil, spasi, koma, atau tanda petik`
@@ -338,6 +338,10 @@ async function getAkunMahasiswa(data) {
     } else if (data.sortBy === "doswal") {
       sortFilter.fk_kodeWali = {
         nip: data.order,
+      };
+    } else if (data.sortBy === "status") {
+      sortFilter.fk_pemilik_akun_mhs = {
+        status: data.order,
       };
     } else {
       throw new Error("Bad Request: Sort params not valid");
