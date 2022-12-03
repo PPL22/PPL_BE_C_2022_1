@@ -64,8 +64,12 @@ const getDataAkademikMhs = async (data) => {
         nama: true,
         nim: true,
         angkatan: true,
+        jalurMasuk: true,
         foto: true,
         statusAktif: true,
+        alamat: true,
+        email: true,
+        noHP: true,
         fk_kodeWali: {
           select: {
             nip: true,
@@ -101,7 +105,7 @@ const getDataAkademikMhs = async (data) => {
         availableSmt.push(doc.semester);
         r.push({ type: "irs", available: true, ...doc });
       }
-      return r
+      return r;
     }, []);
 
     // Insert empty irs
@@ -128,7 +132,7 @@ const getDataAkademikMhs = async (data) => {
         availableSmt.push(doc.semester);
         r.push({ type: "khs", available: true, ...doc });
       }
-      return r
+      return r;
     }, []);
 
     // Insert empty khs
@@ -152,13 +156,13 @@ const getDataAkademikMhs = async (data) => {
     // Reshape PKL data
     pkl = pkl.reduce((r, doc) => {
       if (parseInt(doc.semester) > 0 && parseInt(doc.semester) <= currentSmt) {
-        r.push({ 
-          type: "pkl", 
-          available: true, 
-          ...doc 
-        })
-      } 
-      return r
+        r.push({
+          type: "pkl",
+          available: true,
+          ...doc,
+        });
+      }
+      return r;
     }, []);
 
     // ============== SKRIPSI ==============
@@ -178,9 +182,9 @@ const getDataAkademikMhs = async (data) => {
           type: "skripsi",
           available: true,
           ...doc,
-        })
+        });
       }
-      return r 
+      return r;
     }, []);
 
     // Append all queried data into one array
@@ -199,15 +203,18 @@ const getDataAkademikMhs = async (data) => {
       nim: dataMhs.nim,
       angkatan: dataMhs.angkatan,
       statusAktif: dataMhs.statusAktif,
-      semester: currentSmt,
+      jalurMasuk: dataMhs.jalurMasuk,
       foto: dataMhs.foto,
+      alamat: dataMhs.alamat,
+      email: dataMhs.email,
+      noHP: dataMhs.noHP,
       namaDoswal: dataMhs.fk_kodeWali.nama,
       nipDoswal: dataMhs.fk_kodeWali.nip,
       fotoDoswal: dataMhs.fk_kodeWali.foto,
       dataAkademik: groupBySmt,
     };
   } catch (err) {
-    console.log(err)
+    console.log(err);
     throw err;
   }
 };
