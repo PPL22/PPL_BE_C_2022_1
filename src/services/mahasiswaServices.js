@@ -132,6 +132,14 @@ const updateDataMahasiswa = async (data) => {
 
 const entryDataIrs = async (data) => {
   try {
+    const statusMhs = await prisma.tb_mhs.findUnique({
+      where: {
+        nim: data.nim
+      }
+    })
+
+    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs)) throw new Error("Status mahasiswa tidak valid")
+
     let fileName = "";
     if (data.dokumen) {
       fileName = `irs-${data.nim}-${data.semester}.pdf`;
@@ -251,6 +259,14 @@ const entryDataIrs = async (data) => {
 
 const entryDataKhs = async (data) => {
   try {
+    const statusMhs = await prisma.tb_mhs.findUnique({
+      where: {
+        nim: data.nim
+      }
+    })
+
+    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs)) throw new Error("Status mahasiswa tidak valid")
+
     let fileName = "";
     if (data.dokumen) {
       fileName = `khs-${data.nim}-${data.semester}.pdf`;
@@ -396,6 +412,14 @@ const entryDataKhs = async (data) => {
 
 const entryDataPkl = async (data) => {
   try {
+    const statusMhs = await prisma.tb_mhs.findUnique({
+      where: {
+        nim: data.nim
+      }
+    })
+
+    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs)) throw new Error("Status mahasiswa tidak valid")
+
     let fileName = "";
     if (data.dokumen) {
       fileName = `pkl-${data.nim}-${data.semester}.pdf`;
@@ -489,6 +513,14 @@ const entryDataPkl = async (data) => {
 
 const entryDataSkripsi = async (data) => {
   try {
+    const statusMhs = await prisma.tb_mhs.findUnique({
+      where: {
+        nim: data.nim
+      }
+    })
+
+    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs)) throw new Error("Status mahasiswa tidak valid")
+
     let fileName = "";
     if (data.dokumen) {
       fileName = `skripsi-${data.nim}-${data.semester}.pdf`;

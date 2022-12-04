@@ -157,7 +157,7 @@ const getProfileMahasiswaController = async (req, res) => {
 
 // !!! CHECK APAKAH SEMESTER YANG AKAN DIINPUT VALID
 const entryDataIrsController = async (req, res) => {
-  const { nim, semester, status, jumlahSks, oldSemester } = req.body;
+  let { nim, semester, status, jumlahSks, oldSemester } = req.body;
   const dokumen = req.file;
 
   // check null input
