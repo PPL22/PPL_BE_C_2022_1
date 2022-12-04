@@ -667,7 +667,7 @@ const validasiDataPkl = async (data) => {
 
     // Check semester
     if (!(await validateSemester(data.nim, data.semester)) || data.semester < 6) throw new Error ("Semester tidak valid")
-    
+
     // Update
     const result = await prisma.tb_pkl.update({
       where: {
@@ -757,6 +757,19 @@ const validasiDataSkripsi = async (data) => {
 
 const updateStatusAktifMhs = async (data) => {
   try {
+    // Check doswal
+    const checkDoswal = await prisma.tb_mhs.findUnique({
+      where: {
+        nim: data.nim
+      },
+      select: {
+        kodeWali: true
+      }
+    })
+
+    if (!checkDoswal) throw new Error("Mahasiswa not found")
+    if (checkDoswal.kodeWali != data.nip) throw new Error("Bukan dosen wali, tidak dapat mengupdate mahasiswa")
+
     const result = await prisma.tb_mhs.update({
       where: {
         nim: data.nim

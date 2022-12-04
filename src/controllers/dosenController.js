@@ -36,12 +36,12 @@ const getDataRegisterDosenController = async (req, res) => {
   const nip = req.id;
   try {
     const result = await getDataRegisterDosen({ nip });
-    res.status(200).json({
+    return res.status(200).json({
       status: "success",
       data: result,
     });
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       status: "error",
       message: error.message,
     });
@@ -140,6 +140,11 @@ const updateDataDosenController = async (req, res) => {
     }
 
     const result = await updateDataDosen(data);
+
+    console.log({
+      message: "Data berhasil diubah",
+      data: result,
+    })
     return res.status(200).json({
       message: "Data berhasil diubah",
       data: result,
@@ -628,6 +633,7 @@ const cetakDaftarMhsDosenController = async (req, res) => {
 };
 
 const updateStatusAktifMhsController = async (req, res) => {
+  const nip = req.id
   const { nim, statusAktif } = req.body;
   if (!nim || !statusAktif) {
     return res.status(400).json({
@@ -652,7 +658,7 @@ const updateStatusAktifMhsController = async (req, res) => {
   }
 
   try {
-    const data = { nim, statusAktif };
+    const data = { nip, nim, statusAktif };
     const result = await updateStatusAktifMhs(data);
 
     return res.status(200).json({

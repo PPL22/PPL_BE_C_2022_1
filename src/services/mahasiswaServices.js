@@ -586,11 +586,15 @@ const getProfileMahasiswa = async (data) => {
       },
       select: {
         angkatan: true,
+        statusAktif: true,
+        jalurMasuk: true,
+        email: true,
+        noHP: true,
         fk_kodeWali: {
           select: {
             nama: true,
-            nip: true,
-          },
+            nip: true
+          }
         },
         fk_nim_khs: {
           orderBy: {
@@ -600,16 +604,6 @@ const getProfileMahasiswa = async (data) => {
           select: {
             ipk: true,
             jumlahSksKumulatif: true,
-          },
-        },
-        fk_nim_irs: {
-          orderBy: {
-            semester: "desc",
-          },
-          take: 1,
-          select: {
-            semester: true,
-            status: true,
           },
         },
         fk_kodeKab: {
@@ -622,22 +616,27 @@ const getProfileMahasiswa = async (data) => {
             namaProv: true,
           },
         },
+        alamat: true
       },
     });
 
-    // spread operator
+    // spread profile mahasiswa
     const profile = {
       namaDosenWali: result.fk_kodeWali.nama,
       nipDosenWali: result.fk_kodeWali.nip,
       semester: countSemester(result.angkatan),
-      status: result.fk_nim_irs.length > 0 ? result.fk_nim_irs[0].status : "-",
+      status: result.statusAktif,
+      jalurMasuk: result.jalurMasuk,
+      email: result.email,
+      noHP: result.noHP,
+      alamat: result.alamat,
+      namaKab: result.fk_kodeKab.namaKab,
+      namaProv: result.fk_kodeProv.namaProv,
       ipk: result.fk_nim_khs.length > 0 ? result.fk_nim_khs[0].ipk : "-",
       jumlahSksKumulatif:
         result.fk_nim_khs.length > 0
           ? result.fk_nim_khs[0].jumlahSksKumulatif
           : "-",
-      namaKab: result.fk_kodeKab.namaKab,
-      namaProv: result.fk_kodeProv.namaProv,
     };
 
     return profile;
