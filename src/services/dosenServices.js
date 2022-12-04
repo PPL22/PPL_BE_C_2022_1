@@ -667,20 +667,7 @@ const validasiDataPkl = async (data) => {
 
     // Check semester
     if (!(await validateSemester(data.nim, data.semester)) || data.semester < 6) throw new Error ("Semester tidak valid")
-
-    if (data.semester != oldSemester) {
-      const checkSemester = await prisma.tb_pkl.findUnique({
-        where: {
-          nim_semester: {
-            nim: data.nim,
-            semester: data.semester,
-          },
-        },
-      });
-
-      if (checkSemester) throw new Error("Semester sudah terisi");
-    }
-
+    
     // Update
     const result = await prisma.tb_pkl.update({
       where: {
@@ -737,19 +724,6 @@ const validasiDataSkripsi = async (data) => {
     // Check semester
     if (!(await validateSemester(data.nim, data.semester)) || data.semester < 6) throw new Error ("Semester tidak valid")
 
-    if (data.semester != oldSemester) {
-      const checkSemester = await prisma.tb_skripsi.findUnique({
-        where: {
-          nim_semester: {
-            nim: data.nim,
-            semester: oldSemester,
-          },
-        },
-      });
-
-      if (checkSemester) throw new Error("Semester sudah terisi");
-    }
-    
     // Update
     const result = await prisma.tb_skripsi.update({
       where: {
@@ -761,7 +735,7 @@ const validasiDataSkripsi = async (data) => {
       data: {
         semester: data.semester,
         nilai: data.nilai,
-        tanggalLulusSidang: data.tanggalLulusSidang,
+        tanggalLulusSidang: new Date(data.tanggalLulusSidang),
         lamaStudi: data.lamaStudi,
         fileSkripsi: fileName,
         statusValidasi: true,
