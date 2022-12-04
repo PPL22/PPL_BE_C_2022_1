@@ -163,7 +163,7 @@ const daftarStatusMahasiswa = async (data) => {
 
 const rekapPklMahasiswa = async (data) => {
   try {
-    const filterWali = data.nip
+    const filterWali = data
       ? {
           kodeWali: data.nip,
         }
@@ -222,7 +222,7 @@ const rekapPklMahasiswa = async (data) => {
 
 const daftarPklMahasiswa = async (data) => {
   try {
-    const filterWali = data
+    const filterWali = data.nip
       ? {
           kodeWali: data.nip,
         }
