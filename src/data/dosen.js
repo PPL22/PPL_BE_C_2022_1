@@ -127,17 +127,17 @@ const dosen = [
   {
     nip: "199406050220071040",
     nama: "Anang Ardiyanto",
-    foto: null,
+    foto: "https://if.fsm.undip.ac.id/id//assets/img/tendik/anang1.png",
   },
   {
     nip: "198611050214011680",
     nama: "Beny Nugroho",
-    foto: null,
+    foto: "https://if.fsm.undip.ac.id/id//assets/img/tendik/beny1.png",
   },
   {
     nip: "198911010214012670",
     nama: "Annisa Istiadah N., A.Md.",
-    foto: null,
+    foto: "https://if.fsm.undip.ac.id/id//assets/img/tendik/annisa1.png",
   },
 ];
 

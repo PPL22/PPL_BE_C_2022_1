@@ -1,28 +1,24 @@
 const { PrismaClient } = require("@prisma/client");
 const e = require("express");
+const xlsx = require("xlsx");
 const prisma = new PrismaClient();
 
 const rekapStatusMahasiswa = async (data) => {
   try {
-    let result;
-    if (data) {
-      result = await prisma.tb_mhs.groupBy({
-        by: ["angkatan", "statusAktif"],
-        where: {
+    const filterWali = data
+      ? {
           kodeWali: data.nip,
-        },
-        _count: {
-          nim: true,
-        },
-      });
-    } else {
-      result = await prisma.tb_mhs.groupBy({
-        by: ["angkatan", "statusAktif"],
-        _count: {
-          nim: true,
-        },
-      });
-    }
+        }
+      : {};
+    const result = await prisma.tb_mhs.groupBy({
+      by: ["angkatan", "statusAktif"],
+      where: {
+        ...filterWali,
+      },
+      _count: {
+        nim: true,
+      },
+    });
 
     const filterByAngkatan = result.reduce((acc, cur) => {
       const { angkatan, statusAktif, _count } = cur;
@@ -67,65 +63,67 @@ const rekapStatusMahasiswa = async (data) => {
 
 const daftarStatusMahasiswa = async (data) => {
   try {
-    let result;
-    if (data) {
-      result = await prisma.tb_mhs.findMany({
-        where: {
+    const filterWali = data.nip
+      ? {
           kodeWali: data.nip,
+        }
+      : {};
+
+    // Sort by mahasiswa data
+    let sortFilter = {};
+    const orderMhs = ["nama", "nim", "angkatan", "statusAktif"];
+    const orderKhs = ["ipk", "jumlahSksKumulatif"];
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          angkatan: "asc",
         },
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          statusAktif: true,
-          fk_nim_khs: {
-            orderBy: {
-              semester: "desc",
-            },
-            take: 1,
-            select: {
-              jumlahSksKumulatif: true,
-              ipk: true,
-            },
-          },
+        {
+          nim: "asc",
         },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
-    } else {
-      result = await prisma.tb_mhs.findMany({
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          statusAktif: true,
-          fk_nim_khs: {
-            orderBy: {
-              semester: "desc",
-            },
-            take: 1,
-            select: {
-              jumlahSksKumulatif: true,
-              ipk: true,
-            },
-          },
-        },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
+      ];
+    } else if (orderMhs.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order;
+    } else if (!orderKhs.includes(data.sortBy)) {
+      throw new Error("Bad Request: Sort params not valid");
     }
+
+    // Get total amount of data
+    let maxPage = await prisma.tb_mhs.count({
+      where: {
+        ...filterWali,
+      },
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        statusAktif: true,
+        fk_nim_khs: {
+          orderBy: {
+            semester: "desc",
+          },
+          take: 1,
+          select: {
+            jumlahSksKumulatif: true,
+            ipk: true,
+          },
+        },
+      },
+      take: data.qty,
+      skip: (data.page - 1) * data.qty,
+      orderBy: sortFilter,
+    });
 
     // spread fk_nim_khs
     result.map((item) => {
@@ -142,19 +140,29 @@ const daftarStatusMahasiswa = async (data) => {
       delete item.fk_nim_khs;
     });
 
-    result.sort((a, b) => {
-      if (a.ipk === 0) return 1;
-      if (b.ipk === 0) return -1;
-      return 0;
-    });
+    // Sort by khs data (ipk or sksk)
+    if (orderKhs.includes(data.sortBy)) {
+      result.sort((a, b) => {
+        if (data.order === "asc") {
+          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy]);
+        } else {
+          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy]);
+        }
+      });
+    }
 
-    return result;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: result,
+    };
   } catch (error) {
     throw error;
   }
 };
 
 const rekapPklMahasiswa = async (data) => {
+  // !!! FILTER WALI ??
   try {
     const result = await prisma.tb_mhs.findMany({
       select: {
@@ -211,57 +219,63 @@ const rekapPklMahasiswa = async (data) => {
 
 const daftarPklMahasiswa = async (data) => {
   try {
-    let result;
-    if (data) {
-      result = await prisma.tb_mhs.findMany({
-        where: {
+    const filterWali = data.nip
+      ? {
           kodeWali: data.nip,
+        }
+      : {};
+
+    // Sort by mahasiswa data
+    let sortFilter = {};
+    const orderMhs = ["nama", "nim", "angkatan"];
+    const orderPkl = ["semester", "nilai"];
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          angkatan: "asc",
         },
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          fk_nim_pkl: {
-            select: {
-              nilai: true,
-              semester: true,
-              statusValidasi: true,
-            },
-          },
+        {
+          nim: "asc",
         },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
-    } else {
-      result = await prisma.tb_mhs.findMany({
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          fk_nim_pkl: {
-            select: {
-              nilai: true,
-              semester: true,
-              statusValidasi: true,
-            },
-          },
-        },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
+      ];
+    } else if (orderMhs.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order;
+    } else if (!orderPkl.includes(data.sortBy)) {
+      throw new Error("Bad Request: Sort params not valid");
     }
+
+    // Get total amount of data
+    let maxPage = await prisma.tb_mhs.count({
+      where: {
+        ...filterWali,
+      },
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        fk_nim_pkl: {
+          select: {
+            nilai: true,
+            semester: true,
+            statusValidasi: true,
+          },
+        },
+      },
+      take: data.qty,
+      skip: (data.page - 1) * data.qty,
+      orderBy: sortFilter,
+    });
 
     // change status pkl
     result.map((item) => {
@@ -276,20 +290,29 @@ const daftarPklMahasiswa = async (data) => {
       delete item.fk_nim_pkl;
     });
 
-    // sort result by statusValidasi
-    result.sort((a, b) => {
-      if (a.nilai === "-") return 1;
-      if (b.nilai === "-") return -1;
-      return 0;
-    });
+    // Sort by pkl data (nilaiPkl)
+    if (orderPkl.includes(data.sortBy)) {
+      result.sort((a, b) => {
+        if (data.order === "asc") {
+          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy]);
+        } else {
+          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy]);
+        }
+      });
+    }
 
-    return result;
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: result,
+    };
   } catch (error) {
     throw error;
   }
 };
 
 const rekapSkripsiMahasiswa = async (data) => {
+  // !!! FILTER WALI ??
   try {
     const result = await prisma.tb_mhs.findMany({
       select: {
@@ -346,62 +369,65 @@ const rekapSkripsiMahasiswa = async (data) => {
 
 const daftarSkripsiMahasiswa = async (data) => {
   try {
-    let result;
-
-    if (data) {
-      result = await prisma.tb_mhs.findMany({
-        where: {
+    const filterWali = data.nip
+      ? {
           kodeWali: data.nip,
+        }
+      : {};
+
+    // Sort by mahasiswa data
+    let sortFilter = {};
+    const orderMhs = ["nama", "nim", "angkatan"];
+    const orderSkripsi = ["nilai", "tanggalLulusSidang", "lamaStudi"];
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          angkatan: "asc",
         },
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          fk_nim_skripsi: {
-            select: {
-              nilai: true,
-              statusValidasi: true,
-              tanggalLulusSidang: true,
-              lamaStudi: true,
-              semester: true,
-            },
-          },
+        {
+          nim: "asc",
         },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
-    } else {
-      result = await prisma.tb_mhs.findMany({
-        select: {
-          nim: true,
-          nama: true,
-          angkatan: true,
-          fk_nim_skripsi: {
-            select: {
-              nilai: true,
-              statusValidasi: true,
-              tanggalLulusSidang: true,
-              lamaStudi: true,
-              semester: true,
-            },
-          },
-        },
-        orderBy: [
-          {
-            angkatan: "asc",
-          },
-          {
-            nim: "asc",
-          },
-        ],
-      });
+      ];
+    } else if (orderMhs.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order;
+    } else if (!orderSkripsi.includes(data.sortBy)) {
+      throw new Error("Bad Request: Sort params not valid");
     }
+
+    // Get total amount of data
+    let maxPage = await prisma.tb_mhs.count({
+      where: {
+        ...filterWali,
+      },
+    });
+    maxPage = Math.ceil(maxPage / data.qty);
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        fk_nim_skripsi: {
+          select: {
+            nilai: true,
+            statusValidasi: true,
+            tanggalLulusSidang: true,
+            lamaStudi: true,
+            semester: true,
+          },
+        },
+      },
+      take: data.qty,
+      skip: (data.page - 1) * data.qty,
+      orderBy: sortFilter,
+    });
 
     // change status skripsi
     result.map((item) => {
@@ -423,12 +449,231 @@ const daftarSkripsiMahasiswa = async (data) => {
       delete item.fk_nim_skripsi;
     });
 
-    result.sort((a, b) => {
-      if (a.nilai === "-") return 1;
-      if (b.nilai === "-") return -1;
-      return 0;
+    // Sort by khs data (ipk or sksk)
+    if (orderSkripsi.includes(data.sortBy)) {
+      result.sort((a, b) => {
+        if (data.order === "asc") {
+          return parseFloat(a[data.sortBy]) - parseFloat(b[data.sortBy]);
+        } else {
+          return parseFloat(b[data.sortBy]) - parseFloat(a[data.sortBy]);
+        }
+      });
+    }
+
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: result,
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+const cetakDaftarStatusMahasiswa = async (data) => {
+  try {
+    const filterWali = data.nip
+      ? {
+          kodeWali: data.nip,
+        }
+      : {};
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        statusAktif: true,
+        fk_nim_khs: {
+          orderBy: {
+            semester: "desc",
+          },
+          take: 1,
+          select: {
+            jumlahSksKumulatif: true,
+            ipk: true,
+          },
+        },
+      },
     });
-    return result;
+
+    // Spread fk_nim_khs and group by angkatan
+    const groupByAngkatan = result.reduce((r, item) => {
+      // Spread fk_nim_khs
+      const { fk_nim_khs } = item;
+      const khs = fk_nim_khs;
+      if (khs.length > 0) {
+        const { jumlahSksKumulatif, ipk } = khs[0];
+        item.jumlahSksKumulatif = jumlahSksKumulatif;
+        item.ipk = ipk;
+      } else {
+        item.jumlahSksKumulatif = 0;
+        item.ipk = 0;
+      }
+      delete item.fk_nim_khs;
+
+      // Group by angkatan
+      if (r[item.angkatan]) {
+        r[item.angkatan].push(item);
+      } else {
+        r[item.angkatan] = [item];
+      }
+
+      return r;
+    }, {});
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-status-${data.nip ?? "all"}.xlsx`;
+
+    Object.keys(groupByAngkatan).forEach((angkatan) => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan]);
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan);
+    });
+
+    xlsx.writeFile(workbook, filename);
+    return filename;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const cetakDaftarPklMahasiswa = async (data) => {
+  try {
+    const filterWali = data.nip
+      ? {
+          kodeWali: data.nip,
+        }
+      : {};
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        fk_nim_pkl: {
+          select: {
+            nilai: true,
+            semester: true,
+            statusValidasi: true,
+          },
+        },
+      },
+    });
+
+    // Change status pkl and group by angkatan
+    const groupByAngkatan = result.reduce((r, item) => {
+      // Change status pkl
+      const { fk_nim_pkl } = item;
+      if (fk_nim_pkl.length > 0 && fk_nim_pkl[0].statusValidasi === true) {
+        item.nilai = fk_nim_pkl[0].nilai;
+        item.semester = fk_nim_pkl[0].semester;
+      } else {
+        item.nilai = "-";
+        item.semester = "-";
+      }
+      delete item.fk_nim_pkl;
+
+      // Group by angkatan
+      if (r[item.angkatan]) {
+        r[item.angkatan].push(item);
+      } else {
+        r[item.angkatan] = [item];
+      }
+
+      return r;
+    }, {});
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-pkl-${data.nip ?? "all"}.xlsx`;
+
+    Object.keys(groupByAngkatan).forEach((angkatan) => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan]);
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan);
+    });
+
+    xlsx.writeFile(workbook, filename);
+    return filename;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const cetakDaftarSkripsiMahasiswa = async (data) => {
+  try {
+    const filterWali = data.nip
+      ? {
+          kodeWali: data.nip,
+        }
+      : {};
+
+    const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali,
+      },
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        fk_nim_skripsi: {
+          select: {
+            nilai: true,
+            statusValidasi: true,
+            tanggalLulusSidang: true,
+            lamaStudi: true,
+            semester: true,
+          },
+        },
+      },
+    });
+
+    // Change status skripsi and group by angkatan
+    const groupByAngkatan = result.reduce((r, item) => {
+      const { fk_nim_skripsi } = item;
+      if (
+        fk_nim_skripsi.length > 0 &&
+        fk_nim_skripsi[0].statusValidasi === true
+      ) {
+        item.nilai = fk_nim_skripsi[0].nilai;
+        item.tanggalLulusSidang = fk_nim_skripsi[0].tanggalLulusSidang;
+        item.lamaStudi = fk_nim_skripsi[0].lamaStudi;
+        item.semester = fk_nim_skripsi[0].semester;
+      } else {
+        item.nilai = "-";
+        item.tanggalLulusSidang = "-";
+        item.lamaStudi = "-";
+        item.semester = "-";
+      }
+      delete item.fk_nim_skripsi;
+
+      // Group by angkatan
+      if (r[item.angkatan]) {
+        r[item.angkatan].push(item);
+      } else {
+        r[item.angkatan] = [item];
+      }
+
+      return r;
+    }, {});
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-status-${data.nip ?? "all"}.xlsx`;
+
+    Object.keys(groupByAngkatan).forEach((angkatan) => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan]);
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan);
+    });
+
+    xlsx.writeFile(workbook, filename);
+    return filename;
   } catch (error) {
     throw error;
   }
@@ -441,4 +686,7 @@ module.exports = {
   daftarPklMahasiswa,
   rekapSkripsiMahasiswa,
   daftarSkripsiMahasiswa,
+  cetakDaftarStatusMahasiswa,
+  cetakDaftarPklMahasiswa,
+  cetakDaftarSkripsiMahasiswa,
 };

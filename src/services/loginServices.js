@@ -4,21 +4,10 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const login = async (data) => {
-  let dosen = true;
-  // Find akun in akun_dosen table
-  let akun = await prisma.tb_akun_dosen.findFirst({
-    where: {
-      username: data.username,
-    },
-    include: {
-      fk_pemilik: true,
-    },
-  });
-
-  // Not a dosen
-  if (!akun) {
-    dosen = false;
-    akun = await prisma.tb_akun_mhs.findUnique({
+  try { 
+    let dosen = true;
+    // Find akun in akun_dosen table
+    let akun = await prisma.tb_akun_dosen.findFirst({
       where: {
         username: data.username,
       },
@@ -26,17 +15,31 @@ const login = async (data) => {
         fk_pemilik: true,
       },
     });
-  }
 
-  // User not found
-  if (!akun) throw new Error("User not found");
+    // Not a dosen
+    if (!akun) {
+      dosen = false;
+      akun = await prisma.tb_akun_mhs.findUnique({
+        where: {
+          username: data.username,
+        },
+        include: {
+          fk_pemilik: true,
+        },
+      });
+    }
 
-  // Compare akun password
-  try {
+    // User not found
+    if (!akun) throw new Error("User not found");
+
+    if (akun.status != "Aktif") throw new Error("Akun tidak dapat digunakan");
+
+    // Compare akun password
     let firstTime = false;
-    if (!akun.fk_pemilik.email && !dosen) {
+    if (!akun.fk_pemilik.email) {
       firstTime = true;
     }
+    
     let passwordMatch = false;
     if (firstTime) {
       passwordMatch = data.password === akun.password;
@@ -79,11 +82,7 @@ const login = async (data) => {
       const userAccessToken = jwt.sign(
         { id: id, role: role },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "12h" }
-      );
-      const userRefreshToken = jwt.sign(
-        { id: id, role: role },
-        process.env.REFRESH_TOKEN_SECRET
+        { expiresIn: "1h" }
       );
 
       return {
@@ -92,8 +91,7 @@ const login = async (data) => {
         nama: nama,
         image: foto,
         firstTime: firstTime,
-        accessToken: userAccessToken,
-        refreshToken: userRefreshToken,
+        accessToken: userAccessToken
       };
     } else {
       throw new Error("Wrong password");

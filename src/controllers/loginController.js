@@ -2,7 +2,7 @@ const { login } = require("../services/loginServices");
 
 async function loginController(req, res) {
   const { username, password } = req.body;
-  if (!username || !password) {
+  if (!username.trim() || !password.trim()) {
     return res.status(400).json({ message: "Masukan tidak boleh kosong" });
   }
   

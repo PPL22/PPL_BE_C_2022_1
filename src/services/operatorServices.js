@@ -1,7 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const xlsx = require("xlsx");
-const { getKodeWaliRandom } = require("../utils/mahasiswaUtil");
 
 async function getDataDosen() {
   // Get all dosen data
@@ -29,55 +28,13 @@ async function getDataDosen() {
       delete user.role;
     });
 
-    console.log(doswalAccounts);
-
     return doswalAccounts;
   } catch (err) {
     throw new Error(err);
   }
 }
 
-async function getAkunMahasiswa() {
-  try {
-    const result = await prisma.tb_mhs.findMany({
-      select: {
-        nim: true,
-        nama: true,
-        angkatan: true,
-        jalurMasuk: true,
-        statusAktif: true,
-        fk_kodeWali: true,
-        fk_pemilik_akun_mhs: true,
-      },
-      orderBy: {
-        angkatan: "desc",
-      },
-    });
-
-    const mahasiswa = result.map((mahasiswa) => {
-      const namaDoswal = mahasiswa.fk_kodeWali.nama;
-      let username = null;
-      let password = null;
-      if (mahasiswa.fk_pemilik_akun_mhs) {
-        username = mahasiswa.fk_pemilik_akun_mhs.username;
-        password = mahasiswa.fk_pemilik_akun_mhs.password;
-      }
-      delete mahasiswa.fk_kodeWali;
-      delete mahasiswa.fk_pemilik_akun_mhs;
-      return {
-        ...mahasiswa,
-        namaDoswal,
-        username,
-        password,
-      };
-    });
-
-    return mahasiswa;
-  } catch (err) {
-    throw new Error(err);
-  }
-}
-
+// ============= Mahasiswa ==============
 async function addMahasiswa(data) {
   try {
     // Filter duplicate mahasiswa by finding them in database
@@ -98,7 +55,7 @@ async function addMahasiswa(data) {
 
     if (findUsername)
       throw new Error(
-        "Username already exists, please use a different username"
+        "Username telah digunakan, silahkan gunakan username lain"
       );
 
     // Check dosen input
@@ -109,7 +66,6 @@ async function addMahasiswa(data) {
     });
 
     if (!findDosen) throw new Error("Dosen tidak ditemukan");
-
     const [doneMhs, doneAkun] = await prisma.$transaction([
       prisma.tb_mhs.create({
         data: {
@@ -118,7 +74,11 @@ async function addMahasiswa(data) {
           angkatan: data.angkatan,
           statusAktif: data.status,
           jalurMasuk: data.jalurMasuk,
-          kodeWali: data.dosenWali,
+          fk_kodeWali: {
+            connect: {
+              nip: data.dosenWali,
+            },
+          },
         },
       }),
 
@@ -166,7 +126,7 @@ const batchAddMahasiswa = async (data) => {
         !docInJson[0].nipWali
       ) {
         throw new Error(
-          `Format data ${sheetName} kurang tepat (pastikan baris header memiliki nama dan urutan nim, nama, jalurMasuk, dan nipWali)`
+          `Format data sheet ${sheetName} kurang tepat (pastikan baris header memiliki nama dan urutan nim, nama, jalurMasuk, dan nipWali)`
         );
       }
 
@@ -183,12 +143,12 @@ const batchAddMahasiswa = async (data) => {
           !mhs.nipWali
         ) {
           throw new Error(
-            `Data tidak lengkap pada baris ${row} sheet ${sheetName}`
+            `Data tidak lengkap pada baris ${row} di sheet ${sheetName}`
           );
         } else {
           // ============== Validation ==============
           // Check nama
-          const regexNama = /^[A-Za-z ,.']+$/;
+          const regexNama = /^[A-Za-z ,.'-]+$/;
           if (!regexNama.test(mhs.nama)) {
             throw new Error(
               `Nama tidak valid pada baris ${row} sheet ${sheetName}. Nama hanya boleh terdiri dari huruf besar/kecil, spasi, koma, atau tanda petik`
@@ -212,7 +172,7 @@ const batchAddMahasiswa = async (data) => {
           const allJalurMasuk = ["SBMPTN", "SNMPTN", "Mandiri", "Lainnya"];
           if (!allJalurMasuk.includes(mhs.jalurMasuk)) {
             throw new Error(
-              `Jalur masuk tidak valid pada baris ${row} sheet ${sheetName}`
+              `Jalur masuk tidak valid pada baris ${row} di sheet ${sheetName}`
             );
           }
           // TODO: refactor this as a new utilites (?)
@@ -225,7 +185,7 @@ const batchAddMahasiswa = async (data) => {
 
           if (!findDosen) {
             throw new Error(
-              `Dosen tidak ditemukan pada baris ${row} sheet ${sheetName}`
+              `Dosen tidak ditemukan pada baris ${row} di sheet ${sheetName}`
             );
           } else {
             // To prevent duplicate username, use loop to regenerate username if it exists in DB
@@ -275,22 +235,453 @@ const batchAddMahasiswa = async (data) => {
   }
 };
 
-const getDataAkunMahasiswa = async () => {
+const getJumlahAkunMahasiswa = async () => {
+  //reference = https://pddikti.kemdikbud.go.id/data_prodi/NjE1N0JBQTEtODE4Ny00Mjg4LUFERkYtMkREOTk1QTdDRkIw
   const jumlahMahasiswa = 773;
   const jumlahAkunMahasiswa = await prisma.tb_akun_mhs.count();
   console.log(jumlahMahasiswa);
   const result = {
     sudahMemilikiAkun: jumlahAkunMahasiswa,
-    belumMemilikiAkun: jumlahMahasiswa - jumlahAkunMahasiswa,
+    belumMemilikiAkun:
+      jumlahMahasiswa - jumlahAkunMahasiswa > 0
+        ? jumlahMahasiswa - jumlahAkunMahasiswa
+        : 0,
   };
 
   return result;
 };
 
+const cetakDaftarAkunMahasiswa = async (data) => {
+  try {
+    const result = await prisma.tb_mhs.findMany({
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        jalurMasuk: true,
+        statusAktif: true,
+        fk_kodeWali: true,
+        fk_pemilik_akun_mhs: true,
+      },
+    });
+
+    // Restructure data and group by angkatan
+    const groupByAngkatan = result.reduce((r, mahasiswa) => {
+      // Restructure data
+      const namaDoswal = mahasiswa.fk_kodeWali.nama;
+      let username = null;
+      let password = null;
+      if (mahasiswa.fk_pemilik_akun_mhs) {
+        username = mahasiswa.fk_pemilik_akun_mhs.username;
+        password = mahasiswa.fk_pemilik_akun_mhs.password;
+      }
+      delete mahasiswa.fk_kodeWali;
+      delete mahasiswa.fk_pemilik_akun_mhs;
+      const data = {
+        ...mahasiswa,
+        namaDoswal,
+        username,
+        password,
+      };
+
+      // Group by angkatan
+      if (r[data.angkatan]) {
+        r[data.angkatan].push(data);
+      } else {
+        r[data.angkatan] = [data];
+      }
+
+      return r;
+    }, {});
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-akun.xlsx`;
+
+    Object.keys(groupByAngkatan).forEach((angkatan) => {
+      const dataSheet = xlsx.utils.json_to_sheet(groupByAngkatan[angkatan]);
+      xlsx.utils.book_append_sheet(workbook, dataSheet, angkatan);
+    });
+
+    xlsx.writeFile(workbook, filename);
+    return filename;
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
+async function getAkunMahasiswa(data) {
+  try {
+    // Get total amount of data
+    let maxPage = await prisma.tb_mhs.count();
+    maxPage = Math.ceil(maxPage / data.qty);
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
+
+    // Create sorting argument for query
+    let sortFilter = {};
+    const orderMhs = ["nama", "nim", "angkatan", "jalurMasuk", "statusAktif"];
+
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          angkatan: "asc",
+        },
+        {
+          nim: "asc",
+        },
+      ];
+    } else if (orderMhs.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order;
+    } else if (data.sortBy === "doswal") {
+      sortFilter.fk_kodeWali = {
+        nip: data.order,
+      };
+    } else if (data.sortBy === "status") {
+      sortFilter.fk_pemilik_akun_mhs = {
+        status: data.order,
+      };
+    } else {
+      throw new Error("Bad Request: Sort params not valid");
+    }
+
+    const result = await prisma.tb_mhs.findMany({
+      select: {
+        nim: true,
+        nama: true,
+        angkatan: true,
+        jalurMasuk: true,
+        statusAktif: true,
+        fk_kodeWali: true,
+        fk_pemilik_akun_mhs: true,
+      },
+      orderBy: sortFilter,
+      take: data.qty,
+      skip: (data.page - 1) * data.qty,
+      where: {
+        OR: [
+          {
+            nama: {
+              contains: data.keyword,
+            },
+          },
+          {
+            nim: {
+              contains: data.keyword,
+            },
+          },
+        ],
+      },
+    });
+
+    const mahasiswa = result.map((mahasiswa) => {
+      const namaDoswal = mahasiswa.fk_kodeWali.nama;
+      let username = null;
+      let password = null;
+      let statusAkun = null;
+      if (mahasiswa.fk_pemilik_akun_mhs) {
+        username = mahasiswa.fk_pemilik_akun_mhs.username;
+        password = mahasiswa.fk_pemilik_akun_mhs.password;
+        statusAkun = mahasiswa.fk_pemilik_akun_mhs.status;
+      }
+      delete mahasiswa.fk_kodeWali;
+      delete mahasiswa.fk_pemilik_akun_mhs;
+      return {
+        ...mahasiswa,
+        namaDoswal,
+        username,
+        password,
+        statusAkun,
+      };
+    });
+
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: mahasiswa,
+    };
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
+const updateStatusAkunMhs = async (data) => {
+  try {
+    let statusAktif = await prisma.tb_akun_mhs.findFirst({
+      where: {
+        pemilik: data.nim,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    if (!statusAktif) throw new Error("Akun not found");
+
+    if (statusAktif.status === "Aktif") {
+      statusAktif = "NonAktif";
+    } else {
+      statusAktif = "Aktif";
+    }
+
+    const result = await prisma.tb_akun_mhs.update({
+      where: {
+        pemilik: data.nim,
+      },
+      data: {
+        status: statusAktif,
+      },
+    });
+
+    return {
+      statusAktif: statusAktif,
+    };
+  } catch (err) {
+    throw err;
+  }
+};
+
+// ================== Dosen ===================
+async function addDosen(data) {
+  try {
+    // Filter duplicate mahasiswa by finding them in database
+    const findDosen = await prisma.tb_dosen.findUnique({
+      where: {
+        nip: data.nip,
+      },
+    });
+
+    if (findDosen) throw new Error("Dosen sudah terdaftar");
+
+    // Check if username exists
+    const findUsername = await prisma.tb_akun_dosen.findUnique({
+      where: {
+        username: data.username,
+      },
+    });
+
+    if (findUsername)
+      throw new Error(
+        "Username telah digunakan, silahkan gunakan username lain"
+      );
+
+    const [doneDosen, doneAkun] = await prisma.$transaction([
+      prisma.tb_dosen.create({
+        data: {
+          nip: data.nip,
+          nama: data.namaLengkap,
+        },
+      }),
+
+      prisma.tb_akun_dosen.create({
+        data: {
+          username: data.username,
+          password: data.password,
+          status: "Aktif",
+          pemilik: data.nip,
+        },
+      }),
+    ]);
+
+    if (!doneDosen || !doneAkun)
+      throw new Error("Failed to create new account");
+
+    return doneDosen;
+  } catch (err) {
+    throw err;
+  }
+}
+
+const getJumlahAkunDosen = async () => {
+  //reference = https://if.fsm.undip.ac.id/id/struktur-organisasi
+  const jumlahDosen = 30;
+  const jumlahAkunDosen = await prisma.tb_akun_dosen.count();
+  const result = {
+    sudahMemilikiAkun: jumlahAkunDosen,
+    belumMemilikiAkun:
+      jumlahDosen - jumlahAkunDosen > 0 ? jumlahDosen - jumlahAkunDosen : 0,
+  };
+
+  return result;
+};
+
+const cetakDaftarAkunDosen = async (data) => {
+  try {
+    const result = await prisma.tb_dosen.findMany({
+      select: {
+        nip: true,
+        nama: true,
+        fk_pemilik_akun_dosen: true,
+      },
+    });
+
+    // Restructure data and group by angkatan
+    result.map((dosen) => {
+      let username = null;
+      let password = null;
+      if (dosen.fk_pemilik_akun_dosen) {
+        username = dosen.fk_pemilik_akun_dosen.username;
+        password = dosen.fk_pemilik_akun_dosen.password;
+      }
+      delete dosen.fk_pemilik_akun_dosen;
+      dosen.username = username;
+      dosen.password = password;
+      return dosen;
+    });
+
+    // Create xlsx from json data
+    const workbook = xlsx.utils.book_new();
+    const filename = `public/documents/daftar-akun.xlsx`;
+
+    const dataSheet = xlsx.utils.json_to_sheet(result);
+    xlsx.utils.book_append_sheet(workbook, dataSheet, "Daftar dosen");
+    xlsx.writeFile(workbook, filename);
+    return filename;
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
+async function getAkunDosen(data) {
+  try {
+    // Get total amount of data
+    let maxPage = await prisma.tb_dosen.count();
+    maxPage = Math.ceil(maxPage / data.qty);
+
+    // Revalidate current page
+    if (data.page < 1 || data.page > maxPage)
+      throw new Error("Bad request. Params not valid");
+
+    // Create sorting argument for query
+    let sortFilter = {};
+    const orderDosen = ["nama", "nip"];
+
+    if (!data.sortBy) {
+      sortFilter = [
+        {
+          nip: "asc",
+        },
+        {
+          nama: "asc",
+        },
+      ];
+    } else if (orderDosen.includes(data.sortBy)) {
+      sortFilter[data.sortBy] = data.order;
+    } else if (data.sortBy === "doswal") {
+      sortFilter.fk_kodeWali = {
+        nip: data.order,
+      };
+    } else {
+      throw new Error("Bad Request: Sort params not valid");
+    }
+
+    const result = await prisma.tb_dosen.findMany({
+      select: {
+        nip: true,
+        nama: true,
+        fk_pemilik_akun_dosen: true,
+      },
+      orderBy: sortFilter,
+      take: data.qty,
+      skip: (data.page - 1) * data.qty,
+      where: {
+        OR: [
+          {
+            nama: {
+              contains: data.keyword,
+            },
+          },
+          {
+            nip: {
+              contains: data.keyword,
+            },
+          },
+        ],
+      },
+    });
+
+    const dosen = result.map((dosen) => {
+      let username = null;
+      let password = null;
+      let statusAkun = null;
+      if (dosen.fk_pemilik_akun_dosen) {
+        username = dosen.fk_pemilik_akun_dosen.username;
+        password = dosen.fk_pemilik_akun_dosen.password;
+        statusAkun = dosen.fk_pemilik_akun_dosen.status;
+      }
+      delete dosen.fk_kodeWali;
+      delete dosen.fk_pemilik_akun_dosen;
+      return {
+        ...dosen,
+        username,
+        password,
+        statusAkun,
+      };
+    });
+
+    return {
+      currentPage: data.page,
+      maxPage: maxPage,
+      list: dosen,
+    };
+  } catch (err) {
+    throw new Error(err);
+  }
+}
+
+const updateStatusAkunDosen = async (data) => {
+  try {
+    let statusAktif = await prisma.tb_akun_dosen.findFirst({
+      where: {
+        pemilik: data.nip,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    if (!statusAktif) throw new Error("Akun not found");
+
+    if (statusAktif.status === "Aktif") {
+      statusAktif = "NonAktif";
+    } else {
+      statusAktif = "Aktif";
+    }
+
+    const result = await prisma.tb_akun_dosen.update({
+      where: {
+        pemilik: data.nip,
+      },
+      data: {
+        status: statusAktif,
+      },
+    });
+
+    if (!result) throw new Error("Update status akun dosen failed");
+
+    return {
+      statusAktif: statusAktif,
+    };
+  } catch (err) {
+    throw err;
+  }
+};
+
 module.exports = {
   getDataDosen,
+
   addMahasiswa,
   batchAddMahasiswa,
-  getDataAkunMahasiswa,
+  getJumlahAkunMahasiswa,
+  cetakDaftarAkunMahasiswa,
   getAkunMahasiswa,
+  updateStatusAkunMhs,
+
+  addDosen,
+  getJumlahAkunDosen,
+  cetakDaftarAkunDosen,
+  getAkunDosen,
+  updateStatusAkunDosen,
 };

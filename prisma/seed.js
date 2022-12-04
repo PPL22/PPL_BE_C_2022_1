@@ -1,11 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { dosen } = require("../src/data/dosen");
 const { provinsi, kabupaten } = require("../src/data/locations");
-const {
-  getRole,
-  convertUsername,
-  hashPassword,
-} = require("../src/utils/dosenUtil");
+const { getRole, convertUsername } = require("../src/utils/dosenUtil");
 const { getKodeWaliRandom } = require("../src/utils/mahasiswaUtil");
 const prisma = new PrismaClient();
 
@@ -68,7 +64,7 @@ async function main() {
   const createAkunDosen = await prisma.tb_akun_dosen.createMany({
     data: dosen.map((dosen) => ({
       username: convertUsername(dosen.nama),
-      password: hashPassword(dosen.nama),
+      password: convertUsername(dosen.nama),
       status: "Aktif",
       pemilik: dosen.nip,
     })),

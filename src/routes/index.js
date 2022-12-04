@@ -1,5 +1,12 @@
 const express = require("express");
-const { uploadImage, uploadPDF, uploadExcel } = require("../middlewares/fileUpload");
+const {
+  uploadImage,
+  uploadPDF,
+  uploadExcel,
+  uploadDokumen,
+  uploadExcelMhs,
+  uploadFotoProfil,
+} = require("../middlewares/fileUpload");
 const multer = require("multer");
 
 const { loginController } = require("../controllers/loginController");
@@ -8,8 +15,15 @@ const {
   getDataDosenController,
   getAkunMahasiswaController,
   addMahasiswaController,
-  getDataAkunMahasiswaController,
   batchAddMahasiswaController,
+  getJumlahAkunMahasiswaController,
+  cetakDaftarAkunMahasiswaController,
+  getJumlahAkunDosenController,
+  getAkunDosenController,
+  addDosenController,
+  cetakDaftarAkunDosenController,
+  updateStatusAkunMhsController,
+  updateStatusAkunDosenController,
 } = require("../controllers/operatorController");
 
 const {
@@ -34,6 +48,10 @@ const {
   getDataAkademikMhsDosenController,
   getStatusValidasiController,
   getDashboardDosenController,
+  getDataRegisterDosenController,
+  updateDataDosenController,
+  cetakDaftarMhsDosenController,
+  updateStatusAktifMhsController,
 } = require("../controllers/dosenController");
 
 const {
@@ -42,6 +60,7 @@ const {
   searchMahasiswaDepartemenController,
   getDashboardDepartemenController,
   getDataAkademikMhsDepartemenController,
+  cetakDaftarMhsDepartemenController,
 } = require("../controllers/departemenController");
 
 const { getKotaController } = require("../controllers/locationController");
@@ -53,61 +72,71 @@ const router = express.Router();
 
 // Login
 router.post("/login", loginController);
+router.get("/kota", getKotaController);
 
 router.use(verifyToken);
 
+//=======================================================
 // Operator
-router.get("/operator/data-dosen", getDataDosenController);
-router.get("/operator/data-mahasiswa", getDataAkunMahasiswaController);
-router.get("/operator/akun-mahasiswa", getAkunMahasiswaController);
+// Dashboard
+router.get("/operator/jumlah-akun-mahasiswa", getJumlahAkunMahasiswaController);
+router.get("/operator/jumlah-akun-dosen", getJumlahAkunDosenController);
 router.get("/operator/profile", getProfileDosenController);
 
+// List akun
+router.get("/operator/akun-mahasiswa", getAkunMahasiswaController);
+router.get("/operator/akun-dosen", getAkunDosenController);
+
+// Add akun
+router.get("/operator/daftar-dosen", getDataDosenController);
 router.post("/operator/add-mahasiswa", addMahasiswaController);
+router.post("/operator/add-dosen", addDosenController);
 router.post(
   "/operator/batch-add-mahasiswa",
-  uploadExcel.single("dokumen"),
+  uploadExcelMhs,
   batchAddMahasiswaController
 );
+
+// Cetak list akun
+router.get(
+  "/operator/akun-mahasiswa/cetak",
+  cetakDaftarAkunMahasiswaController
+);
+router.get("/operator/akun-dosen/cetak", cetakDaftarAkunDosenController);
+
+// Update status akun
+router.put("/operator/akun-mahasiswa/status-aktif/:nim", updateStatusAkunMhsController)
+router.put("/operator/akun-dosen/status-aktif/:nip", updateStatusAkunDosenController)
 
 //=======================================================
 // Mahasiswa Controller
 router.get("/mahasiswa/register", getDataRegisterMahasiswaController);
-router.get("/mahasiswa/profile", getProfileMahasiswaController);
-router.get("/mahasiswa/kota", getKotaController);
-
-// Dashboard
-router.get("/mahasiswa/dashboard", getDashboardMahasiswaController);
-
 router.post(
   "/mahasiswa/update-data",
-  uploadImage.single("foto"),
+  uploadFotoProfil,
   updateDataMahasiswaController
 );
+  
+// Dashboard
+router.get("/mahasiswa/dashboard", getDashboardMahasiswaController);
+router.get("/mahasiswa/profile", getProfileMahasiswaController);
 
 // Entry data
-router.post(
-  "/mahasiswa/entry-irs",
-  uploadPDF.single("dokumen"),
-  entryDataIrsController
-);
-router.post(
-  "/mahasiswa/entry-khs",
-  uploadPDF.single("dokumen"),
-  entryDataKhsController
-);
-router.post(
-  "/mahasiswa/entry-pkl",
-  uploadPDF.single("dokumen"),
-  entryDataPklController
-);
+router.post("/mahasiswa/entry-irs", uploadDokumen, entryDataIrsController);
+router.post("/mahasiswa/entry-khs", uploadDokumen, entryDataKhsController);
+router.post("/mahasiswa/entry-pkl", uploadDokumen, entryDataPklController);
 router.post(
   "/mahasiswa/entry-skripsi",
-  uploadPDF.single("dokumen"),
+  uploadDokumen,
   entryDataSkripsiController
 );
 
+
 //=======================================================
 // Dosen Controller
+router.get("/dosen/register", getDataRegisterDosenController);
+router.post("/dosen/update-data", uploadFotoProfil, updateDataDosenController);
+
 // Dashboard and profile
 // TODO: refactor profile route, controller, and service
 router.get("/dosen/dashboard", getDashboardDosenController);
@@ -129,13 +158,22 @@ router.put("/dosen/validasi/skripsi", validasiDataSkripsiController);
 router.get("/dosen/rekap/status", rekapMahasiswaDosenController);
 router.get("/dosen/rekap/pkl", rekapMahasiswaDosenController);
 router.get("/dosen/rekap/skripsi", rekapMahasiswaDosenController);
+
 router.get("/dosen/daftar-status", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-pkl", daftarMahasiswaDosenController);
 router.get("/dosen/daftar-skripsi", daftarMahasiswaDosenController);
 
+router.get("/dosen/daftar-status/cetak", cetakDaftarMhsDosenController);
+router.get("/dosen/daftar-pkl/cetak", cetakDaftarMhsDosenController);
+router.get("/dosen/daftar-skripsi/cetak", cetakDaftarMhsDosenController);
+
 // Search mahasiswa
 router.get("/dosen/search-mhs", searchMahasiswaDosenController);
-router.get("/dosen/data-akademik-mhs/:nim", getDataAkademikMhsDosenController);
+router.get("/dosen/data-akademik-mhs/", getDataAkademikMhsDosenController);
+
+// Update status aktif mahasiswa
+router.put("/dosen/status-aktif-mhs/", updateStatusAktifMhsController);
+
 
 //=======================================================
 // Departemen Controller
@@ -151,10 +189,20 @@ router.get("/departemen/daftar-status", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-pkl", daftarMahasiswaDepartemenController);
 router.get("/departemen/daftar-skripsi", daftarMahasiswaDepartemenController);
 
+router.get(
+  "/departemen/daftar-status/cetak",
+  cetakDaftarMhsDepartemenController
+);
+router.get("/departemen/daftar-pkl/cetak", cetakDaftarMhsDepartemenController);
+router.get(
+  "/departemen/daftar-skripsi/cetak",
+  cetakDaftarMhsDepartemenController
+);
+
 // Search mahasiswa
 router.get("/departemen/search-mhs/", searchMahasiswaDepartemenController);
 router.get(
-  "/departemen/data-akademik-mhs/:nim",
+  "/departemen/data-akademik-mhs/",
   getDataAkademikMhsDepartemenController
 );
 
