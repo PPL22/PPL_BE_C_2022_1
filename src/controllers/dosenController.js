@@ -252,7 +252,7 @@ const validasiDataIrsController = async (req, res) => {
   const nip = req.id;
 
   // check null input
-  if (!nim || !semester || !status || !jumlahSks || !fileName) {
+  if (!nim || !semester || !status.trim() || !jumlahSks || !fileName.trim()) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -313,12 +313,12 @@ const validasiDataKhsController = async (req, res) => {
   if (
     !nim ||
     !semester ||
-    !status ||
+    !status.trim() ||
     !jumlahSksSemester ||
     !ips ||
     !jumlahSksKumulatif ||
     !ipk ||
-    !fileName
+    !fileName.trim()
   ) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
@@ -381,7 +381,7 @@ const validasiDataPklController = async (req, res) => {
   const nip = req.id;
 
   // check null input
-  if (!nim || !semester || !nilai || !fileName) {
+  if (!nim || !semester || !nilai || !fileName.trim()) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",
     });
@@ -424,7 +424,7 @@ const validasiDataSkripsiController = async (req, res) => {
     !nilai ||
     !tanggalLulusSidang ||
     !lamaStudi ||
-    !fileName
+    !fileName.trim()
   ) {
     return res.status(400).json({
       message: "Data tidak boleh kosong",

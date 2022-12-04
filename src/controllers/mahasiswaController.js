@@ -161,7 +161,7 @@ const entryDataIrsController = async (req, res) => {
   const dokumen = req.file;
 
   // check null input
-  if (!nim || !semester || !status || !jumlahSks) {
+  if (!nim || !semester || !status.trim() || !jumlahSks) {
     if (dokumen) {
       fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
         if (err) throw err;
@@ -264,7 +264,7 @@ const entryDataKhsController = async (req, res) => {
   if (
     !nim ||
     !semester ||
-    !status ||
+    !status.trim() ||
     !jumlahSksSemester ||
     !ips ||
     !jumlahSksKumulatif ||
