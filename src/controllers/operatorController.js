@@ -88,14 +88,14 @@ const addMahasiswaController = async (req, res) => {
   } = req.body;
 
   if (
-    !username ||
-    !namaLengkap ||
+    !username.trim() ||
+    !namaLengkap.trim() ||
     !nim ||
     !angkatan ||
-    !password ||
-    !status ||
-    !jalurMasuk ||
-    !dosenWali
+    !password.trim() ||
+    !status.trim() ||
+    !jalurMasuk.trim() ||
+    !dosenWali.trim()
   ) {
     return res
       .status(400)
@@ -121,7 +121,16 @@ const addMahasiswaController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE: Check NIM (?)
+  // Check NIM
+  if (nim.length != 14) {
+    return res.status(400).json({
+      message: "NIM harus terdiri dari 14 digit",
+    });
+  } else if (!nim.startsWith("2406")) {
+    return res.status(400).json({
+      message: "NIM harus dimulai dengan 2406",
+    });
+  }
 
   // Check angkatan
   if (
@@ -132,8 +141,6 @@ const addMahasiswaController = async (req, res) => {
       message: "Angkatan tidak valid",
     });
   }
-
-  // TODO-VALIDATE: check password (?)
 
   // Check status,
   const statusMhs = [
@@ -180,6 +187,16 @@ const addMahasiswaController = async (req, res) => {
 
 const addDosenController = async (req, res) => {
   const { username, namaLengkap, nip, password } = req.body;
+
+  if (
+    !username.trim() ||
+    !namaLengkap.trim() ||
+    !nip.trim() ||
+    !password.trim()
+  )
+    return res
+      .status(400)
+      .json({ message: "Paramater tidak boleh ada yang kosong" });
 
   // regex username hanya boleh huruf kecil, angka, dan underscore
   const regexUsername = /^[a-z0-9_]+$/;
