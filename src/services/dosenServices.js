@@ -101,7 +101,6 @@ const updateDataDosen = async (data) => {
 };
 
 // TODO: refactor get status validasi
-// !!! Forgot to add who hasn't entered the data yet
 // Get status validasi
 const getStatusValidasiIRS = async (data) => {
   try {

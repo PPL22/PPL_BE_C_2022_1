@@ -226,7 +226,6 @@ const getDataAkademikMhs = async (data) => {
 // Count status, for dashboard
 const getCountStatusDataAkademikMhs = async (data) => {
   try {
-    // TODO: Get status by angkatan
     const filterWali = data.nip ? { kodeWali: data.nip } : {};
     const filterAngkatan = data.angkatan
       ? { angkatan: parseInt(data.angkatan) }

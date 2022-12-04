@@ -78,7 +78,12 @@ const updateDataMahasiswaController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE: check password
+  // Check password
+  if (password.length < 8) {
+    return res.status(400).json({
+      message: "Panjang password minimal 8 huruf",
+    });
+  }
 
   // Check nomor HP (format nomor HP Indonesia)
   const regexNoHP = /^(\+62|62|)8[1-9]{1}[0-9]{8,12}$/;
@@ -292,7 +297,12 @@ const entryDataKhsController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE: validasi status KHS
+  // Check status KHS
+  if (!["Aktif", "Cuti"].includes(status)) {
+    return res.status(400).json({
+      message: "Status KHS tidak valid"
+    })
+  }
 
   // Check jumlah sks
   if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
@@ -318,7 +328,13 @@ const entryDataKhsController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE: validasi jumlah sks kumulatif
+  // Check jumlah sks kumulatif
+  if (parseInt(jumlahSksKumulatif) < 0 || parseInt(jumlahSksKumulatif) > 160) {
+    return res.status(400).json({
+      message: "Jumlah SKS Kumulatif tidak valid"
+    })
+  }
+  
 
   // Check IPK
   if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
@@ -396,8 +412,14 @@ const entryDataPklController = async (req, res) => {
 
   // Check semester | Done in service
 
-  // TODO-VALIDATE: validasi nilai PKL
+  // Check nilai PKL
+  if (parseInt(nilai) < 0 || parseInt(nilai) > 100) {
+    return res.status(400).json({
+      message: "Nilai PKL tidak valid"
+    })
+  }
 
+  // Check document
   if (dokumen && path.extname(dokumen.originalname) !== ".pdf") {
     if (dokumen) {
       fs.unlink(`public/documents/${dokumen.originalname}`, (err) => {
@@ -460,7 +482,26 @@ const entryDataSkripsiController = async (req, res) => {
 
   // Check semester | Done in service
 
-  // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
+  // Check nilai skripsi
+  if (parseInt(nilai) < 0 || parseInt(nilai) > 100) {
+    return res.status(400).json({
+      message: "Nilai tidak valid"
+    })
+  }
+
+  // Check lama studi
+  if (parseInt(lamaStudi) < 0 || parseInt(lamaStudi) > 14) {
+    return res.status(400).json({
+      message: "Lama studi tidak valid"
+    })
+  }
+
+  // Check tanggal lulus sidang
+  if (Date.parse(tanggalLulusSidang) === NaN) {
+    return res.status(400).json({
+      message: "Tanggal lulus sidang tidak valid"
+    })
+  }
 
   if (dokumen && path.extname(dokumen.originalname) !== ".pdf") {
     return res.status(400).json({

@@ -95,50 +95,49 @@ async function main() {
         semester: "1",
         status: "Aktif",
         jumlahSks: "18",
-        fileIrs: "irs1.pdf",
+        fileIrs: "irs-24060120130059-1.pdf",
       },
       {
         nim: "24060120130059",
         semester: "2",
         status: "Aktif",
         jumlahSks: "23",
-        fileIrs: "irs2.pdf",
+        fileIrs: "irs-24060120130059-2.pdf",
       },
       {
-        // Edge case - Kasus cuti
         nim: "24060120130059",
         semester: "3",
         status: "Cuti",
         jumlahSks: "0",
-        fileIrs: "",
+        fileIrs: "irs-24060120130059-3.pdf",
       },
       {
         nim: "24060120130059",
         semester: "4",
         status: "Aktif",
         jumlahSks: "21",
-        fileIrs: "irs4.pdf",
+        fileIrs: "irs-24060120130059-4.pdf",
       },
       {
         nim: "24060120130059",
         semester: "5",
         status: "Aktif",
         jumlahSks: "21",
-        fileIrs: "irs5.pdf",
+        fileIrs: "irs-24060120130059-5.pdf",
       },
       {
         nim: "24060120130059",
         semester: "6",
         status: "Aktif",
         jumlahSks: "21",
-        fileIrs: "irs6.pdf",
+        fileIrs: "irs-24060120130059-6.pdf",
       },
       {
         nim: "24060120130059",
         semester: "7",
         status: "Aktif",
         jumlahSks: "21",
-        fileIrs: "irs7.pdf",
+        fileIrs: "irs-24060120130059-7.pdf",
       },
     ],
     skipDuplicates: true,
@@ -154,7 +153,7 @@ async function main() {
         ips: "3.00",
         jumlahSksKumulatif: "18",
         ipk: "3.00",
-        fileKhs: "khs1.pdf",
+        fileKhs: "khs-24060120130059-1.pdf",
       },
       {
         // Example of wrong data, needs validation
@@ -165,10 +164,9 @@ async function main() {
         ips: "3.00",
         jumlahSksKumulatif: "43",
         ipk: "3.00",
-        fileKhs: "khs2.pdf",
+        fileKhs: "khs-24060120130059-2.pdf",
       },
       {
-        // Edge case
         nim: "24060120130059",
         semester: "3",
         status: "Cuti",
@@ -176,7 +174,7 @@ async function main() {
         ips: "0.00",
         jumlahSksKumulatif: "43",
         ipk: "3.00",
-        fileKhs: "",
+        fileKhs: "khs-24060120130059-3",
       },
       {
         nim: "24060120130059",
@@ -186,7 +184,7 @@ async function main() {
         ips: "3.00",
         jumlahSksKumulatif: "64",
         ipk: "3.00",
-        fileKhs: "khs4.pdf",
+        fileKhs: "khs-24060120130059-4.pdf",
       },
       {
         nim: "24060120130059",
@@ -196,7 +194,7 @@ async function main() {
         ips: "0.00",
         jumlahSksKumulatif: "85",
         ipk: "3.00",
-        fileKhs: "khs5.pdf",
+        fileKhs: "khs-24060120130059-5.pdf",
       },
       {
         nim: "24060120130059",
@@ -206,7 +204,7 @@ async function main() {
         ips: "0.00",
         jumlahSksKumulatif: "106",
         ipk: "3.00",
-        fileKhs: "khs6.pdf",
+        fileKhs: "khs-24060120130059-6.pdf",
       },
       {
         nim: "24060120130059",
@@ -216,7 +214,7 @@ async function main() {
         ips: "0.00",
         jumlahSksKumulatif: "127",
         ipk: "3.00",
-        fileKhs: "khs7.pdf",
+        fileKhs: "khs-24060120130059-7.pdf",
       },
     ],
     skipDuplicates: true,
@@ -228,7 +226,7 @@ async function main() {
         nim: "24060120130059",
         semester: "6",
         nilai: "90",
-        filePkl: "pkl.pdf",
+        filePkl: "pkl-24060120130059-6.pdf",
       },
     ],
     skipDuplicates: true,
@@ -237,13 +235,12 @@ async function main() {
   const createSkripsi = await prisma.tb_skripsi.createMany({
     data: [
       {
-        // Edge case
         nim: "24060120130059",
         semester: "7",
         nilai: "",
         tanggalLulusSidang: new Date(),
         lamaStudi: 0, // Harusnya jangan int
-        fileSkripsi: "",
+        fileSkripsi: "skripsi-24060120130059-7",
       },
     ],
     skipDuplicates: true,

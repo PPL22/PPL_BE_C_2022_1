@@ -162,9 +162,17 @@ const daftarStatusMahasiswa = async (data) => {
 };
 
 const rekapPklMahasiswa = async (data) => {
-  // !!! FILTER WALI ??
   try {
+    const filterWali = data.nip
+      ? {
+          kodeWali: data.nip,
+        }
+      : {};
+
     const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali
+      },
       select: {
         nim: true,
         kodeWali: true,
@@ -173,12 +181,7 @@ const rekapPklMahasiswa = async (data) => {
       },
     });
 
-    let pkl = result;
-    if (data) {
-      pkl = result.filter((item) => item.kodeWali === data.nip);
-    }
-
-    const filterByAngkatan = pkl.reduce((acc, cur) => {
+    const filterByAngkatan = result.reduce((acc, cur) => {
       const { angkatan, fk_nim_pkl } = cur;
       const pkl = fk_nim_pkl;
       if (acc[angkatan]) {
@@ -312,9 +315,17 @@ const daftarPklMahasiswa = async (data) => {
 };
 
 const rekapSkripsiMahasiswa = async (data) => {
-  // !!! FILTER WALI ??
   try {
+    const filterWali = data.nip
+      ? {
+          kodeWali: data.nip,
+        }
+      : {};
+
     const result = await prisma.tb_mhs.findMany({
+      where: {
+        ...filterWali
+      },
       select: {
         nim: true,
         kodeWali: true,
@@ -322,12 +333,12 @@ const rekapSkripsiMahasiswa = async (data) => {
         angkatan: true,
       },
     });
-    let skripsi = result;
-    if (data) {
-      skripsi = result.filter((item) => item.kodeWali === data.nip);
-    }
+    // let skripsi = result;
+    // if (data) {
+    //   skripsi = result.filter((item) => item.kodeWali === data.nip);
+    // }
 
-    const filterByAngkatan = skripsi.reduce((acc, cur) => {
+    const filterByAngkatan = result.reduce((acc, cur) => {
       const { angkatan, fk_nim_skripsi } = cur;
       const skripsi = fk_nim_skripsi;
       if (acc[angkatan]) {

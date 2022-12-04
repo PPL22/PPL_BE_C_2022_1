@@ -95,7 +95,12 @@ const updateDataDosenController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE: check password
+  // Check password
+  if (password.length < 8) {
+    return res.status(400).json({
+      message: "Panjang password minimal 8 huruf",
+    });
+  }
 
   // Check nomor HP (format nomor HP Indonesia)
   const regexNoHP = /^(\+62|62|)8[1-9]{1}[0-9]{8,12}$/;
@@ -203,13 +208,6 @@ const getStatusValidasiController = async (req, res) => {
     return res.status(400).json({ message: "Bad request. Params not valid" });
   page = parseInt(page);
   qty = parseInt(qty);
-
-  // !! Udah ada checking di JWT (?)
-  // if (!nip) {
-  //   return res.status(400).json({
-  //     message: "ID kosong",
-  //   });
-  // }
 
   try {
     const data = { nip, page, qty, keyword, sortBy, order };
@@ -325,8 +323,6 @@ const validasiDataKhsController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE: Recheck validate semester in KHS (validasi dosen)
-
   // Check jumlah sks
   if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
     return res.status(400).json({
@@ -341,7 +337,12 @@ const validasiDataKhsController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE: validasi jumlah sks kumulatif
+  // Check jumlah sks kumulatif
+  if (parseInt(jumlahSksKumulatif) < 0 || parseInt(jumlahSksKumulatif) > 160) {
+    return res.status(400).json({
+      message: "Jumlah SKS Kumulatif tidak valid"
+    })
+  }
 
   // Check IPK
   if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
@@ -387,7 +388,12 @@ const validasiDataPklController = async (req, res) => {
     });
   }
 
-  // TODO-VALIDATE: validasi nilai PKL
+  // Check nilai PKL
+  if (parseInt(nilai) < 0 || parseInt(nilai) > 100) {
+    return res.status(400).json({
+      message: "Nilai PKL tidak valid"
+    })
+  }
 
   try {
     const data = {
@@ -430,7 +436,27 @@ const validasiDataSkripsiController = async (req, res) => {
       message: "Data tidak boleh kosong",
     });
   }
-  // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
+
+  // Check nilai skripsi
+  if (parseInt(nilai) < 0 || parseInt(nilai) > 100) {
+    return res.status(400).json({
+      message: "Nilai tidak valid"
+    })
+  }
+
+  // Check lama studi
+  if (parseInt(lamaStudi) < 0 || parseInt(lamaStudi) > 14) {
+    return res.status(400).json({
+      message: "Lama studi tidak valid"
+    })
+  }
+
+  // Check tanggal lulus sidang
+  if (Date.parse(tanggalLulusSidang) === NaN) {
+    return res.status(400).json({
+      message: "Tanggal lulus sidang tidak valid"
+    })
+  }
 
   try {
     const data = {

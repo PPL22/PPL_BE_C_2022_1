@@ -121,6 +121,13 @@ const addMahasiswaController = async (req, res) => {
     });
   }
 
+  // Check password
+  if (password.length < 8) {
+    return res.status(400).json({
+      message: "Panjang password minimal 8 huruf",
+    });
+  }
+
   // Check NIM
   if (nim.length != 14) {
     return res.status(400).json({
@@ -214,6 +221,13 @@ const addDosenController = async (req, res) => {
     return res.status(400).json({
       message:
         "Nama hanya boleh terdiri dari huruf besar/kecil, spasi, koma, atau tanda petik",
+    });
+  }
+
+  // Check password
+  if (password.length < 8) {
+    return res.status(400).json({
+      message: "Panjang password minimal 8 huruf",
     });
   }
 

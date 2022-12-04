@@ -68,7 +68,6 @@ const getDataRegisterMahasiswa = async (data) => {
   }
 };
 
-// TODO : filename foto belum dikirim diresponse
 const updateDataMahasiswa = async (data) => {
   try {
     if (data.oldUsername !== data.username) {
@@ -138,7 +137,7 @@ const entryDataIrs = async (data) => {
       }
     })
 
-    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs)) throw new Error("Status mahasiswa tidak valid")
+    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs.statusAktif)) throw new Error("Status mahasiswa tidak valid")
 
     let fileName = "";
     if (data.dokumen) {
@@ -265,7 +264,7 @@ const entryDataKhs = async (data) => {
       }
     })
 
-    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs)) throw new Error("Status mahasiswa tidak valid")
+    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs.statusAktif)) throw new Error("Status mahasiswa tidak valid")
 
     let fileName = "";
     if (data.dokumen) {
@@ -418,7 +417,7 @@ const entryDataPkl = async (data) => {
       }
     })
 
-    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs)) throw new Error("Status mahasiswa tidak valid")
+    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs.statusAktif)) throw new Error("Status mahasiswa tidak valid")
 
     let fileName = "";
     if (data.dokumen) {
@@ -519,7 +518,7 @@ const entryDataSkripsi = async (data) => {
       }
     })
 
-    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs)) throw new Error("Status mahasiswa tidak valid")
+    if (!["Aktif", "Cuti", "Mangkir", "Lulus"].includes(statusMhs.statusAktif)) throw new Error("Status mahasiswa tidak valid")
 
     let fileName = "";
     if (data.dokumen) {

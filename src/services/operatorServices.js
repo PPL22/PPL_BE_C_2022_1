@@ -155,8 +155,6 @@ const batchAddMahasiswa = async (data) => {
             );
           }
 
-          // TODO-VALIDATE: Check NIM (?)
-
           // Check angkatan
           if (
             mhs.angkatan < 1950 ||
@@ -175,7 +173,6 @@ const batchAddMahasiswa = async (data) => {
               `Jalur masuk tidak valid pada baris ${row} di sheet ${sheetName}`
             );
           }
-          // TODO: refactor this as a new utilites (?)
           // Find dosen in tb_dosen
           const findDosen = await prisma.tb_dosen.findUnique({
             where: {
