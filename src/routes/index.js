@@ -108,20 +108,18 @@ router.get("/operator/akun-dosen/cetak", cetakDaftarAkunDosenController);
 router.put("/operator/akun-mahasiswa/status-aktif/:nim", updateStatusAkunMhsController)
 router.put("/operator/akun-dosen/status-aktif/:nip", updateStatusAkunDosenController)
 
-
 //=======================================================
 // Mahasiswa Controller
 router.get("/mahasiswa/register", getDataRegisterMahasiswaController);
-router.get("/mahasiswa/profile", getProfileMahasiswaController);
-
-// Dashboard
-router.get("/mahasiswa/dashboard", getDashboardMahasiswaController);
-
 router.post(
   "/mahasiswa/update-data",
   uploadFotoProfil,
   updateDataMahasiswaController
 );
+  
+// Dashboard
+router.get("/mahasiswa/dashboard", getDashboardMahasiswaController);
+router.get("/mahasiswa/profile", getProfileMahasiswaController);
 
 // Entry data
 router.post("/mahasiswa/entry-irs", uploadDokumen, entryDataIrsController);

@@ -29,7 +29,6 @@ const {
   cetakDaftarPklMahasiswa,
   cetakDaftarSkripsiMahasiswa,
 } = require("../services/rekapServices");
-const validateSemester = require("../utils/validateSemester");
 const path = require("path");
 
 // Register
@@ -37,12 +36,12 @@ const getDataRegisterDosenController = async (req, res) => {
   const nip = req.id;
   try {
     const result = await getDataRegisterDosen({ nip });
-    res.status(200).json({
+    return res.status(200).json({
       status: "success",
       data: result,
     });
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       status: "error",
       message: error.message,
     });
@@ -99,7 +98,7 @@ const updateDataDosenController = async (req, res) => {
   // TODO-VALIDATE: check password
 
   // Check nomor HP (format nomor HP Indonesia)
-  const regexNoHP = /^(628|\+628)\d{8,13}$/;
+  const regexNoHP = /^(\+62|62|)8[1-9]{1}[0-9]{8,12}$/;
   if (!regexNoHP.test(noHP)) {
     if (noHP.length < 10 || noHP.length > 13) {
       return res.status(400).json({
@@ -141,6 +140,11 @@ const updateDataDosenController = async (req, res) => {
     }
 
     const result = await updateDataDosen(data);
+
+    console.log({
+      message: "Data berhasil diubah",
+      data: result,
+    })
     return res.status(200).json({
       message: "Data berhasil diubah",
       data: result,
@@ -254,13 +258,7 @@ const validasiDataIrsController = async (req, res) => {
     });
   }
 
-  // Check semester
-  if (!(await validateSemester(nim, semester))) {
-    return res.status(400).json({
-      message: "Semester tidak valid",
-    });
-  }
-
+  
   // Check status
   const statusIRS = ["Aktif", "Cuti"];
   if (!statusIRS.includes(status)) {
@@ -268,15 +266,16 @@ const validasiDataIrsController = async (req, res) => {
       message: "Status IRS tidak valid",
     });
   }
-
+  
   // Check jumlah sks
   if (jumlahSks < 0 || jumlahSks > 24) {
     return res.status(400).json({
       message: "Jumlah SKS tidak valid",
     });
   }
-
+  
   try {
+   
     const data = {
       nip,
       nim,
@@ -329,29 +328,23 @@ const validasiDataKhsController = async (req, res) => {
   }
 
   // TODO-VALIDATE: Recheck validate semester in KHS (validasi dosen)
-  // Check semester
-  if (!(await validateSemester(nim, semester))) {
-    return res.status(400).json({
-      message: "Semester tidak valid",
-    });
-  }
-
+  
   // Check jumlah sks
   if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
     return res.status(400).json({
       message: "Jumlah SKS tidak valid",
     });
   }
-
+  
   // Check IPS
   if (parseFloat(ips) < 0 || parseFloat(ips) > 4) {
     return res.status(400).json({
       message: "IPS tidak valid",
     });
   }
-
+  
   // TODO-VALIDATE: validasi jumlah sks kumulatif
-
+   
   // Check IPK
   if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
     return res.status(400).json({
@@ -396,15 +389,9 @@ const validasiDataPklController = async (req, res) => {
     });
   }
 
-  // Check semester
-  if (!(await validateSemester(nim, semester))) {
-    return res.status(400).json({
-      message: "Semester tidak valid",
-    });
-  }
-
+  
   // TODO-VALIDATE: validasi nilai PKL
-
+  
   try {
     const data = {
       nip,
@@ -413,7 +400,7 @@ const validasiDataPklController = async (req, res) => {
       nilai,
       fileName,
     };
-
+    
     const result = await validasiDataPkl(data);
     return res.status(200).json({
       message: "validasi data progress PKL berhasil",
@@ -446,16 +433,8 @@ const validasiDataSkripsiController = async (req, res) => {
       message: "Data tidak boleh kosong",
     });
   }
-
-  // Check semester
-  if (!(await validateSemester(nim, semester))) {
-    return res.status(400).json({
-      message: "Semester tidak valid",
-    });
-  }
-
   // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
-
+  
   try {
     const data = {
       nip,
@@ -466,7 +445,7 @@ const validasiDataSkripsiController = async (req, res) => {
       lamaStudi,
       fileName,
     };
-
+    
     const result = await validasiDataSkripsi(data);
     return res.status(200).json({
       message: "validasi data progress Skripsi berhasil",
@@ -654,6 +633,7 @@ const cetakDaftarMhsDosenController = async (req, res) => {
 };
 
 const updateStatusAktifMhsController = async (req, res) => {
+  const nip = req.id
   const { nim, statusAktif } = req.body;
   if (!nim || !statusAktif) {
     return res.status(400).json({
@@ -678,7 +658,7 @@ const updateStatusAktifMhsController = async (req, res) => {
   }
 
   try {
-    const data = { nim, statusAktif };
+    const data = { nip, nim, statusAktif };
     const result = await updateStatusAktifMhs(data);
 
     return res.status(200).json({

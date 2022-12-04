@@ -126,7 +126,7 @@ const batchAddMahasiswa = async (data) => {
         !docInJson[0].nipWali
       ) {
         throw new Error(
-          `Format data ${sheetName} kurang tepat (pastikan baris header memiliki nama dan urutan nim, nama, jalurMasuk, dan nipWali)`
+          `Format data sheet ${sheetName} kurang tepat (pastikan baris header memiliki nama dan urutan nim, nama, jalurMasuk, dan nipWali)`
         );
       }
 
@@ -143,7 +143,7 @@ const batchAddMahasiswa = async (data) => {
           !mhs.nipWali
         ) {
           throw new Error(
-            `Data tidak lengkap pada baris ${row} sheet ${sheetName}`
+            `Data tidak lengkap pada baris ${row} di sheet ${sheetName}`
           );
         } else {
           // ============== Validation ==============
@@ -172,7 +172,7 @@ const batchAddMahasiswa = async (data) => {
           const allJalurMasuk = ["SBMPTN", "SNMPTN", "Mandiri", "Lainnya"];
           if (!allJalurMasuk.includes(mhs.jalurMasuk)) {
             throw new Error(
-              `Jalur masuk tidak valid pada baris ${row} sheet ${sheetName}`
+              `Jalur masuk tidak valid pada baris ${row} di sheet ${sheetName}`
             );
           }
           // TODO: refactor this as a new utilites (?)
@@ -185,7 +185,7 @@ const batchAddMahasiswa = async (data) => {
 
           if (!findDosen) {
             throw new Error(
-              `Dosen tidak ditemukan pada baris ${row} sheet ${sheetName}`
+              `Dosen tidak ditemukan pada baris ${row} di sheet ${sheetName}`
             );
           } else {
             // To prevent duplicate username, use loop to regenerate username if it exists in DB

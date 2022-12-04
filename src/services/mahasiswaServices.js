@@ -181,7 +181,7 @@ const entryDataIrs = async (data) => {
             throw new Error(`IRS harus diisi urut mulai dari semester 1`);
           }
         } else if (
-          parseInt(data.semester) !=
+          parseInt(data.semester) >
           parseInt(lastIrs._max.semester) + 1
         ) {
           if (data.dokumen) {
@@ -320,7 +320,7 @@ const entryDataKhs = async (data) => {
             throw new Error(`KHS harus diisi urut mulai dari semester 1`);
           }
         } else if (
-          parseInt(data.semester) !=
+          parseInt(data.semester) >
           parseInt(lastKhs._max.semester) + 1
         ) {
           fs.unlink(`public/documents/khs/${fileName}`, (err) => {
@@ -406,12 +406,9 @@ const entryDataPkl = async (data) => {
     }
 
     // PKL can only be filled once
-    const findPkl = await prisma.tb_pkl.findUnique({
+    const findPkl = await prisma.tb_pkl.findFirst({
       where: {
-        nim_semester: {
-          nim: data.nim,
-          semester: data.semester,
-        },
+        nim: data.nim
       },
     });
 
@@ -502,19 +499,15 @@ const entryDataSkripsi = async (data) => {
     }
 
     // Skripsi can only be filled once
-    const findSkripsi = await prisma.tb_skripsi.findUnique({
+    const findSkripsi = await prisma.tb_skripsi.findFirst({
       where: {
-        nim_semester: {
-          nim: data.nim,
-          semester: data.semester,
-        },
+        nim: data.nim,
       },
     });
 
     if (findSkripsi && data.oldSemester !== data.semester)
       throw new Error("Data Skripsi telah terisi");
 
-    // let valid = false
     if (await validateSemester(data.nim, data.semester)) {
       // Check if IRS is already filled
       const lastIrs = await prisma.tb_irs.findUnique({
@@ -593,11 +586,15 @@ const getProfileMahasiswa = async (data) => {
       },
       select: {
         angkatan: true,
+        statusAktif: true,
+        jalurMasuk: true,
+        email: true,
+        noHP: true,
         fk_kodeWali: {
           select: {
             nama: true,
-            nip: true,
-          },
+            nip: true
+          }
         },
         fk_nim_khs: {
           orderBy: {
@@ -607,16 +604,6 @@ const getProfileMahasiswa = async (data) => {
           select: {
             ipk: true,
             jumlahSksKumulatif: true,
-          },
-        },
-        fk_nim_irs: {
-          orderBy: {
-            semester: "desc",
-          },
-          take: 1,
-          select: {
-            semester: true,
-            status: true,
           },
         },
         fk_kodeKab: {
@@ -629,22 +616,27 @@ const getProfileMahasiswa = async (data) => {
             namaProv: true,
           },
         },
+        alamat: true
       },
     });
 
-    // spread operator
+    // spread profile mahasiswa
     const profile = {
       namaDosenWali: result.fk_kodeWali.nama,
       nipDosenWali: result.fk_kodeWali.nip,
       semester: countSemester(result.angkatan),
-      status: result.fk_nim_irs.length > 0 ? result.fk_nim_irs[0].status : "-",
+      status: result.statusAktif,
+      jalurMasuk: result.jalurMasuk,
+      email: result.email,
+      noHP: result.noHP,
+      alamat: result.alamat,
+      namaKab: result.fk_kodeKab.namaKab,
+      namaProv: result.fk_kodeProv.namaProv,
       ipk: result.fk_nim_khs.length > 0 ? result.fk_nim_khs[0].ipk : "-",
       jumlahSksKumulatif:
         result.fk_nim_khs.length > 0
           ? result.fk_nim_khs[0].jumlahSksKumulatif
           : "-",
-      namaKab: result.fk_kodeKab.namaKab,
-      namaProv: result.fk_kodeProv.namaProv,
     };
 
     return profile;

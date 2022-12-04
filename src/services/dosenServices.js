@@ -5,6 +5,7 @@ const fs = require("fs");
 const bcrypt = require("bcrypt");
 const ResizeFile = require("../utils/resizeFile");
 const path = require("path");
+const validateSemester = require("../utils/validateSemester");
 
 const getDataRegisterDosen = async (data) => {
   try {
@@ -520,7 +521,9 @@ const validasiDataIrs = async (data) => {
     if (!checkDoswal)
       throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
 
-    // Check semester (WARNING: akan error bila file yang dikirim bukan file yang valid)
+    // Check semester
+    if (!(await validateSemester(data.nim, data.semester))) throw new Error ("Semester tidak valid")
+
     if (data.semester != oldSemester) {
       const checkSemester = await prisma.tb_irs.findUnique({
         where: {
@@ -532,36 +535,6 @@ const validasiDataIrs = async (data) => {
       });
 
       if (checkSemester) throw new Error("Semester sudah terisi");
-    }
-
-    // Rename document if semester is different
-    if (oldSemester !== data.semester) {
-      fs.renameSync(
-        `public/documents` + data.fileName,
-        `public/documents/irs/${fileName}`
-      );
-    }
-
-    // Check semester (WARNING: akan error bila file yang dikirim bukan file yang valid)
-    if (data.semester != oldSemester) {
-      const checkSemester = await prisma.tb_irs.findUnique({
-        where: {
-          nim_semester: {
-            nim: data.nim,
-            semester: data.semester,
-          },
-        },
-      });
-
-      if (checkSemester) throw new Error("Semester sudah terisi");
-    }
-
-    // Rename document if semester is different
-    if (oldSemester !== data.semester) {
-      fs.renameSync(
-        `public/documents` + data.fileName,
-        `public/documents/irs/${fileName}`
-      );
     }
 
     // Update
@@ -581,6 +554,14 @@ const validasiDataIrs = async (data) => {
       },
     });
 
+    // Rename document if semester is different
+    if (oldSemester !== data.semester) {
+      fs.renameSync(
+        `public/documents` + data.fileName,
+        `public/documents/irs/${fileName}`
+      );
+    }
+  
     return result;
   } catch (err) {
     throw err;
@@ -612,6 +593,8 @@ const validasiDataKhs = async (data) => {
       throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
 
     // Check semester
+    if (!(await validateSemester(data.nim, data.semester))) throw new Error ("Semester tidak valid")
+
     if (data.semester != oldSemester) {
       const checkSemester = await prisma.tb_khs.findUnique({
         where: {
@@ -621,7 +604,6 @@ const validasiDataKhs = async (data) => {
           },
         },
       });
-
       if (checkSemester) throw new Error("Semester sudah terisi");
     }
 
@@ -683,16 +665,19 @@ const validasiDataPkl = async (data) => {
     if (!checkDoswal)
       throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
 
+    // Check semester
+    if (!(await validateSemester(data.nim, data.semester)) || data.semester < 6) throw new Error ("Semester tidak valid")
+
     // Update
     const result = await prisma.tb_pkl.update({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: data.semester,
+          semester: oldSemester,
         },
       },
       data: {
-        semester: oldSemester,
+        semester: data.semester,
         nilai: data.nilai,
         filePkl: fileName,
         statusValidasi: true,
@@ -736,18 +721,21 @@ const validasiDataSkripsi = async (data) => {
     if (!checkDoswal)
       throw new Error("Bukan dosen wali, data mahasiswa tidak dapat diakses");
 
+    // Check semester
+    if (!(await validateSemester(data.nim, data.semester)) || data.semester < 6) throw new Error ("Semester tidak valid")
+
     // Update
     const result = await prisma.tb_skripsi.update({
       where: {
         nim_semester: {
           nim: data.nim,
-          semester: oldSemester,
+          semester: data.semester,
         },
       },
       data: {
         semester: data.semester,
         nilai: data.nilai,
-        tanggalLulusSidang: data.tanggalLulusSidang,
+        tanggalLulusSidang: new Date(data.tanggalLulusSidang),
         lamaStudi: data.lamaStudi,
         fileSkripsi: fileName,
         statusValidasi: true,
@@ -769,6 +757,19 @@ const validasiDataSkripsi = async (data) => {
 
 const updateStatusAktifMhs = async (data) => {
   try {
+    // Check doswal
+    const checkDoswal = await prisma.tb_mhs.findUnique({
+      where: {
+        nim: data.nim
+      },
+      select: {
+        kodeWali: true
+      }
+    })
+
+    if (!checkDoswal) throw new Error("Mahasiswa not found")
+    if (checkDoswal.kodeWali != data.nip) throw new Error("Bukan dosen wali, tidak dapat mengupdate mahasiswa")
+
     const result = await prisma.tb_mhs.update({
       where: {
         nim: data.nim

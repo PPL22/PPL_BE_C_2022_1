@@ -82,11 +82,7 @@ const login = async (data) => {
       const userAccessToken = jwt.sign(
         { id: id, role: role },
         process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "12h" }
-      );
-      const userRefreshToken = jwt.sign(
-        { id: id, role: role },
-        process.env.REFRESH_TOKEN_SECRET
+        { expiresIn: "1h" }
       );
 
       return {
@@ -95,8 +91,7 @@ const login = async (data) => {
         nama: nama,
         image: foto,
         firstTime: firstTime,
-        accessToken: userAccessToken,
-        refreshToken: userRefreshToken,
+        accessToken: userAccessToken
       };
     } else {
       throw new Error("Wrong password");
