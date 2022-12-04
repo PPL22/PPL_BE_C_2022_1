@@ -21,6 +21,7 @@ const searchMahasiswa = async (data) => {
         select: {
           nama: true,
           nim: true,
+          foto: true,
         },
       });
     } else {
@@ -43,6 +44,7 @@ const searchMahasiswa = async (data) => {
         select: {
           nama: true,
           nim: true,
+          foto: true,
         },
       });
     }
