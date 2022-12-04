@@ -35,12 +35,12 @@ const updateDataMahasiswaController = async (req, res) => {
   // check null input
   if (
     !nim ||
-    !username ||
-    !oldUsername ||
-    !email ||
-    !password ||
-    !alamat ||
-    !kodeKab ||
+    !username.trim() ||
+    !oldUsername.trim() ||
+    !email.trim() ||
+    !password.trim() ||
+    !alamat.trim() ||
+    !kodeKab.trim() ||
     !foto ||
     !noHP
   ) {

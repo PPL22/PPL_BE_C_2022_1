@@ -56,11 +56,11 @@ const updateDataDosenController = async (req, res) => {
   // check null input
   if (
     !nip ||
-    !username ||
-    !oldUsername ||
-    !email ||
-    !password ||
-    !alamat ||
+    !username.trim() ||
+    !oldUsername.trim() ||
+    !email.trim() ||
+    !password.trim() ||
+    !alamat.trim() ||
     !kodeKab ||
     !noHP
   ) {
@@ -144,7 +144,7 @@ const updateDataDosenController = async (req, res) => {
     console.log({
       message: "Data berhasil diubah",
       data: result,
-    })
+    });
     return res.status(200).json({
       message: "Data berhasil diubah",
       data: result,
@@ -258,7 +258,6 @@ const validasiDataIrsController = async (req, res) => {
     });
   }
 
-  
   // Check status
   const statusIRS = ["Aktif", "Cuti"];
   if (!statusIRS.includes(status)) {
@@ -266,16 +265,15 @@ const validasiDataIrsController = async (req, res) => {
       message: "Status IRS tidak valid",
     });
   }
-  
+
   // Check jumlah sks
   if (jumlahSks < 0 || jumlahSks > 24) {
     return res.status(400).json({
       message: "Jumlah SKS tidak valid",
     });
   }
-  
+
   try {
-   
     const data = {
       nip,
       nim,
@@ -328,23 +326,23 @@ const validasiDataKhsController = async (req, res) => {
   }
 
   // TODO-VALIDATE: Recheck validate semester in KHS (validasi dosen)
-  
+
   // Check jumlah sks
   if (jumlahSksSemester < 0 || jumlahSksSemester > 24) {
     return res.status(400).json({
       message: "Jumlah SKS tidak valid",
     });
   }
-  
+
   // Check IPS
   if (parseFloat(ips) < 0 || parseFloat(ips) > 4) {
     return res.status(400).json({
       message: "IPS tidak valid",
     });
   }
-  
+
   // TODO-VALIDATE: validasi jumlah sks kumulatif
-   
+
   // Check IPK
   if (parseFloat(ipk) < 0 || parseFloat(ipk) > 4) {
     return res.status(400).json({
@@ -389,9 +387,8 @@ const validasiDataPklController = async (req, res) => {
     });
   }
 
-  
   // TODO-VALIDATE: validasi nilai PKL
-  
+
   try {
     const data = {
       nip,
@@ -400,7 +397,7 @@ const validasiDataPklController = async (req, res) => {
       nilai,
       fileName,
     };
-    
+
     const result = await validasiDataPkl(data);
     return res.status(200).json({
       message: "validasi data progress PKL berhasil",
@@ -434,7 +431,7 @@ const validasiDataSkripsiController = async (req, res) => {
     });
   }
   // TODO-VALIDATE: Check nilai skripsi, lama studi, dan tanggalLulusSidang
-  
+
   try {
     const data = {
       nip,
@@ -445,7 +442,7 @@ const validasiDataSkripsiController = async (req, res) => {
       lamaStudi,
       fileName,
     };
-    
+
     const result = await validasiDataSkripsi(data);
     return res.status(200).json({
       message: "validasi data progress Skripsi berhasil",
@@ -633,7 +630,7 @@ const cetakDaftarMhsDosenController = async (req, res) => {
 };
 
 const updateStatusAktifMhsController = async (req, res) => {
-  const nip = req.id
+  const nip = req.id;
   const { nim, statusAktif } = req.body;
   if (!nim || !statusAktif) {
     return res.status(400).json({
